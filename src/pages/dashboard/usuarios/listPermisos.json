@@ -1,0 +1,475 @@
+[
+  {
+    "label": "Seleccionar todos los permisos",
+    "value": "Seleccionar todos los permisos",
+    "children": [
+      {
+        "label": "Gestión de Red",
+        "value": "Gestión de Red",
+        "children": [
+          { 
+            "label": "Router",
+            "value": "Router",
+            "children": [
+              { "label": "Acceso Menú", "value": "GestionRed-Router-AccesoMenu" },
+              { "label": "Nuevo", "value": "GestionRed-Router-Nuevo" },
+              { "label": "Editar", "value": "GestionRed-Router-Editar" },
+              { "label": "Eliminar", "value": "GestionRed-Router-Eliminar" }
+            ]
+          },
+          { 
+              "label": "Redes Ipv4",
+              "value": "Redes Ipv4",
+              "children": [
+                { "label": "Acceso Menú", "value": "GestionRed-Redes-AccesoMenu" },
+                { "label": "Nuevo", "value": "GestionRed-Redes-Nuevo" },
+                { "label": "Editar", "value": "GestionRed-Redes-Editar" },
+                { "label": "Eliminar", "value": "GestionRed-Redes-Eliminar" },
+                { "label": "Escanear Red", "value": "GestionRed-Redes-EscanearRed" }
+              ]
+          },
+          { 
+              "label": "Monitoreo",
+              "value": "Monitoreo",
+              "children": [
+                { "label": "Acceso Menú", "value": "GestionRed-Monitoreo-AccesoMenu" },
+                { "label": "Nuevo", "value": "GestionRed-Monitoreo-Nuevo" },
+                { "label": "Editar", "value": "GestionRed-Monitoreo-Editar" },
+                { "label": "Eliminar", "value": "GestionRed-Monitoreo-Eliminar" },
+                { "label": "Ver antena", "value": "GestionRed-Monitoreo-VerAntena" },
+                { "label": "Ping Antena", "value": "GestionRed-Monitoreo-PingAntena" },
+                { "label": "Gráficos", "value": "GestionRed-Monitoreo-Graficos" }
+              ]
+          },
+          { 
+              "label": "Trafico",
+              "value": "Trafico",
+              "children": [
+                { "label": "Lista tráfico", "value": "GestionRed-Trafico-Lista" },
+                { "label": "Lista Ips visitadas", "value": "GestionRed-Monitoreo-ListaIPS" }
+              ]
+          }
+        ]
+      },
+      {
+        "label": "Servicios",
+        "value": "Servicios",
+        "children": [
+          { 
+            "label": "Internet",
+            "value": "Internet",
+            "children": [
+              { "label": "Acceso Menú", "value": "Servicios-Internet-AccesoMenu" },
+              { "label": "Nuevo", "value": "Servicios-Internet-Nuevo" },
+              { "label": "Editar", "value": "Servicios-Internet-Editar" },
+              { "label": "Eliminar", "value": "Servicios-Internet-Eliminar" }
+            ]
+          },
+          { 
+              "label": "Voz",
+              "value": "Voz",
+              "children": [
+                { "label": "Acceso Menú", "value": "Servicios-Voz-AccesoMenu" },
+                { "label": "Nuevo", "value": "Servicios-Voz-Nuevo" },
+                { "label": "Editar", "value": "Servicios-Voz-Editar" },
+                { "label": "Eliminar", "value": "Servicios-Voz-Eliminar" }
+              ]
+          },
+          { 
+              "label": "Personalizado",
+              "value": "Personalizado",
+              "children": [
+                { "label": "Acceso Menú", "value": "Servicios-Personalizado-AccesoMenu" },
+                { "label": "Nuevo", "value": "Servicios-Personalizado-Nuevo" },
+                { "label": "Editar", "value": "Servicios-Personalizado-Editar" },
+                { "label": "Eliminar", "value": "Servicios-Personalizado-Eliminar" }                
+              ]
+          }
+        ]
+      },
+      {
+        "label": "Clientes",
+        "value": "Clientes",
+        "children": [
+          { 
+            "label": "Usuarios",
+            "value": "Usuarios",
+            "children": [
+              { "label": "Acceso Menú", "value": "Clientes-Usuarios-AccesoMenu" },
+              { "label": "Nuevo", "value": "Clientes-Usuarios-Nuevo" },
+              { "label": "Eliminar", "value": "Clientes-Usuarios-Eliminar" },
+              { "label": "Ver perfil(Editar)", "value": "Clientes-Usuarios-VerPerfil" },
+              { "label": "Editar datos", "value": "Clientes-Usuarios-EnviarDatos" },
+              { "label": "Activar/Suspender", "value": "Clientes-Usuarios-ActivarSuspender" },
+              { "label": "Retirar", "value": "Clientes-Usuarios-Retirar" },
+              { "label": "Herramientas", "value": "Clientes-Usuarios-Herramientas" }
+            ]
+          },
+          { 
+              "label": "Contratos",
+              "value": "Contratos",
+              "children": [
+                { "label": "Acceso Menú", "value": "Clientes-Contratos-AccesoMenu" },
+                { "label": "Nuevo", "value": "Clientes-Contratos-Nuevo" },
+                { "label": "Eliminar", "value": "Clientes-Contratos-Eliminar" },
+                { "label": "Editar", "value": "Clientes-Contratos-Editar" }
+              ]
+          },
+          { 
+              "label": "Servicios",
+              "value": "Servicios ",
+              "children": [
+                { "label": "Nuevo", "value": "Clientes-Servicios-Nuevo" },
+                { "label": "Editar", "value": "Clientes-Servicios-Editar" },
+                { "label": "Eliminar", "value": "Clientes-Servicios-Eliminar" }                
+              ]
+          },
+          { 
+            "label": "Facturación",
+            "value": "Facturación",
+            "children": [
+              { "label": "Nueva factura", "value": "Clientes-Fact-NuevaFactura" },
+              { "label": "Eliminar factura", "value": "Clientes-Fact-EliminarFactura" },
+              { "label": "Editar factura", "value": "Clientes-Fact-EditarFactura" },                
+              { "label": "Anular factura", "value": "Clientes-Fact-AnularFactura" },                
+              { "label": "Configuración", "value": "Clientes-Fact-Configuracion" },                
+              { "label": "Pagar factura", "value": "Clientes-Fact-PagarFactura" },                
+              { "label": "Editar pago factura", "value": "Clientes-Fact-EditPagoFact" },                
+              { "label": "Eliminar pago factura", "value": "Clientes-Fact-DeletePagoFact" },                
+              { "label": "Agregar saldo", "value": "Clientes-Facturacion-AgregarSaldo" },                
+              { "label": "Eliminar saldo", "value": "Clientes-Facturacion-EliminarSaldo" }
+            ]
+          },
+          { 
+              "label": "Soporte",
+              "value": "Soporte",
+              "children": [
+                { "label": "Nuevo", "value": "Clientes-Soporte-Nuevo" },
+                { "label": "Editar", "value": "Clientes-Soporte-Editar" },                
+                { "label": "Eliminar", "value": "Clientes-Soporte-Eliminar" },
+                { "label": "Cerrar", "value": "Clientes-Soporte-Cerrar" }
+              ]
+          },
+          { 
+              "label": "Email & SMS",
+              "value": "Email & SMS",
+              "children": [
+                { "label": "Nuevo correo", "value": "Clientes-EmailSMS-NuevoEmail" },
+                { "label": "Reenviar correo", "value": "Clientes-EmailSMS-ReenviarEmail" },                
+                { "label": "Nuevo sms", "value": "Clientes-EmailSMS-NuevoSMS" },
+                { "label": "Reenviar sms", "value": "Clientes-EmailSMS-ReenviarSMS" }
+              ]
+          },
+          { 
+              "label": "Documentos",
+              "value": "Documentos",
+              "children": [
+                { "label": "Nuevo Contrato", "value": "Clientes-Documents-NuevoContrato" },
+                { "label": "Eliminar Contrato", "value": "Clientes-Documents-DeleteContrato" },                
+                { "label": "Editar Contrato", "value": "Clientes-Documentos-EditContrato" },                
+                { "label": "Nuevo documento", "value": "Clientes-Documentos-NuevoDocument" },
+                { "label": "Eliminar documento", "value": "Clientes-Documentos-DeleteDocument" },
+                { "label": "Editar documento", "value": "Clientes-Documentos-EditarDocument" },
+                { "label": "Nueva nota", "value": "Clientes-Documentos-NuevaNota" },
+                { "label": "Eliminar nota", "value": "Clientes-Documentos-EliminarNota" }
+              ]
+          },
+          { 
+              "label": "Mapa clientes",
+              "value": "Mapa clientes",
+              "children": [
+                { "label": "Mapa cliente", "value": "Clientes-MapaCliente" }
+              ]
+          },
+          { 
+              "label": "Anuncios",
+              "value": "Anuncios",
+              "children": [
+                { "label": "Acceso menú", "value": "Clientes-Anuncios-AccesoMenu" },
+                { "label": "Nuevo", "value": "Clientes-Anuncios-Nuevo" },
+                { "label": "Eliminar", "value": "Clientes-Anuncios-Eliminar" }
+              ]
+          },
+          { 
+              "label": "Instalaciones",
+              "value": "Instalaciones",
+              "children": [
+                { "label": "Acceso menú", "value": "Clientes-Instalaciones-AccesoMenu" },
+                { "label": "Nuevo registro", "value": "Clientes-Instalaciones-NuevoRegistro" },
+                { "label": "Eliminar registro", "value": "Clientes-Instalaciones-DeleteRegistro" },
+                { "label": "Editar registro", "value": "Clientes-Instalaciones-EditarRegistro" },
+                { "label": "Aceptar instalación", "value": "Clientes-Instalaciones-AceptarInstalacion" },
+                { "label": "Eliminar instalación", "value": "Clientes-Instalaciones-EliminarInstalacion" },
+                { "label": "Agregar materiales", "value": "Clientes-Instalaciones-AddMaterial" },
+                { "label": "Dar alta instalación", "value": "Clientes-Instalaciones-DarAltaInstalacion" },
+                { "label": "Editar instalación", "value": "Clientes-Instalaciones-EditarInstalacion" }
+              ]
+          },
+          { 
+              "label": "Correo",
+              "value": "Correo",
+              "children": [
+                { "label": "Acceso menú", "value": "Clientes-Correo-AccesoMenu" },
+                { "label": "Nuevo", "value": "Clientes-Correo-Nuevo" },
+                { "label": "Reenviar", "value": "Clientes-Correo-Reenviar" }
+              ]
+          }
+        ]
+      },
+      {
+        "label": "Fichas Hotspot",
+        "value": "Fichas Hotspot",
+        "children": [
+          { 
+            "label": "Fichas",
+            "value": "Fichas",
+            "children": [
+              { "label": "Acceso Menú", "value": "FichasHotspot-Fichas-AccesoMenu" },
+              { "label": "Nuevo", "value": "FichasHotspot-Fichas-Nuevo" },
+              { "label": "Eliminar", "value": "FichasHotspot-Fichas-Eliminar" },
+              { "label": "Imprimir", "value": "FichasHotspot-Fichas-Imprimir" }
+            ]
+          },
+          { 
+              "label": "Router/Perfiles",
+              "value": "Router/Perfiles",
+              "children": [
+                { "label": "Acceso Menú", "value": "FichasHotspot-Router-AccesoMenu" },
+                { "label": "Nuevo router", "value": "FichasHotspot-Router-NuevoRouter" },
+                { "label": "Eliminar router", "value": "FichasHotspot-Router-EliminarRouter" },
+                { "label": "Editar router", "value": "FichasHotspot-Router-EditarRouter" },
+                { "label": "Nuevo perfil", "value": "FichasHotspot-Router-NuevoPerfil" },
+                { "label": "Eliminar perfil", "value": "FichasHotspot-Router-EliminarPerfil" },
+                { "label": "Editar perfil", "value": "FichasHotspot-Router-EditarPerfil" }
+              ]
+          },
+          { 
+              "label": "Plantillas",
+              "value": "Plantillas",
+              "children": [
+                { "label": "Acceso Menú", "value": "FichasHotspot-Plantillas-AccesoMenu" },
+                { "label": "Nuevo", "value": "FichasHotspot-Plantillas-Nuevo" },
+                { "label": "Eliminar", "value": "FichasHotspot-Plantillas-Eliminar" },                
+                { "label": "Editar", "value": "FichasHotspot-Plantillas-Editar" }                
+              ]
+          }
+        ]
+      },
+      {
+        "label": "Tareas",
+        "value": "Tareas",
+        "children": [
+          { 
+            "label": "Lista tareas",
+            "value": "Lista tareas",
+            "children": [
+              { "label": "Nuevo", "value": "Tareas-Nuevo" },
+              { "label": "Eliminar", "value": "Tareas-Eliminar" },
+              { "label": "Editar", "value": "Tareas-Editar" }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Finanzas",
+        "value": "Finanzas",
+        "children": [
+          { 
+            "label": "Facturas",
+            "value": "Facturas",
+            "children": [
+              { "label": "Acceso Menú", "value": "Finanzas-Facturas-AccesoMenu" },
+              { "label": "Pagar", "value": "Finanzas-Facturas-Pagar" },
+              { "label": "Editar", "value": "Finanzas-Facturas-Editar" },
+              { "label": "Eliminar", "value": "Finanzas-Facturas-Eliminar" },
+              { "label": "Anular", "value": "Finanzas-Facturas-Anular" },
+              { "label": "Herramientas", "value": "Finanzas-Facturas-Herramientas" }
+            ]
+          },
+          { 
+            "label": "Registar pago",
+            "value": "Registar pago",
+            "children": [
+              { "label": "Acceso Menú", "value": "Finanzas-RegistarPago-AccesoMenu" },
+              { "label": "Pagos masivos", "value": "Finanzas-RegistarPago-PagosMasivos" },
+              { "label": "Pagar", "value": "Finanzas-RegistarPago-Pagar" },
+              { "label": "Promesa de pago", "value": "Finanzas-RegistarPago-PromesaPago" },
+              { "label": "Permitir saldo", "value": "Finanzas-RegistarPago-PermitirSaldo" },
+              { "label": "Cambiar dia de pago", "value": "Finanzas-RegistarPago-CambiarDiaPago" },
+              { "label": "Eliminar pago", "value": "Finanzas-RegistarPago-Eliminarpago" },
+              { "label": "Editar pago", "value": "Finanzas-RegistarPago-EditarPago" }
+            ]
+          },
+          { 
+            "label": "Transacciones",
+            "value": "Transacciones",
+            "children": [
+              { "label": "Acceso Menú", "value": "Finanzas-Transacciones-AccesoMenu" },
+              { "label": "Editar", "value": "Finanzas-Transacciones-Editar" },
+              { "label": "Eliminar", "value": "Finanzas-Transacciones-Eliminar" },
+              { "label": "Resumen PDF/Totales", "value": "Finanzas-Transacciones-ResumenPDF" },
+              { "label": "Estadisticas", "value": "Finanzas-Transacciones-Estadisticas" }
+            ]
+          },
+          { 
+            "label": "Ingresos & Egresos",
+            "value": "Ingresos & Egresos",
+            "children": [
+              { "label": "Nuevo", "value": "Finanzas-IngresosEgresos-Nuevo" },
+              { "label": "Eliminar", "value": "Finanzas-IngresosEgresos-Eliminar" },
+              { "label": "Editar", "value": "Finanzas-IngresosEgresos-Editar" }
+            ]
+          },
+          { 
+            "label": "Reporte pago",
+            "value": "Reporte pago",
+            "children": [
+              { "label": "Marcar revisado", "value": "Finanzas-ReportePago-MarcarRevisado" },
+              { "label": "Pagar factura", "value": "Finanzas-ReportePago-PagarFactura" }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Almacén",
+        "value": "Almacén",
+        "children": [
+          { 
+            "label": "Categorías",
+            "value": "Categorías",
+            "children": [
+              { "label": "Acceso Menú", "value": "Almacen-Categorías-AccesoMenu" },
+              { "label": "Nuevo", "value": "Almacen-Categorías-Nuevo" },
+              { "label": "Editar", "value": "Almacen-Categorías-Editar" },
+              { "label": "Eliminar", "value": "Almacen-Categorías-Eliminar" }
+            ]
+          },
+          { 
+            "label": "Productos",
+            "value": "Productos",
+            "children": [
+              { "label": "Acceso Menú", "value": "Almacen-Productos-AccesoMenu" },
+              { "label": "Nuevo", "value": "Almacen-Productos-Nuevo" },
+              { "label": "Editar", "value": "Almacen-Productos-Editar" },
+              { "label": "Eliminar", "value": "Almacen-Productos-Eliminar" }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Ticket_soporte",
+        "value": "Ticket_soporte",
+        "children": [
+          { 
+            "label": "Ticket",
+            "value": "Ticket",
+            "children": [
+              { "label": "Acceso Menú", "value": "TicketSoporte-Ticket-AccesoMenu" },
+              { "label": "Nuevo", "value": "TicketSoporte-Ticket-Nuevo" },
+              { "label": "Editar", "value": "TicketSoporte-Ticket-Editar" },
+              { "label": "Eliminar", "value": "TicketSoporte-Ticket-Eliminar" },
+              { "label": "Cerrar", "value": "TicketSoporte-Ticket-Cerrar" },
+              { "label": "Ver todos los tickets(Solo para técnicos)", "value": "TicketSoporte-Ticket-VerAllTickets" }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "SMS ",
+        "value": "SMS ",
+        "children": [
+          { 
+            "label": "SMS  ",
+            "value": "SMS  ",
+            "children": [
+              { "label": "Acceso Menú", "value": "SMS-SMS-AccesoMenu" },
+              { "label": "Nuevo", "value": "SMS-SMS-Nuevo" },
+              { "label": "Reenviar", "value": "SMS-SMS-Reenviar" }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Configuración",
+        "value": "Configuración",
+        "children": [
+          { 
+            "label": "Ajustes",
+            "value": "Ajustes",
+            "children": [
+              { "label": "Acceso Menú", "value": "Configuración-Ajustes-AccesoMenu" },
+              { "label": "General", "value": "Configuración-Ajustes-General" },
+              { "label": "Gestión personal", "value": "Configuración-Ajustes-GestiónPersonal" },
+              { "label": "Servidor de correo", "value": "Configuración-Ajustes-ServidorCorreo" },
+              { "label": "Facturación", "value": "Configuración-Ajustes-Facturación" },
+              { "label": "Factura Electrónica", "value": "Configuración-Ajustes-FacturaElectronica" },
+              { "label": "Pasarelas de pagos", "value": "Configuración-Ajustes-PasarelasPago" },
+              { "label": "Editor plantillas", "value": "Configuración-Ajustes-EditorPlantillas" },
+              { "label": "Portal cliente", "value": "Configuración-Ajustes-PortalClientes" },
+              { "label": "Tickets", "value": "Configuración-Ajustes-Tickets" },
+              { "label": "Importar clientes", "value": "Configuración-Ajustes-ImportarClientes" },
+              { "label": "Ubicaciones", "value": "Configuración-Ajustes-Ubicaciones" }
+            ]
+          },
+          { 
+            "label": "Ajustes",
+            "value": "Ajustes",
+            "children": [
+              { "label": "SMS", "value": "Configuración-Ajustes-SMS" },
+              { "label": "Cloud", "value": "Configuración-Ajustes-Cloud" },
+              { "label": "Google", "value": "Configuración-Ajustes-Google" },
+              { "label": "Bases de datos", "value": "Configuración-Ajustes-BasesDatos" },
+              { "label": "Cambios masivos", "value": "Configuración-Ajustes-CambiosMasivos" },
+              { "label": "Plantilla configuración", "value": "Configuración-Ajustes-PlantillaConfig" },
+              { "label": "Crontab", "value": "Configuración-Ajustes-Crontab" },
+              { "label": "Logs", "value": "Configuración-Ajustes-Logs" },
+              { "label": "Sistema", "value": "Configuración-Ajustes-Sistema" },
+              { "label": "Servidor", "value": "Configuración-Ajustes-Servidor" },
+              { "label": "Licencia", "value": "Configuración-Ajustes-Licencia" },
+              { "label": "Migrar", "value": "Configuración-Ajustes-Migrar" },
+              { "label": "Actualizar sistema", "value": "Configuración-Ajustes-ActualizarSistema" }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Widget Inicio",
+        "value": "Widget Inicio",
+        "children": [
+          { 
+            "label": "Widgets",
+            "value": "Widgets",
+            "children": [
+              { "label": "Clientes online", "value": "WidgetInicio-Widget-ClientesOnline" },
+              { "label": "Transacciones", "value": "WidgetInicio-Widget-Transacciones" },
+              { "label": "Facturas", "value": "WidgetInicio-Widget-Facturas" },
+              { "label": "Ticket soporte", "value": "WidgetInicio-Widget-TicketSoporte" },
+              { "label": "Tráfico", "value": "WidgetInicio-Widget-Tráfico" },
+              { "label": "Resumen sistema", "value": "WidgetInicio-Widget-ResumenSistema" },
+              { "label": "Pagos registrados", "value": "WidgetInicio-Widget-PagosRegistrados" },
+              { "label": "Últimos conectados", "value": "WidgetInicio-Widget-ÚltimosConectados" },
+              { "label": "Servidor", "value": "WidgetInicio-Widget-Servidor" },
+              { "label": "Resumen Facturación", "value": "WidgetInicio-Widget-ResumenFacturacion" },
+              { "label": "Emisores", "value": "WidgetInicio-Widget-Emisores" }
+            ]
+          }
+        ]
+      },
+      {
+        "label": "Widget Notificaciones",
+        "value": "Widget Notificaciones",
+        "children": [
+          { 
+            "label": "Widgets",
+            "children": [
+              { "label": "Telegram", "value": "WidgetNot-Widget-Telegram" },
+              { "label": "Registrar pago", "value": "WidgetNot-Widget-RegistrarPago" },
+              { "label": "Notificaciones Generales", "value": "WidgetNot-Widget-NotificacionesGenerales" },
+              { "label": "Notificaciones Soporte", "value": "WidgetNot-Widget-NotificacionesSoporte" }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
