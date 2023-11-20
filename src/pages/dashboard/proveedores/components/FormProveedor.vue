@@ -38,8 +38,9 @@
 
       <div class="col-xs-12 col-sm-5">
         <label>Numero de Documento:</label>
-        <q-input v-model="formProveedor.numero_documento" 
-          :disable="formProveedor.tipo_documento === '' "
+        <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+          v-model="formProveedor.numero_documento" 
+          :readonly="formProveedor.tipo_documento === '' "
           counter :maxlength="formProveedor.tipo_documento === 'RUC' ? 13 : 10"
           :rules="validateNumDocument"
           lazy-rules
@@ -48,7 +49,8 @@
 
       <div class="col-xs-12 col-sm-5">
         <label>Celular:</label>
-        <q-input v-model.trim="formProveedor.celular" 
+        <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+          v-model.trim="formProveedor.celular" 
           counter maxlength="10"
           :rules="validateNumCelular"
           lazy-rules @keyup="allowOnlyNumber"

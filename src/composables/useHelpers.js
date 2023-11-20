@@ -1,12 +1,22 @@
 import { useQuasar } from 'quasar'
 import { api } from "boot/axios";
 import { ref } from "vue";
-import { Loading } from 'quasar'
+import { Loading, Screen } from 'quasar'
+import { useAuthUserStore } from "stores/auth-user"
+import JWT from 'jwt-client'
 
 const useHelpers = () => {
 
   const $q = useQuasar();
   const isDeleted = ref(false);
+  const authUserStore = useAuthUserStore();
+
+  let claim = null;
+
+  if(authUserStore.token !== ''){
+    const data = JWT.read( authUserStore.token );
+    claim = data.claim
+  } 
 
   const confirmDelete = ( message, ruta ) => {
     isDeleted.value = false;
@@ -27,6 +37,8 @@ const useHelpers = () => {
   }
 
   const mostrarNotify = (type, messages, position = 'top-right') => {
+
+    if(Screen.xs) position = 'top';
 
     let template = ''
 
@@ -57,6 +69,7 @@ const useHelpers = () => {
   }
 
   return{
+    claim,
     confirmDelete,
     mostrarNotify,
     isDeleted,

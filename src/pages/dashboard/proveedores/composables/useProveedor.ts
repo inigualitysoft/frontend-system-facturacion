@@ -20,10 +20,10 @@ export interface Proveedor {
 
 const modalAgregarProveedor = ref(false);
 const modalEditarProveedor  = ref(false);
-const listProvincias = ref<string[] | any>([]);
-const listCantones   = ref<string[] | any>([]);
-const loading        = ref( false );   
-const actualizarLista      = ref( false );
+const listProvincias        = ref<string[] | any>([]);
+const listCantones          = ref<string[] | any>([]);
+const loading               = ref( false );   
+const actualizarLista       = ref( false );
 
 const formProveedor = ref<Proveedor>({
   razon_social: '',

@@ -20,9 +20,9 @@ const formProduct = ref<Product>({
   aplicaIva: false,
   codigoBarra: '',
   nombre: '',
-  precio_compra: 0.00,
-  pvp: 0.00,
-  stock: 0.00,
+  precio_compra: 0,
+  pvp: 0,
+  stock: 0,
   descuento: 0.00
 })
 
@@ -34,7 +34,7 @@ const modalFiltrarArticulo = ref( false );
 
 export const useProduct = () => {
 
-  const { mostrarNotify } = useHelpers();
+  const { claim, mostrarNotify } = useHelpers();
 
   const limpiarFormulario = () => {
     formProduct.value.aplicaIva = false;
@@ -118,6 +118,7 @@ export const useProduct = () => {
   return {
     allowOnlyNumber,
     actualizarTabla,
+    claim,
     formProduct,
     transformToUpperCase,
     limpiarFormulario,

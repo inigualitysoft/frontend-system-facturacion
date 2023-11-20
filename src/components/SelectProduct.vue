@@ -1,6 +1,7 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, emit } from 'vue'
   import { Product } from '../pages/dashboard/productos/composables/useProducts';
+  import { useProduct } from "../composables/useProduct.ts";
 
   const columns: any = [
     { name: 'add', label: 'Agregar' },
@@ -10,21 +11,30 @@
     { name: 'aplicaIva', label: 'Aplica IVA', align: 'center', field: 'aplicaIva' },
     { name: 'stock', label: 'Stock', align: 'center', field: 'stock' },
     { name: 'pvm', label: 'Precio de Compra', align: 'center', field: 'pvm' },
+    { name: 'sucursal', label: 'Sucursal', align: 'center', field: 'sucursal' },
   ]
 
-  const props = defineProps<{ listProductos: Product[] }>();
+  const props = defineProps<{ listProductos: any }>();
   const emit  = defineEmits(['agregarProduct']);
+  const { claim, sucursal_selected } = useProduct();
 
-  const rows = ref<Product[]>([]);
+  let sucursal_user;
+  if ( claim.roles[0] == 'Administrador' || claim.roles[0] == 'Super-Administrador') 
+    sucursal_user = sucursal_selected.value
+  else
+    sucursal_user = claim.sucursales[0]
   
-  rows.value = props.listProductos;
+  const rows = ref<Product[]>([]);
+  const tipo = props.listProductos.tipo
+  
+  rows.value = props.listProductos.data;
 
 </script>
 
 <template>
     <q-card style="width: 1040px; max-width: 80vw;">
       <q-card-section class="q-pb-none">
-        <div class="text-h6 text-center">Buscar Producto</div>
+        <div class="text-h6 text-center">Selecciona un producto</div>
       </q-card-section>
   
       <q-card-section>
@@ -36,12 +46,12 @@
   
               <template v-slot:body-cell-add="props">
                 <q-td :props="props">
-                  <q-btn 
-                    round color="green-10" class="q-ml-md" size="sm"
+                  <q-btn v-if="sucursal_user == props.row.sucursal_id.id"
+                    round color="green-9" class="q-ml-md" size="sm" 
                     @click="emit('agregarProduct', props.row)" icon="fa-solid fa-plus" />
                   
-                  <!-- <q-icon v-else color="blue-grey-8" class="q-ml-md" size="sm"
-                    name="fa-solid fa-ban" /> -->
+                  <q-icon v-else color="red-9" class="q-ml-md" size="sm"
+                    name="fa-solid fa-ban" />
                 </q-td>
               </template>
   
@@ -63,6 +73,10 @@
   
               <template v-slot:body-cell-pvm="props">
                 <q-td :props="props">${{ props.row.precio_compra }}</q-td>
+              </template>
+
+              <template v-slot:body-cell-sucursal="props">
+                <q-td :props="props">{{ props.row.sucursal_id.nombre }}</q-td>
               </template>
   
               <template v-slot:loading>

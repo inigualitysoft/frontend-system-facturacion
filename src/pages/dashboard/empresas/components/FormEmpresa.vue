@@ -37,7 +37,8 @@
 
       <div class="col-xs-12 col-md-5">
         <label>R.U.C</label>
-        <q-input v-model="formEmpresa.ruc" 
+        <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+          v-model="formEmpresa.ruc" 
           counter maxlength="13"
           :rules="validateNumRuc"
           @keyup="allowOnlyNumber" lazy-rules
@@ -75,7 +76,8 @@
 
       <div class="col-xs-12 col-md-5">
         <label>Celular:</label>
-        <q-input v-model="formEmpresa.telefono" 
+        <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+          v-model="formEmpresa.telefono" 
           counter maxlength="10"
           :rules="validateNumCelular"
           @keyup="allowOnlyNumber" lazy-rules
@@ -120,7 +122,7 @@
       <div class="col-xs-12 col-md-5">
         <label>Logo de la empresa:</label>
         <q-file dense filled bottom-slots 
-          
+          accept=".jpg, image/*" @rejected="onRejected"
           v-model="formEmpresa.logo" 
           :label="formEmpresa.logo_old == null ? 
             'Cargar Logo' : formEmpresa.logo_old">

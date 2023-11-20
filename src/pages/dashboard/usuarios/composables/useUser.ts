@@ -10,8 +10,6 @@ export interface User {
   cedula:               string;
   celular:              string;
   fullName:             string;
-  facebook:             string;
-  twitter:              string;
   roles:                string[];
   permisos:             string[];
   horarios_dias:        string[];
@@ -34,15 +32,13 @@ const formUser = ref<User>({
   cedula: '',
   celular: '',
   fullName: '',
-  facebook: '',
-  twitter: '',
   roles: [''],
   permisos: [],
   horarios_dias: [],
   horarios_time: ['', ''],
   receiveSupportEmail: false,
   company: '',
-  sucursales: [],
+  sucursales: [''],
   password: '',
   confirmPassword: '',
   isActive: true
@@ -66,8 +62,6 @@ export const useUser = () => {
       formUser.value.fullName = '';
       formUser.value.usuario = '';
       formUser.value.company = '';
-      formUser.value.facebook = '';
-      formUser.value.twitter = '';
       formUser.value.roles = [''];
       formUser.value.permisos = [];
       formUser.value.horarios_dias = [];
@@ -83,7 +77,7 @@ export const useUser = () => {
       if( formUser.value.roles[0] === '' &&  formUser.value.company !== 'Nuevo')
         return mostrarNotify( 'warning', 'Debes elegir un rol' );
 
-      if( formUser.value.roles[0] !== 'Administrador' && 
+      if( formUser.value.roles[0] !== 'Administrador' && formUser.value.roles[0] !== 'Super-Administrador' && 
           formUser.value.sucursales.length === 0 )
         return mostrarNotify( 'warning', 'Debes elegir alguna sucursal' );
 

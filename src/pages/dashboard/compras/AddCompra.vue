@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref, watch } from 'vue';
+  import { ref, watch, onBeforeUnmount } from 'vue';
   import { api } from "boot/axios";
   import { useRouter } from "vue-router";
   import useHelpers from "../../../composables/useHelpers";
@@ -10,11 +10,10 @@
   import { Product } from '../productos/composables/useProducts';
   import { useProduct } from "../../../composables/useProduct";
   import { useProveedor } from "../proveedores/composables/useProveedor";
-  import { useAuthUserStore } from "stores/auth-user"
-  import JWT from 'jwt-client'
 
   const { 
     agregarAndValidarStock, 
+    claim,
     filterByCodBarra, 
     columns, 
     rows, 
@@ -24,14 +23,16 @@
     loadingState,
     listProductos,
     quitarArticulo,
+    sucursal_selected,
     valorFactura
   } = useProduct();
   let { actualizarLista } = useProveedor();
 
   let optionsProveedores: any = []
-  const listProveedores: any = ref([]);
+  const listProveedores: any  = ref([]);
   const modalAgregarProveedor = ref(false);
-  const { mostrarNotify } = useHelpers();
+  const { mostrarNotify }     = useHelpers();
+  const sucursales            = ref([]);
 
   const formCompras: any = ref({
     proveedor_id: '',
@@ -43,8 +44,18 @@
   const router = useRouter();
 
   const agregarProduct = ( product: Product ) => {
-    agregarAndValidarStock( product )
+    agregarAndValidarStock( product, 'compras' )
     modalSelectProducto.value = false
+  }
+
+  const getSucursales = async( company_id: string ) => {
+    sucursales.value = [];
+    
+    const { data } = await api.get(`/sucursal/find/${ company_id }/company`);
+
+    data.forEach(( x: any) => {
+      sucursales.value.push({ label: x.nombre, value: x.id })
+    })  
   }
 
   watch(actualizarLista, (currentValue, _) => {
@@ -71,36 +82,48 @@
   }
 
   const onSubmit = async () => {
+    let existeError = false;
     if ( formCompras.value.proveedor_id == '' ) 
       return mostrarNotify('warning', 'Debes elegir algun proveedor')
     if ( formCompras.value.numero_comprobante == '' ) 
       return mostrarNotify('warning', 'Por favor ingresa el numero de comprobante')
     if ( formCompras.value.descripcion == '' ) 
       return mostrarNotify('warning', 'Por favor ingresa una descripción')    
+    if ( (claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador') 
+          && sucursal_selected.value == '' )
+      return mostrarNotify('warning', 'Debes seleccionar una sucursal');
     if (rows.value.length == 0) 
       return mostrarNotify('warning', 'Debes agregar algun producto..');
 
-    formCompras.value.products = rows.value
+    rows.value.forEach((row, index) => {
+      if (row.cantidad <= 0) {
+        mostrarNotify('warning', `Agrega una cantidad cantidad al producto: ${ row.nombre } de la fila: ${ index + 1 }`); 
+        existeError = true; 
+      }
+    });
 
-    const authUserStore = useAuthUserStore();
-    const { claim } = JWT.read( authUserStore.token )
+    if (existeError) return;
+
+    formCompras.value.products = rows.value
 
     formCompras.value = { 
       ...formCompras.value, 
       ...valorFactura.value, 
-      fecha_compra: date.formatDate(formCompras.value.inputDate, 'YYYY-MM-DD'),
+      fecha_compra: date.formatDate(formCompras.value.inputDate, 'DD/MM/YYYY'),
       user_id: claim.id
     }
 
     Dialog.create({
-      title: '¿Deseas Agregar esta Compra?',
-      ok: { push: true, label: 'Agregar' },
+      title: '¿Deseas agregar esta compra?',
+      ok: { push: true, color: 'cyan-10', label: 'Agregar' },
       cancel: { push: true, color: 'blue-grey-6', label: 'Cancelar' }
     }).onOk(async () => {
       try {
         Loading.show({message: 'Cargando...'});
 
-        await api.post('/buys', formCompras.value)
+        let headers = { headers: { sucursal_id: sucursal_selected.value } };
+
+        await api.post('/buys', formCompras.value, headers)
 
         Loading.hide();
 
@@ -114,9 +137,12 @@
     })
   }
 
+  if ( claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador' )
+    getSucursales( claim.company.id );
+
   getProveedores();
 
-  const filterFn = (val: string = '', update: any) => {
+  const filtrarProveedores = (val: string = '', update: any) => {
     if (val === '') 
       return update(() => { listProveedores.value = optionsProveedores })
     
@@ -127,17 +153,47 @@
       )
     })
   }
+
+  const buscarProducto = () => {
+    if ( (claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador') && sucursal_selected.value.length == 0 ) {
+      return mostrarNotify('warning', 'Elige una sucursal primeramente');
+    }else{
+      filterArticulo('compras')
+    }
+  }
+
+  onBeforeUnmount(() => {
+    rows.value = [];
+  })
   
 </script>
 
 <template>
+
+  <div class="q-ma-lg q-pt-md q-mb-none" style="margin-bottom: 10px;">
+    <div class="row q-col-gutter-lg">
+      <div class="col-xs-12 col-md-6" :class="[ $q.screen.width < 1022 ? 'q-pt-sm' : '']">
+        <q-breadcrumbs class="row q-mr-xs" 
+          :class="[ $q.screen.width < 1022 ? 'justify-center q-pt-sm' : 'justify-start ']">
+          <q-breadcrumbs-el label="Inicio" icon="home" to="/" />
+          <q-breadcrumbs-el label="Compras" icon="shopping_cart" to="/compras" />
+          <q-breadcrumbs-el label="Agregar Compra" icon="add_circle" />
+        </q-breadcrumbs>
+      </div>
+
+      <div class="col-xs-12 col-md-6" 
+        :class="[ $q.screen.width < 1022 ? 'text-center q-pt-sm' : 'text-right']">
+        <label class="text-h6 text-center">Nueva Compra</label>
+      </div>
+    </div>
+  </div>
   
-  <div class="row q-pt-lg q-gutter-md justify-center">
-    <div class="col-xs-10 col-md-5 q-mt-lg">
+  <div class="row q-pt-none q-mx-lg q-col-gutter-md">
+    <div class="col-xs-12 col-md-5 q-mt-lg q-pl-none">
       <label>Seleccionar Proveedor: </label>
       <q-select color="orange" filled v-model="formCompras.proveedor_id" dense
         :options="listProveedores" emit-value map-options
-        @filter="filterFn" use-input input-debounce="0">
+        @filter="filtrarProveedores" use-input input-debounce="0">
 
         <template v-slot:append>
           <q-btn round dense flat icon="person_add" @click.stop.prevent="modalAgregarProveedor = true" />
@@ -153,14 +209,20 @@
       </q-select>
     </div>
 
-    <div class="col-xs-10 col-md-3 q-mt-lg">
+    <div class="col-xs-12 col-md-3" 
+      :class="$q.screen.width <= 1023 ? 'q-pl-none' : 'q-mt-lg'">
       <label>Numero de Comprobante: </label>
-      <q-input v-model="formCompras.numero_comprobante" dense filled required />
+      <q-input v-model="formCompras.numero_comprobante" 
+        :input-style="{textAlign: 'center', fontSize: '16px'}"
+        filled mask="###-###-#########" fill-mask dense required />
     </div>
 
-    <div class="col-xs-10 col-md-3 q-mt-lg q-ml-md">
+    <div class="col-xs-12 col-md-4" 
+      :class="$q.screen.width <= 1023 ? 'q-pl-none' : 'q-mt-lg'">
       <label>Fecha de compra: </label>
-      <q-input filled dense v-model="formCompras.inputDate" mask="date" :rules="['date']">
+      <q-input filled dense v-model="formCompras.inputDate" 
+      :input-style="{textAlign: 'center'}"
+        mask="date" :rules="['date']">
         <template v-slot:append>
           <q-icon name="event" class="cursor-pointer">
             <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -175,11 +237,29 @@
       </q-input>
     </div>
 
-    <div class="col-xs-10 col-md-5">
+    <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+      class="col-xs-12 col-md-5 q-ml-none q-pl-none" 
+      :class="$q.screen.width >= 1023 || 'q-pt-none'">
+      <label>Seleccionar Sucursal: 
+      </label>
+      <q-select filled v-model="sucursal_selected"
+        @update:model-value="rows = []"
+        :options="sucursales" emit-value map-options dense>
+        <template v-slot:no-option>
+          <q-item>
+            <q-item-section class="text-grey">
+              No se encontro sucursal
+            </q-item-section>
+          </q-item>
+        </template>
+      </q-select>
+    </div>
+
+    <div v-if="claim.roles[0] !== 'Super-Administrador' && claim.roles[0] !== 'Administrador' && $q.screen.width >= 1023"
+      class="col-xs-12 col-md-5 q-pl-none">
       <label>Filtrar por codigo de barra o nombre del producto:</label>
       <q-input outlined bottom-slots :loading="loadingState" dense
-        v-model.trim="filterByCodBarra" @keyup.enter="filterArticulo">
-  
+        v-model.trim="filterByCodBarra" @keyup.enter="buscarProducto">  
         <template v-slot:append>
           <q-icon v-if="filterByCodBarra !== ''" name="close" @click="filterByCodBarra = ''"
           class="cursor-pointer" />
@@ -188,16 +268,46 @@
       </q-input>
     </div>  
     
-    <div class="col-xs-10 col-md-6">
+    <div class="col-xs-12 col-sm-12 col-md-7" 
+      :class="$q.screen.width <= 1023 ? 'q-pl-none q-pt-sm' : 'q-pt-md'">
       <label>Descripción: </label>
       <q-input v-model.trim="formCompras.descripcion" dense filled required />
     </div>
-    
+
+    <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+      class="col-xs-12 col-md-5 q-pl-none">
+      <label>Filtrar por codigo de barra o nombre del producto:</label>
+      <q-input outlined bottom-slots :loading="loadingState" dense
+        v-model.trim="filterByCodBarra" @keyup.enter="buscarProducto">
+        <template v-slot:append>
+          <q-icon v-if="filterByCodBarra !== ''" name="close" @click="filterByCodBarra = ''"
+          class="cursor-pointer" />
+          <q-icon name="search" />
+        </template>  
+      </q-input>
+    </div> 
+  </div>
+
+  <div v-if="claim.roles[0] !== 'Super-Administrador' && claim.roles[0] !== 'Administrador' && $q.screen.width <= 1023"
+    class="row q-pt-lg q-mx-lg" 
+    :class="[$q.screen.width <= 1023 ? 'justify-center' : 'justify-left q-ml-md']">
+    <div class="col-xs-12 col-md-5">
+      <label>Filtrar por codigo de barra o nombre del producto: </label>
+      <q-input outlined bottom-slots :loading="loadingState" dense
+        v-model.trim="filterByCodBarra" @keyup.enter="buscarProducto">  
+        <template v-slot:append>
+          <q-icon v-if="filterByCodBarra !== ''" name="close" @click="filterByCodBarra = ''"
+          class="cursor-pointer" />
+          <q-icon name="search" />
+        </template>  
+      </q-input>
+    </div> 
   </div>
 
   <q-form @submit="onSubmit">
-    <div class="row q-ma-lg q-pt-md justify-center">
-      <div class="col-xs-11 col-md-12">
+    <div class="row q-mx-lg justify-center" 
+      :class="$q.screen.xs ? 'q-mt-lg' : 'q-mt-md'">
+      <div class="col-12">
         <q-table :rows="rows" :columns="columns" row-key="name" 
           :hide-pagination="true" :rows-per-page-options="[50]"
           :class="[$q.dark.isActive ? '' : 'my-sticky-header-table3']">
@@ -205,7 +315,7 @@
           <template v-slot:no-data="{  }">
             <div class="full-width row flex-center text-lime-10 q-gutter-sm">
               <span class="text-subtitle1">
-                Agrega algún Producto
+                Agrega algún producto
               </span>
               <q-icon size="2em" name="playlist_add" />
             </div>
@@ -248,41 +358,57 @@
           </template>  
         </q-table>
       </div>
-      <div class="col-xs-11 col-md-12" style="display: flex;justify-content: end;">
-        <table :class="[!$q.screen.xs ? 'linearTablaDetalle' : '']">
+
+      <div class="col-12" 
+        style="display: flex;justify-content: end;">
+        <table :class="[!$q.screen.xs ? 'linearTablaDetalle' : 'q-pt-sm']">
           <tr class="text-right">
             <td><b>SUBTOTAL:</b></td>
-            <td style="width: 90px;" class="text-subtitle1 text-weight-regular">
+            <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
               ${{ valorFactura.subtotal }}
             </td>
           </tr>
           <tr class="text-right">
-            <td class="q-py-sm"><b>IVA(12%):</b></td>
-            <td style="width: 90px;" class="q-py-sm text-subtitle1 text-weight-regular">
+            <td><b>IVA(12%):</b></td>
+            <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
               ${{ valorFactura.iva }}
             </td>
           </tr>
           <tr class="text-right">
-            <td class="q-py-sm"><b>TOTAL DESCUENTO:</b></td>
-            <td style="width: 90px;" class="q-py-sm text-subtitle1 text-weight-regular">
+            <td><b>TOTAL DESCUENTO:</b></td>
+            <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
               ${{ valorFactura.descuento }}
             </td>
           </tr>
           <tr class="text-right">
             <td><b>TOTAL DE COMPRA:</b></td>
-            <td style="width: 90px;">
+            <td style="width: 50px;">
               <q-badge outline class="text-subtitle1 text-weight-bold"
                   color="secondary" :label="`$${ valorFactura.total }`" />
             </td>
           </tr>
         </table>
       </div>
-      <div class="col-md-4 offset-4">
-        <q-btn square color="green-10" type="submit" label="Agregar Compra"
-          class="full-width" icon="shopping_cart" />
+
+      <div class="col-12 flex q-mt-md q-pb-md" 
+        :class="[ $q.screen.width < 600 
+                ? 'justify-center' : 'justify-between']">
+    
+        <q-btn v-if="$q.screen.width > 600" icon="arrow_back" @click="$router.push('/compras')"
+          outline rounded class="q-mr-lg" 
+          :color="!$q.dark.isActive ? 'blue-grey-10' : 'blue-grey-2'">
+          &nbsp; Regresar
+        </q-btn>
+    
+        <q-btn type="submit" icon="save" outline rounded 
+          :class="$q.screen.width < 600 ? 'q-px-xl' : 'q-px-lg'"
+          style="color: #696cff">
+          &nbsp; Guardar
+        </q-btn>
       </div>
     </div>
   </q-form>
+
 
   <!-- AGREGAR UN NUEVO PROVEEDOR -->
   <q-dialog v-model="modalAgregarProveedor">

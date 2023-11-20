@@ -18,24 +18,30 @@
 
   let { 
     actualizarLista,
+    claim,
     modalAgregarSucursal,
     modalEditarSucursal,
-    formSucursal
+    formSucursal,
+    cargarCompanies,
+    listCompanies
   } = useSucursal();
-  
+
   const filter  = ref('')
   const rows    = ref([]);
   const loading = ref( false );
+  const selectCompany = ref(claim.company.id);
 
   const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
   watch(actualizarLista, (currentValue, _) => {
     if ( currentValue ) getSucursales(); 
   });
+
   const getSucursales = async () => {
     loading.value = true;
     try {
-      const { data } = await api.get('/sucursal');
+      let headers = { headers: { company_id: selectCompany.value, NotSetHeaderCompany: true } };
+      const { data } = await api.get('/sucursal', headers);
       rows.value = data;
       actualizarLista.value = false;
     } catch (error: any) {
@@ -64,6 +70,8 @@
   }
 
   getSucursales();
+  cargarCompanies();
+
   const mode = ref("list");
   const pagination = ref({
     rowsPerPage: 10
@@ -76,7 +84,7 @@
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-          <q-table title-class="text-grey-7 text-h6" title="Listado de Sucursales"
+          <q-table title-class="text-grey-7 text-h6"          
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
             :filter="filter" :pagination.sync="pagination" >
@@ -91,12 +99,33 @@
               </q-tr>
             </template>
 
+            <template v-slot:top-left="props">
+              <div v-if="claim.roles[0] !== 'Super-Administrador'"
+                class="text-center row justify-center" style="width: 100%;">
+                <label class="q-mb-sm text-grey-7 text-h6">
+                  Listado de Sucursales
+                </label>
+              </div>
+              <div v-if="claim.roles[0] == 'Super-Administrador'"
+              style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
+                <label class="q-mr-sm row items-center">
+                  <span>Empresa: </span> 
+                </label>
+                <q-select outlined dense v-model="selectCompany"
+                  @update:model-value="getSucursales"
+                  emit-value map-options
+                  :options="listCompanies">
+                </q-select>
+              </div>
+            </template>
+
             <template v-slot:top-right="props">
               <q-btn v-if="!$q.screen.xs"
                 @click="modalAgregarSucursal = !modalAgregarSucursal" 
                 outline color="primary" label="Agregar Sucursal" class="q-mr-xs"/>
 
-              <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
+              <q-input :style="$q.screen.width > 700 || 'width: 70%'"
+                outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                 <template v-slot:append>
                   <q-icon name="search"/>
                 </template>
@@ -121,7 +150,7 @@
                 </q-tooltip>
               </q-btn>
 
-            </template>
+            </template>            
 
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
@@ -137,7 +166,10 @@
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
                 <q-btn round color="blue-grey"
-                  @click="formSucursal = { ...props.row }, modalEditarSucursal = true"
+                  @click="formSucursal = { 
+                    ...props.row,
+                    company_id: props.row.company_id.id
+                    }, modalEditarSucursal = true"
                   icon="edit" class="q-mr-sm" size="10px" />
 
                 <template v-if="props.row.isActive">

@@ -9,10 +9,10 @@
 </script>
 
 <template>
-  <q-card style="width: 843px !important;max-width: fit-content">
+  <q-card style="width: 740px !important;max-width: fit-content">
     <q-card-section>
-        <div class="text-h6">
-          Agregar Nuevo Proveedor
+        <div class="text-h6 text-center">
+          Nuevo Proveedor
           <q-btn round flat dense icon="close" class="float-right" color="grey-8" v-close-popup></q-btn>
         </div>
     </q-card-section>

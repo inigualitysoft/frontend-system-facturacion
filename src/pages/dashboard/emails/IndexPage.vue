@@ -1,46 +1,32 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { api } from "boot/axios";
-// import FiltrarProduct from './FiltrarProduct.vue'
-import AddProduct from './AddProduct.vue'
-import EditProduct from './EditProduct.vue'
-import { useProduct } from "./composables/useProducts";
+import { useEmail } from "./composables/useEmail";
 import useHelpers from "../../../composables/useHelpers";
 
   let { 
     actualizarTabla,
-    claim,
     modalAgregarProducto,
     modalEditarProducto,
     formProduct
-  } = useProduct();
+  } = useEmail();
 
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
-    { name: 'codigoBarra', label: 'Codigo de Barra', align: 'center', field: 'codigoBarra' },
-    { name: 'producto', label: 'Producto', align: 'center', field: 'nombre' },
-    { name: 'stock', label: 'Stock', align: 'center', field: 'stock' },
-    { name: 'aplicaIva', label: 'Aplica Iva', align: 'center', field: 'aplicaIva' },
-    { name: 'estado', label: 'Estado', align: 'center', field: 'isActive' }
+    { name: 'empresa_name', label: 'Empresa', align: 'center', field: 'empresa_name' },
+    { name: 'host', label: 'Host', align: 'center', field: 'host' },
+    { name: 'puerto', label: 'Puerto', align: 'center', field: 'puerto' },
+    { name: 'usuario', label: 'Usuario', align: 'center', field: 'usuario' },
+    { name: 'password', label: 'Contraseña', align: 'center', field: 'password' },
   ]
   
   const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
-
-  // const formFiltrarArticulo = ref({
-  //     page: '',
-  //     rowsPerPage: '',
-  //     pv_id: 0,
-  //     tipoBusqueda: 'codigo',
-  //     busqueda: ''
-  // })
 
   const rows = ref([]);
   const tipoBusqueda = ref('codigo');
   const filter = ref<any>('');
   const tableRef = ref();
   const loading = ref(false);
-  const selectSucursal = ref('');
-  const listSucursales = ref([]);
 
   const pagination = ref({
     sortBy: 'desc',
@@ -65,8 +51,6 @@ import useHelpers from "../../../composables/useHelpers";
   })
 
   watch(tipoBusqueda, (currentValue, _) => {
-    // formFiltrarArticulo.value.tipoBusqueda = currentValue;
-
     getArticulos(1, pagination.value.rowsPerPage, null);
   });
 
@@ -85,37 +69,18 @@ import useHelpers from "../../../composables/useHelpers";
     }
   }
 
-  const getSucursales = async () => {
-    loading.value = true;
-    try {
-      const { data } = await api.get('/sucursal');
-      data.forEach((companie: any) => {
-        listSucursales.value.push({
-          label:  companie.nombre,
-          value:  companie.id
-        })
-      });
-      if ( listSucursales.value.length !== 0 ) selectSucursal.value = listSucursales.value[0].value
-    } catch (error: any) {
-      mostrarNotify( 'warning', error.response.data.message )
-    }
-    loading.value = false;
-  }
-
   const getArticulos = async (page: number = 1, rowsPerPage: number = 5, filtro = null) => {
-
-    if ( listSucursales.value.length == 0 ) await getSucursales();
-    
-    let headers = { headers: { sucursal_id: selectSucursal.value } };
-
     try {
-      const { data } = await api.get('/products', {
-        params: { page, limit: rowsPerPage, busqueda: 0 },
-        headers: headers.headers
-      })
+      const { data } = await api.get('/email');
 
-      pagination.value.rowsNumber = data.meta.totalItems;
-      rows.value = data.items;
+      data.forEach(email => {
+        email.empresa_name = email.company_id.nombre_comercial
+        email.host = email.host == '' ? '----------' : email.host
+        email.usuario = email.usuario == '' ? '----------' : email.usuario
+        email.password = email.password == '' ? '----------' : email.password
+      });
+
+      rows.value = data;
     } catch (error) {
       console.log(error)
     }
@@ -151,7 +116,7 @@ import useHelpers from "../../../composables/useHelpers";
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-            <q-table title-class="text-grey-7 text-h6" 
+            <q-table title-class="text-grey-7 text-h6" title="Emails Config"
               :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
               :columns="columns" row-key="name" :grid="mode==='grid'"
               :filter="filter" v-model:pagination="pagination"
@@ -169,31 +134,7 @@ import useHelpers from "../../../composables/useHelpers";
                 </q-tr>
               </template>
 
-              <template v-slot:top-left="props">
-                <div v-if="claim.roles[0] !== 'Super-Administrador' && claim.roles[0] !== 'Administrador'"
-                  class="text-center row justify-center" style="width: 100%;">
-                  <label class="q-mb-sm text-grey-7 text-h6">
-                    Listado de Productos
-                  </label>
-                </div>
-                <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
-                style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
-                  <label class="q-mr-sm row items-center">
-                    <span>Sucursal: </span> 
-                  </label>
-                  <q-select outlined dense v-model="selectSucursal"
-                    @update:model-value="getArticulos()"
-                    emit-value map-options
-                  :options="listSucursales">
-                  </q-select>
-                </div>
-              </template>
-
               <template v-slot:top-right="props">
-                <q-btn v-if="!$q.screen.xs"
-                  @click="modalAgregarProducto = !modalAgregarProducto" 
-                  outline color="primary" label="Agregar Producto" class="q-mr-xs"/>
-
                 <q-input :style="$q.screen.width > 700 || 'width: 70%'"
                   outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                   <template v-slot:append>
@@ -225,39 +166,11 @@ import useHelpers from "../../../composables/useHelpers";
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
                 <q-btn round color="blue-grey"
-                  @click="formProduct = { ...props.row }, modalEditarProducto = true"
-                  icon="edit" class="q-mr-sm" size="10px" />
-
-                <template v-if="props.row.isActive">
-                  <q-btn round color="blue-grey"
-                    v-if="props.row.isActive"
-                    icon="close"
-                    @click="activarDesactivarProduct(props.row.id, false)"
-                    size="10px" />
-                </template>
-
-                <template v-else>
-                  <q-btn round color="blue-grey"
-                    v-if="!props.row.isActive"
-                    icon="done" size="10px"
-                    @click="activarDesactivarProduct(props.row.id, true)" />
-
-                  <q-btn round color="blue-grey" class="q-ml-sm"
-                    v-if="!props.row.isActive"
-                    icon="delete" size="10px"
-                    @click="eliminarProducto(props.row.id)" />
-                </template>
+                @click="$router.push({ name: 'email.edit', params: { email_id: props.row.company_id.id } })"
+                  icon="edit" class="q-mr-sm" size="12px" />
               </q-td>
             </template>
-            <template v-slot:body-cell-codigoBarra="props">
-              <q-td :props="props"> {{ props.row.codigoBarra }} </q-td>
-            </template>
-            <template v-slot:body-cell-producto="props">
-              <q-td :props="props"> {{ props.row.nombre }} </q-td>
-            </template>
-            <template v-slot:body-cell-aplicaIva="props">
-              <q-td :props="props"> {{ props.row.aplicaIva ? 'SI' : 'NO' }} </q-td>
-            </template>
+            
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
                 <q-badge outline class="q-py-xs q-px-md"
@@ -282,20 +195,6 @@ import useHelpers from "../../../composables/useHelpers";
       </div>
     </div>
   </div>
-  
-    <q-dialog v-model="modalAgregarProducto">
-      <AddProduct />
-    </q-dialog>
-  
-    <q-dialog v-model="modalEditarProducto">
-      <EditProduct />
-    </q-dialog> 
-  
-    <q-page-sticky position="bottom-right" :offset="[18, 18]"
-        v-if="$q.screen.xs">
-      <q-btn round color="secondary" size="lg"
-          icon="add" @click="modalAgregarProducto = true" />
-    </q-page-sticky>
   
 </template>
   

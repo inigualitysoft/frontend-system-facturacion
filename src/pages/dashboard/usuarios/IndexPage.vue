@@ -72,7 +72,8 @@
                   @click="$router.push({ name: 'Agregar Usuario' })" 
                   outline color="primary" label="Agregar Usuario" class="q-mr-xs" />
 
-                <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
+                <q-input :style="$q.screen.width > 700 || 'width: 70%'"
+                  outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                   <template v-slot:append>
                     <q-icon name="search"/>
                   </template>

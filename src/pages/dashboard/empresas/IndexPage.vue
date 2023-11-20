@@ -89,7 +89,8 @@
                 @click="modalAgregarEmpresa = !modalAgregarEmpresa" 
                 outline color="primary" label="Agregar Empresa" class="q-mr-xs"/>
 
-              <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
+              <q-input :style="$q.screen.width > 700 || 'width: 70%'"
+                outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                 <template v-slot:append>
                   <q-icon name="search"/>
                 </template>
@@ -125,7 +126,7 @@
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
                 <template v-if="props.row.isActive">
-                    <q-badge outline color="positive" label="Activo" class="q-pa-sm" />
+                    <q-badge outline color="positive" label="Activo"  ss="q-pa-sm" />
                 </template>
                 <template v-else>
                     <q-badge outline color="red" label="Inactivo" class="q-pa-sm" />

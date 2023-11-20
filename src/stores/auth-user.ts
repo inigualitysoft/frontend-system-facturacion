@@ -3,9 +3,11 @@ import { defineStore } from 'pinia';
 export const useAuthUserStore = defineStore('auth/user', {
   state: (): { token: string, modeDark: boolean } => ({
     token: '',
-    modeDark: false
+    modeDark: true
   }),
-  persist: true,
+  persist: {
+    storage: sessionStorage,
+  },
   getters: { },
   actions: {
     setToken(token: string) {

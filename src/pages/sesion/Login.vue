@@ -4,7 +4,6 @@
   import { api } from "boot/axios";
   import { useAuthUserStore } from '../../stores/auth-user';
   import useHelpers from "../../composables/useHelpers";
-  
 
   const isPwd = ref( true )
   const loading = ref( false )
@@ -26,9 +25,11 @@
       router.push('/');
       loading.value = false;
     } catch ( error: any ) {
-      console.log(error);
-      // mostrarNotify('warning', error.response.data.message, 'top');
-      // loading.value = false;
+      if(error.response.data.message == 'Credentials not valid(password)')
+        mostrarNotify('warning', 'La contraseña esta incorrecta');
+      if(error.response.data.message == 'Credentials not valid(email)')
+        mostrarNotify('warning', 'El email esta incorrecto');
+      loading.value = false;
     }
   }
 

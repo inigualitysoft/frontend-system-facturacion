@@ -6,6 +6,7 @@ export interface Cliente {
   id?:              string;
   nombres:          string;
   tipo_documento:   string;
+  company_id:       string;
   numero_documento: string;
   email:            string;
   celular:          string;
@@ -17,6 +18,7 @@ export interface Cliente {
 
 const loading  = ref( false );  
 const formCliente = ref<Cliente>({
+  company_id: '',
   nombres: '',
   tipo_documento: '',
   numero_documento: '',
@@ -31,7 +33,7 @@ const actualizarLista     = ref(false);
 
 export const useCliente = () => {
 
-    const { mostrarNotify }   = useHelpers();
+    const { claim, mostrarNotify } = useHelpers();
 
     const limpiarFormulario = () => {
       formCliente.value.nombres = ''
@@ -65,6 +67,7 @@ export const useCliente = () => {
     const onSubmit = async( edit: boolean ) => {
       try {
         loading.value = true;
+        formCliente.value.company_id = claim.company.id;
         if ( !edit ) 
           await api.post('/customers', formCliente.value)
         else

@@ -9,28 +9,30 @@ declare module '@vue/runtime-core' {
   }
 }
 
-// Be careful when using SSR for cross-request state pollution
-// due to creating a Singleton instance here;
-// If any client changes this (global) instance, it might be a
-// good idea to move this instance creation inside of the
-// "export default () => {}" function below (which runs individually
-// for each client)
 const api = axios.create({ 
-  baseURL: import.meta.env.VITE_BASE_URL,
+  baseURL: `${import.meta.env.VITE_BASE_URL}/api`,
   headers: {'Content-Type': 'application/json'}
 });
 
 api.interceptors.request.use(async function(config){
-	let token = await JSON.parse(localStorage.getItem('auth/user') as string);
-  let claim = null;
+	let token = await JSON.parse(sessionStorage.getItem('auth/user') as string);
+  let claim: any = null;
   
   claim = (token != null && token.token != '' ) ? JWT.read( token.token ) : null;
   token =  token != null ? token.token : '';  
-  
+
 	config.headers.Authorization = token ? `${token}` : null;
 	config.headers.rol_name      = claim != null ? `${ claim.claim.roles[0] }` : null;
-	config.headers.sucursal_id   = claim != null ? `${ claim.claim.company.sucursal[0].id }` : null;
-	config.headers.company_id    = claim != null ? `${ claim.claim.company.id }` : null;
+
+  if ( claim != null && claim.claim.roles[0] != 'Super-Administrador' && 
+      claim.claim.roles[0] != 'Administrador')
+    config.headers.sucursal_id = (claim != null && claim.claim.sucursales ) 
+            ? `${ claim.claim.sucursales[0] }` : null;
+                                
+  if ( claim != null ){
+    if(!config.headers.NotSetHeaderCompany )
+      config.headers.company_id = claim != null ? `${ claim.claim.company.id }` : null;    
+  } 
 
 	return config;
 });

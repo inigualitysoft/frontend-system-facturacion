@@ -5,7 +5,17 @@
         <q-btn flat dense round icon="menu" aria-label="Menu"
           color="grey" class="custom-border" @click="drawer=!drawer"/>
         <q-toolbar-title class="q-ml-sm">
-          <div></div>
+          <div v-if="!$q.screen.xs" class="row justify-center justify-between text-h6" 
+            :class="[!$q.dark.isActive ? 'text-black' : '']">
+            <div>
+              <span class="text-weight-regular">Usuario: </span>
+              <span class="text-weight-light">{{ fullName }}</span>
+            </div>
+            <div>
+              <span class="text-weight-regular">Rol: </span>
+              <span class="text-weight-light">{{ rol }}</span>
+            </div>
+          </div>
         </q-toolbar-title>
 
         <div>
@@ -62,16 +72,22 @@
         <q-scroll-area style="height:100%;">
           <q-list padding>
 
+            <q-list class="q-ml-sm">
+              <q-expansion-item expand-separator icon="language" label="Gestion de Red">
+
+                <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
+                  active-class="bg-light-blue-9" :to="{ name: 'getIp' }"
+                  dense-toggle label="Mostrar Ip" :header-inset-level="0">
+                </q-expansion-item>
+
+              </q-expansion-item>
+            </q-list>
+
+
             <EssentialLink v-for="link in essentialLinks" :key="link.title" v-bind="link" />
 
             <q-list class="q-ml-sm">
               <q-expansion-item expand-separator icon="settings" label="Ajustes">
-
-                <q-expansion-item hide-expand-icon icon="home" class="item-options"
-                  dense-toggle label="General" :header-inset-level="0" 
-                  active-class="bg-light-blue-9"
-                  :to="{ name: 'Ver Ajustes General'}">
-                </q-expansion-item>
 
                 <q-expansion-item hide-expand-icon icon="group" class="item-options"
                   active-class="bg-light-blue-9" :to="{ name: 'Ver Usuarios' }"
@@ -79,7 +95,10 @@
                 </q-expansion-item>
 
                 <q-expansion-item hide-expand-icon icon="mail" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'Configurar Servidor Correo' }"
+                  active-class="bg-light-blue-9" 
+                    :to="claim.roles[0] == 'Super-Administrador' 
+                      ? { name: 'emails' } 
+                      : { name: 'email.edit', params: { email_id: claim.company.id } }"
                   dense-toggle label="Servidor de Correo" :header-inset-level="0">
                 </q-expansion-item>
 
@@ -196,6 +215,8 @@
   }else
     fullName = claim.fullName;
 
+  rol = claim.roles[0];
+  
   watch(
     () => $q.dark.isActive,
     (newValue, _) => {
@@ -263,6 +284,6 @@ body.body--dark {
   color: #697a8d !important;
 }
 .item-options{
-  margin-left: 16px;
+  margin-left: 6px;
 }
 </style>

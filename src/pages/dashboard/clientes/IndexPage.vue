@@ -36,6 +36,7 @@
     loading.value = true;
     try {
       const { data } = await api.get('/customers');
+
       rows.value = data;
       actualizarLista.value = false;
     } catch (error: any) {
@@ -101,7 +102,8 @@
                 @click="modalAgregarCliente = !modalAgregarCliente" 
                 outline color="primary" label="Agregar Cliente" class="q-mr-xs"/>
 
-              <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
+              <q-input :style="$q.screen.width > 700 || 'width: 70%'"
+                outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                 <template v-slot:append>
                   <q-icon name="search"/>
                 </template>
@@ -151,7 +153,8 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                <q-btn round color="blue-grey"
+                <q-btn v-if="props.row.isActive"
+                  round color="blue-grey"
                   @click="formCliente = { ...props.row }, modalEditarCliente = true"
                   icon="edit" class="q-mr-sm" size="10px" />
 

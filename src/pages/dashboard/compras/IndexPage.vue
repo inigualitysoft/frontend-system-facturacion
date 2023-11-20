@@ -30,19 +30,25 @@
   const { validarPermisos } = useRolPermisos();
   const { mostrarNotify } = useHelpers();
   const $q = useQuasar();
-  const authUserStore = useAuthUserStore();
   const loading = ref( false )
-
-  const { claim: { user } } = JWT.read(authUserStore.token);
+  
+  const authUserStore = useAuthUserStore();
+  const { claim } = JWT.read( authUserStore.token );
+  const selectSucursal = ref('');
+  const listSucursales = ref([]);
   
   const getCompras = async () => {
     try {
       loading.value = true;
 
-      const { data } = await api.get('/buys');
+      if ( listSucursales.value.length == 0 ) await getSucursales();
+
+      let headers = { headers: { sucursal_id: selectSucursal.value } };
+
+      const { data } = await api.get('/buys', headers);
 
       data.map( (compra: any) => {
-        compra.fecha_compra = date.formatDate(compra.fecha_compra, 'DD/MM/YYYY');
+        compra.fecha_compra = compra.fecha_compra;
         compra.sucursal_name = compra.sucursal_id.nombre;
         compra.proveedor_name = compra.proveedor_id.razon_social;
         compra.user_name = compra.user_id.fullName;
@@ -57,21 +63,21 @@
     }
   }
   
-  const anularFactura = ( compra: any ) => {
+  const anularCompra = ( compra: any ) => {
     $q.dialog({
-      title: '<center>¿Estas Seguro de anular esta compra?</center>',
-      message: `<span><strong>Num Comprobante</strong>: ${ compra.num_comprobante }</span> <br>
-              <span class='q-my-lg'><strong>Proveedor</strong>: ${ compra.proveedor }</span> <br>
-              <span class='q-my-lg'><strong>Fecha/Hora</strong>: ${ compra.fecha }</span> <br>
-              <span><strong>Total</strong>: $${ compra.total.toFixed(2) }</span> <br>`,
+      title: '<center>¿Estas seguro de anular esta compra?</center>',
+      message: `<span><strong>Num Comprobante</strong>: ${ compra.numero_comprobante }</span> <br>
+              <span class='q-my-lg'><strong>Proveedor</strong>: ${ compra.proveedor_name }</span> <br>
+              <span class='q-my-lg'><strong>Fecha/Hora</strong>: ${ compra.fecha_compra }</span> <br>
+              <span><strong>Total</strong>: ${ compra.total }</span> <br>`,
       html: true,
       ok: { push: true, label:'Anular', color: 'teal-7' },
       cancel: { push: true, color: 'blue-grey-8', label: 'Cancelar' }
     }).onOk(async () => {
       try {
         $q.loading.show({ message: 'Cargando...'})
-        await api.put(`/compras/${ compra.id }`);
-        mostrarNotify('positive', 'Factura Anulada exitosamente');
+        await api.delete(`/buys/${ compra.id }`);
+        mostrarNotify('positive', 'Compra Anulada exitosamente');
         getCompras();
         $q.loading.hide()
       }catch (error){
@@ -88,6 +94,23 @@
         const timeArray = compra.hora_compra.split(':');
         compra.fecha = `${ dateArray[2] }/${ dateArray[1] }/${ dateArray[0] }  ${ timeArray[0] }:${ timeArray[1] } ${ (timeArray[0] < 12 ) ? 'am' : 'pm' }`
     })
+  }
+
+  const getSucursales = async () => {
+    loading.value = true;
+    try {
+      const { data } = await api.get('/sucursal');
+      data.forEach((companie: any) => {
+        listSucursales.value.push({
+          label:  companie.nombre,
+          value:  companie.id
+        })
+      });
+      if ( listSucursales.value.length !== 0 ) selectSucursal.value = listSucursales.value[0].value
+    } catch (error: any) {
+      mostrarNotify( 'warning', error.response.data.message )
+    }
+    loading.value = false;
   }
   
   getCompras();
@@ -106,7 +129,7 @@
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-          <q-table title-class="text-grey-7 text-h6" title="Listado de Compras"
+          <q-table title-class="text-grey-7 text-h6" 
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
             :filter="filter" :pagination.sync="pagination" >
@@ -120,12 +143,33 @@
               </q-tr>
             </template>
 
+            <template v-slot:top-left="props">
+              <div v-if="claim.roles[0] !== 'Super-Administrador' && claim.roles[0] !== 'Administrador'"
+                class="text-center row justify-center" style="width: 100%;">
+                <label class="q-mb-sm text-grey-7 text-h6">
+                  Listado de Compras
+                </label>
+              </div>
+              <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+              style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
+                <label class="q-mr-sm row items-center">
+                  <span>Sucursal: </span> 
+                </label>
+                <q-select outlined dense v-model="selectSucursal"
+                  @update:model-value="getCompras()"
+                  emit-value map-options
+                :options="listSucursales">
+                </q-select>
+              </div>
+            </template>
+
             <template v-slot:top-right="props">
               <q-btn v-if="!$q.screen.xs"
                 @click="$router.push('/compras/add')" 
                 outline color="primary" label="Agregar Compra" class="q-mr-xs"/>
 
-              <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
+              <q-input :style="$q.screen.width > 700 || 'width: 70%'"
+                outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                 <template v-slot:append>
                   <q-icon name="search"/>
                 </template>
@@ -167,7 +211,7 @@
 
                 <q-btn round color="blue-grey"
                   v-if="props.row.isActive"
-                  @click="anularFactura( props.row )"
+                  @click="anularCompra( props.row )"
                   icon="close"
                   size="10px" />
               </q-td>
