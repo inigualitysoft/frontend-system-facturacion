@@ -1,15 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { api } from "boot/axios";
-import { useEmail } from "./composables/useEmail";
 import useHelpers from "../../../composables/useHelpers";
-
-  let { 
-    actualizarTabla,
-    modalAgregarProducto,
-    modalEditarProducto,
-    formProduct
-  } = useEmail();
 
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -20,7 +12,7 @@ import useHelpers from "../../../composables/useHelpers";
     { name: 'password', label: 'Contraseña', align: 'center', field: 'password' },
   ]
   
-  const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { confirmDelete, isDeleted } = useHelpers();
 
   const rows = ref([]);
   const tipoBusqueda = ref('codigo');
@@ -35,39 +27,6 @@ import useHelpers from "../../../composables/useHelpers";
     rowsPerPage: 5,
     rowsNumber: 5
   })
-
-  const activarDesactivarProduct = async (product_id: string, estado: boolean) => {
-    try {
-      const { data: { msg } } = await api.patch(`/products/${ product_id }/${ estado }`)
-      mostrarNotify('positive', msg );
-      getArticulos(1, pagination.value.rowsPerPage, null)   
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  watch( isDeleted, ( newValue, _ ) => { 
-    if ( newValue ) getArticulos(1, pagination.value.rowsPerPage, null)     
-  })
-
-  watch(tipoBusqueda, (currentValue, _) => {
-    getArticulos(1, pagination.value.rowsPerPage, null);
-  });
-
-  watch(actualizarTabla, (currentValue, _) => {
-    if ( currentValue ){
-      getArticulos(1, pagination.value.rowsPerPage, null)    
-      actualizarTabla.value = false
-    } 
-  });
-
-  const eliminarProducto = async ( producto_id: string ) => {
-    try {
-      confirmDelete('Estas seguro de eliminar este producto?', `/products/${ producto_id }`);
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
   const getArticulos = async (page: number = 1, rowsPerPage: number = 5, filtro = null) => {
     try {
@@ -87,8 +46,6 @@ import useHelpers from "../../../composables/useHelpers";
   }
 
   async function onRequest ( props:any ) {
-
-    // formFiltrarArticulo.value.busqueda = filter.value
 
     const { page, rowsPerPage, sortBy, descending } = props.pagination;
 

@@ -1,14 +1,11 @@
-<script setup lang="ts">
+<script setup>
   import { ref, watch, onBeforeUnmount } from 'vue';
   import { api } from "boot/axios";
   import { useRouter, useRoute } from "vue-router";
   import useHelpers from "../../../composables/useHelpers";
   import { date, Dialog, Loading } from 'quasar'
-  import AddCliente from '../clientes/AddCliente.vue'
   import SelectProduct from '../../../components/SelectProduct.vue'
-  import { Product } from '../productos/composables/useProducts';
   import { useProduct } from "../../../composables/useProduct";
-  import { useCliente } from "../clientes/composables/useCliente";
 
   const { 
     filterByCodBarra, 
@@ -25,8 +22,8 @@
     quitarArticulo
   } = useProduct();
 
-  let optionsClients: any = []
-  const listClientes: any = ref([]);
+  let optionsClients = []
+  const listClientes = ref([]);
   const { claim, mostrarNotify } = useHelpers();
   const sucursales = ref([]);
   const modalAgregarCliente = ref(false);
@@ -39,8 +36,6 @@
 
   const router = useRouter();
   const route  = useRoute();
-
-  let { actualizarLista } = useCliente();
 
   columns.value[7] = { name: 'pvp', label: 'Precio de Venta', align: 'center' }
 
@@ -57,12 +52,12 @@
   })
 
   watch(sucursal_selected, (currentValue, _) => { getNumFactura(); });
-  const getSucursales = async( company_id: string ) => {
+  const getSucursales = async( company_id ) => {
     sucursales.value = [];
     
     const { data } = await api.get(`/sucursal/find/${ company_id }/company`);
 
-    data.forEach(( x: any) => {
+    data.forEach( x => {
       sucursales.value.push({ label: x.nombre, value: x.id })
     })  
   }
@@ -86,14 +81,10 @@
     }
   }
   
-  const agregarProduct = ( product: Product ) => {
+  const agregarProduct = ( product ) => {
     agregarAndValidarStock( product, 'venta' )
     modalSelectProducto.value = false
   }
-
-  watch(actualizarLista, (currentValue, _) => {
-    if ( currentValue ) getClientes(); 
-  });
   const getClientes = async () => {
     const customer_id = formVenta.value.customer_id;
     formVenta.value.customer_id = ''
@@ -105,7 +96,7 @@
 
       listClientes.value = [];
 
-      clientes.forEach((cliente: any) => {
+      clientes.forEach(cliente => {
         listClientes.value.push({
           label: cliente.nombres,
           value: cliente.id,
@@ -127,13 +118,13 @@
     }
   }
 
-  const filtrarCliente = (val: string = '', update: any) => { 
+  const filtrarCliente = (val = '', update ) => { 
     if (val === '') 
       return update(() => { listClientes.value = optionsClients })
     
     update(() => {
-      const needle = val!.toLowerCase();
-      listClientes.value = listClientes.value.filter((v: any) =>
+      const needle = val.toLowerCase();
+      listClientes.value = listClientes.value.filter( v =>
         v.num_doc.indexOf(needle) > -1 || v.label.toLowerCase().indexOf(needle) > -1          
       )
     })
@@ -292,7 +283,7 @@
         </label>
       </div>
 
-      <div class="col-xs-10 col-sm-10 col-md-6 q-mt-md q-pl-none">
+      <div class="col-xs-12 col-sm-12 col-md-6 q-mt-md q-pl-none">
         <label>Seleccionar Cliente: 
         </label>
         <q-select color="orange" filled v-model="formVenta.customer_id"
@@ -322,16 +313,16 @@
         </q-select>
       </div>
       
-      <div class="col-xs-2 col-sm-2 col-md-1 btnAddCliente q-pt-none flex items-center" 
+      <!-- <div class="col-xs-2 col-sm-2 col-md-1 btnAddCliente q-pt-none flex items-center" 
         style="margin-left: 0px;align-items: normal;position: relative;top: 5px;">
         <div class="my-content">
           <q-btn round color="primary" size="13px" @click="modalAgregarCliente = true"
           icon="person_add" />
         </div>
-      </div>
+      </div> -->
 
       <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
-        class="col-xs-12 col-md-5 q-mt-md" :class="$q.screen.width >= 1023 || 'q-pl-none'">
+        class="col-xs-12 col-md-5 q-mt-md" :class="$q.screen.width <= 1023 ? 'q-pl-none' : 'offset-1'">
         <label>Seleccionar Sucursal: 
         </label>
         <q-select filled v-model="sucursal_selected"
@@ -493,13 +484,6 @@
         </div>
       </div>
     </q-form>
-    
-  <!-- </div> -->
-  
-  <!-- AGREGAR UN NUEVO CLIENTE -->
-  <q-dialog v-model="modalAgregarCliente">
-    <AddCliente />
-  </q-dialog>
 
   <!-- BUSCAR ALGUN PRODUCTO -->
   <q-dialog v-model="modalSelectProducto">

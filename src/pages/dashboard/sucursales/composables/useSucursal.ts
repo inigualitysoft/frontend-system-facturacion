@@ -32,15 +32,11 @@ const formSucursal = ref<Sucursal>({
   ambiente: 'PRUEBA'
 })
 
-const modalAgregarSucursal = ref(false);
-const modalEditarSucursal  = ref(false);
-const actualizarLista      = ref(false);
-
 const cargarCompanies = async () => {
   listCompanies.value = [];
   
-  const { data } = await api.get('/companies');
-  
+  const { data } = await api.get('/companies/true');
+
   data.forEach((companie: any) => {
     listCompanies.value.push({
       label:  companie.nombre_comercial,
@@ -51,7 +47,7 @@ const cargarCompanies = async () => {
 
 export const useSucursal = () => {
 
-    const { mostrarNotify, claim } = useHelpers();
+    const { mostrarNotify, claim, router, route } = useHelpers();
 
     const limpiarFormulario = () => {
       formSucursal.value.nombre = ''
@@ -98,12 +94,9 @@ export const useSucursal = () => {
         }
         
         mostrarNotify( 'positive', `Sucursal ${ edit ? 'editado' : 'agregado' } exitosamente`);
-        
-        modalAgregarSucursal.value = false;
-        modalEditarSucursal.value  = false;
-        actualizarLista.value      = true
-
         loading.value = false;
+
+        router.push({ name: 'Ver Sucursales' });
       } catch (error: any) {
         mostrarNotify( 'warning', error.response.data.message )
         loading.value = false;
@@ -111,17 +104,15 @@ export const useSucursal = () => {
     }
 
     return {
-      actualizarLista,
       api,
       claim,
       formSucursal,
       loading,
+      route,
       limpiarFormulario,
       cargarCompanies,
       listCompanies,
       allowOnlyNumber,
-      modalAgregarSucursal,
-      modalEditarSucursal,
       onSubmit
     }
 }

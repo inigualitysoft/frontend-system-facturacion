@@ -2,8 +2,6 @@
   import { ref, watch } from 'vue';
   import { api } from "boot/axios";
   import useHelpers from "../../../composables/useHelpers";
-  import AddSucursal from './AddSucursal.vue'
-  import EditSucursal from './EditSucursal.vue'
   import { useSucursal } from "./composables/useSucursal";
   
   const columns: any = [
@@ -16,15 +14,7 @@
     { name: 'estado', label: 'Estado', align: 'center' },
   ]
 
-  let { 
-    actualizarLista,
-    claim,
-    modalAgregarSucursal,
-    modalEditarSucursal,
-    formSucursal,
-    cargarCompanies,
-    listCompanies
-  } = useSucursal();
+  let { claim, cargarCompanies, listCompanies } = useSucursal();
 
   const filter  = ref('')
   const rows    = ref([]);
@@ -33,17 +23,12 @@
 
   const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
-  watch(actualizarLista, (currentValue, _) => {
-    if ( currentValue ) getSucursales(); 
-  });
-
   const getSucursales = async () => {
     loading.value = true;
     try {
       let headers = { headers: { company_id: selectCompany.value, NotSetHeaderCompany: true } };
       const { data } = await api.get('/sucursal', headers);
       rows.value = data;
-      actualizarLista.value = false;
     } catch (error: any) {
       mostrarNotify( 'warning', error.response.data.message )
     }
@@ -121,7 +106,7 @@
 
             <template v-slot:top-right="props">
               <q-btn v-if="!$q.screen.xs"
-                @click="modalAgregarSucursal = !modalAgregarSucursal" 
+                @click="$router.push({ name: 'Agregar Sucursal' })"
                 outline color="primary" label="Agregar Sucursal" class="q-mr-xs"/>
 
               <q-input :style="$q.screen.width > 700 || 'width: 70%'"
@@ -166,10 +151,7 @@
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
                 <q-btn round color="blue-grey"
-                  @click="formSucursal = { 
-                    ...props.row,
-                    company_id: props.row.company_id.id
-                    }, modalEditarSucursal = true"
+                  @click="$router.push({ name: 'Editar Sucursal', params: { sucursal_id: props.row.id } })"
                   icon="edit" class="q-mr-sm" size="10px" />
 
                 <template v-if="props.row.isActive">
@@ -214,16 +196,9 @@
   
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs">
-    <q-btn round color="secondary" size="lg" icon="add" @click="modalAgregarSucursal = !modalAgregarSucursal" />
+    <q-btn round color="secondary" size="lg" icon="add" 
+    @click="$router.push({ name: 'Agregar Sucursal' })" />
   </q-page-sticky>
-  
-  <q-dialog v-model="modalAgregarSucursal">
-    <AddSucursal  />
-  </q-dialog>
-
-  <q-dialog v-model="modalEditarSucursal">
-    <EditSucursal />
-  </q-dialog> 
   
 </template>
   

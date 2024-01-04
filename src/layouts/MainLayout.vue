@@ -72,12 +72,37 @@
         <q-scroll-area style="height:100%;">
           <q-list padding>
 
+            <q-item class="navigation-item q-mx-sm" active-class="tab-active" to="/" exact clickable v-ripple>
+              <q-item-section avatar>
+                <q-icon name="home"/>
+              </q-item-section>
+
+              <q-item-section>
+                Dashboard
+              </q-item-section>
+            </q-item>
+
             <q-list class="q-ml-sm">
               <q-expansion-item expand-separator icon="language" label="Gestion de Red">
 
                 <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'getIp' }"
-                  dense-toggle label="Mostrar Ip" :header-inset-level="0">
+                  active-class="bg-light-blue-9" :to="{ name: 'index.routers' }"
+                  dense-toggle label="Routers" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
+                  active-class="bg-light-blue-9" :to="{ name: 'internet.index' }"
+                  dense-toggle label="Internet" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
+                  active-class="bg-light-blue-9" :to="{ name: 'cNap.index' }"
+                  dense-toggle label="Cajas Nap" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
+                  active-class="bg-light-blue-9" :to="{ name: 'redesIpv4.index' }"
+                  dense-toggle label="Redes IPv4" :header-inset-level="0">
                 </q-expansion-item>
 
               </q-expansion-item>
@@ -111,16 +136,6 @@
                 <q-expansion-item hide-expand-icon icon="local_convenience_store" class="item-options"
                   active-class="bg-light-blue-9" :to="{ name: 'Ver Sucursales' }"
                   dense-toggle label="Sucursales" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item hide-expand-icon icon="description" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'Factura-Electronica' }"
-                  dense-toggle label="Facturación Electronica" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item hide-expand-icon icon="paid" class="item-options"
-                  active-class="bg-light-blue-9"
-                  dense-toggle label="Pasarelas de pagos" :header-inset-level="0">
                 </q-expansion-item>
 
               </q-expansion-item>
@@ -162,12 +177,6 @@
 
   const essentialLinks = [  
     {
-      title: 'Dashboard',
-      icon: 'home',
-      link: '/',
-      permisoRequerido: 'Ver Dashboard'
-    },
-    {
       title: 'Proveedores',
       icon: 'fa fa-truck',
       link: '/proveedores',
@@ -177,7 +186,7 @@
       title: 'Clientes',
       icon: 'fa fa-user-tag',
       link: '/clientes',
-      permisoRequerido: 'Ver Clientes'
+      permisoRequerido: 'cliente.index'
     },
     {
       title: 'Productos',
@@ -260,7 +269,7 @@ body.body--dark {
 }
 
 .q-dark {
-  background: #2b2c40 !important;
+  background: #2b2c40;
 }
 .tab-active {
   background-color: rgba(105, 108, 255, .16) !important;

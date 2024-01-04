@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import { ref } from "vue";
-  import { useRouter } from "vue-router";
   import { api } from "boot/axios";
   import { useAuthUserStore } from '../../stores/auth-user';
   import useHelpers from "../../composables/useHelpers";
@@ -9,8 +8,6 @@
   const loading = ref( false )
   const form = ref({ email: 'juan@gmail.com', password: 'testing' });
   const { mostrarNotify } = useHelpers();
-
-  const router = useRouter();
 
   const onSubmit = async () => {
     try {
@@ -22,8 +19,7 @@
 
       authUserStore.setToken( token );
 
-      router.push('/');
-      loading.value = false;
+      location.href ='/'
     } catch ( error: any ) {
       if(error.response.data.message == 'Credentials not valid(password)')
         mostrarNotify('warning', 'La contraseña esta incorrecta');

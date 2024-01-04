@@ -1,8 +1,6 @@
 <script setup lang="ts">
   import { ref, watch } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
-  import AddEmpresa from './AddEmpresa.vue'
-  import EditEmpresa from './EditEmpresa.vue'
   import { useEmpresa } from "./composables/useEmpresa";
   
   const columns: any = [
@@ -16,13 +14,7 @@
     { label: "Estado", name: "estado", align: "center" }  
   ];
 
-  let { 
-    api,
-    actualizarLista,
-    modalAgregarEmpresa,
-    modalEditarEmpresa,
-    formEmpresa
-  } = useEmpresa();
+  let { api, formEmpresa } = useEmpresa();
   
   const filter = ref('')
   const rows = ref([]);
@@ -30,14 +22,9 @@
 
   const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
-  watch(actualizarLista, (currentValue, _) => {
-    if ( currentValue ) getCompanies(); 
-  });
-
   const getCompanies = async () => {
     const { data } = await api.get(`/companies`);
     rows.value = data;
-    actualizarLista.value = false;
   }
 
   const activarDesactivarEmpresa = async (company_id: string, estado: boolean) => {
@@ -86,7 +73,7 @@
 
             <template v-slot:top-right="props">
               <q-btn v-if="!$q.screen.xs"
-                @click="modalAgregarEmpresa = !modalAgregarEmpresa" 
+                @click="$router.push({ name: 'Agregar Empresa' })" 
                 outline color="primary" label="Agregar Empresa" class="q-mr-xs"/>
 
               <q-input :style="$q.screen.width > 700 || 'width: 70%'"
@@ -139,13 +126,7 @@
                 
                 <template v-if="props.row.isActive">
                   <q-btn round color="blue-grey"
-                    @click="formEmpresa = { 
-                      ...props.row,
-                      logo: null, 
-                      logo_old: ( props.row.logo == null ) ? null : props.row.logo, 
-                      archivo_certificado: null,
-                      archivo_certificado_old: props.row.archivo_certificado
-                    }, modalEditarEmpresa = true"
+                    @click="$router.push({ name: 'Editar Empresa', params: { empresa_id: props.row.id } })"
                     icon="edit" class="q-mr-sm" size="10px" />
 
                   <q-btn round color="blue-grey"
@@ -189,16 +170,8 @@
   
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs">
-    <q-btn round color="secondary" size="lg" icon="add" @click="modalAgregarEmpresa = !modalAgregarEmpresa" />
+    <q-btn round color="secondary" size="lg" icon="add" @click="$router.push({ name: 'Agregar Empresa' })"  />
   </q-page-sticky>
-  
-  <q-dialog v-model="modalAgregarEmpresa">
-    <AddEmpresa  />
-  </q-dialog>
-
-  <q-dialog v-model="modalEditarEmpresa">
-    <EditEmpresa />
-  </q-dialog> 
   
 </template>
   

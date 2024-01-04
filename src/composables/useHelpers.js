@@ -4,12 +4,15 @@ import { ref } from "vue";
 import { Loading, Screen } from 'quasar'
 import { useAuthUserStore } from "stores/auth-user"
 import JWT from 'jwt-client'
+import { useRouter, useRoute } from "vue-router";
 
 const useHelpers = () => {
 
   const $q = useQuasar();
   const isDeleted = ref(false);
   const authUserStore = useAuthUserStore();
+  const router = useRouter();
+  const route = useRoute();
 
   let claim = null;
 
@@ -73,7 +76,9 @@ const useHelpers = () => {
     confirmDelete,
     mostrarNotify,
     isDeleted,
-    showLoading
+    showLoading,
+    router,
+    route
   }
 }
 

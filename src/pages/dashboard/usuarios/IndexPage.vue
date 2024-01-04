@@ -1,15 +1,15 @@
-<script setup lang="ts">
+<script setup>
   import { ref, watch } from 'vue';
   import { api } from "boot/axios";
   import useHelpers from "../../../composables/useHelpers";
   
-  const columns: any = [
+  const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'fullName', align: 'center', label: 'Nombre', field: 'fullName', sortable: true },
     { name: 'usuario', label: 'Usuario', field: 'usuario', align: 'center'},
     { name: 'email', align: 'center', label: 'Email', field: 'email' },
     { name: 'celular', label: 'Celular', field: 'celular',  align: 'center' },
-    { name: 'roles', align: 'center', label: 'Rol', field: 'roles' },
+    { name: 'rol_name', align: 'center', label: 'Rol', field: 'rol_name' },
     { name: 'estado', label: 'Estado', align: 'center', field: 'estado' },
   ]
   
@@ -23,15 +23,19 @@
     loading.value = true;
     try {
       const { data } = await api.get('/auth/users');
+      data.forEach(user => {
+        user.rol_name = user.roles[0]
+        user.estado = user.isActive ? 'Activo' : 'Inactivo'
+      });
       rows.value = data;
-    } catch (error: any) {
+    } catch ( error ) {
       mostrarNotify( 'warning', error.response.data.message )
     }
     loading.value = false;
   }
 
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getUsers() });
-  const eliminarCliente = async (user_id: string ) => {
+  const eliminarUsuario = async ( user_id ) => {
     try {
       confirmDelete('Estas seguro de eliminar este usuario?', `/auth/${ user_id }`);
     } catch (error) {
@@ -114,9 +118,9 @@
                     icon="edit" class="q-mr-sm" size="11px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                    v-if="!props.row.estado"
+                    v-if="props.row.estado == 'Activo'"
                     icon="delete"
-                    @click="eliminarCliente(props.row.id)"
+                    @click="eliminarUsuario(props.row.id)"
                     size="11px" />                    
                 </q-td>
               </template>

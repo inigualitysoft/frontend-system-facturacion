@@ -80,7 +80,7 @@
     }
   }
   
-  const anularFactura = ( venta ) => {
+  const anularFactura = ( venta: any ) => {
     $q.dialog({
       title: '<center>¿Estas seguro de anular esta factura?</center>',
       message: `<span style="display: block;width: 100%;display: flex;align-items: center;">
@@ -129,7 +129,7 @@
     })
   }
 
-  const actualizarLista = ( data ) => {
+  const actualizarLista = ( data: any ) => {
     rows.value = data.compras;
     data.compras.map( (compra) => {
       const dateArray = compra.fecha_compra.split('T')[0].split('-');
@@ -312,7 +312,7 @@
                 <q-btn round color="blue-grey" icon="visibility" size="10px"
                 class="q-mr-sm" @click="modalDetalle = true, detalleData = { ...props.row }" />
 
-                <q-btn v-if="props.row.estadoSRI == 'PROFORMA' || props.row.estadoSRI == 'ERROR ENVIO RECEPCION' || props.row.estadoSRI == 'ERROR ENVIO RECEPCION - ANULACION' || props.row.estadoSRI == 'PENDIENTE'"
+                <q-btn v-if="props.row.estadoSRI == 'PROFORMA' || props.row.estadoSRI.trim() == 'ERROR ENVIO RECEPCION' || props.row.estadoSRI.trim() == 'ERROR ENVIO RECEPCION - ANULACION' || props.row.estadoSRI.trim() == 'PENDIENTE'"
                   @click="$router.push(`ventas/add/${ props.row.id }`)"
                   round color="blue-grey" icon="description" size="10px" class="q-mr-sm" />
 

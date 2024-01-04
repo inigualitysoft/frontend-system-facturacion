@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import FormUser from "./components/FormUser.vue";
-  import { useUser } from './composables/useUser';
+  import { useUser } from './composables/useUser.js';
   import { api } from "boot/axios";
   import { useRoute } from "vue-router";
   import { onMounted } from 'vue';

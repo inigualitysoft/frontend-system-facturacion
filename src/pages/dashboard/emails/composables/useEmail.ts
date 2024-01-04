@@ -62,7 +62,6 @@ export const useEmail = () => {
   return {
     api,
     formEmail,
-    mostrarNotify,
     limpiarFormulario,
     loading,
     onSubmit,

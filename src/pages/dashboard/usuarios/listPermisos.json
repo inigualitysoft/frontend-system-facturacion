@@ -454,21 +454,6 @@
             ]
           }
         ]
-      },
-      {
-        "label": "Widget Notificaciones",
-        "value": "Widget Notificaciones",
-        "children": [
-          { 
-            "label": "Widgets",
-            "children": [
-              { "label": "Telegram", "value": "WidgetNot-Widget-Telegram" },
-              { "label": "Registrar pago", "value": "WidgetNot-Widget-RegistrarPago" },
-              { "label": "Notificaciones Generales", "value": "WidgetNot-Widget-NotificacionesGenerales" },
-              { "label": "Notificaciones Soporte", "value": "WidgetNot-Widget-NotificacionesSoporte" }
-            ]
-          }
-        ]
       }
     ]
   }
