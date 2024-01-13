@@ -280,7 +280,7 @@
 
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
-                <q-badge v-if="props.row == 'NO AUTORIZADO' || props.row.estadoSRI.trim() == 'DEVUELTA'" 
+                <q-badge v-if="props.row.estadoSRI == 'NO AUTORIZADO' || props.row.estadoSRI.trim() == 'DEVUELTA'" 
                   outline class="q-py-xs q-px-md" :color="$q.dark.isActive ? 'warning' : 'orange-10'" 
                   :label="props.row.estadoSRI">
                   <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="blue-grey-9 text-subtitle2">

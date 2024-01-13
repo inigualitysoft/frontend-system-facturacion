@@ -29,19 +29,19 @@ onBeforeUnmount(() => {
 
           <q-step :name="1" title="Datos Personales" done-color="secondary"
           caption="Nombres, Dirección, Telefono..." icon="settings" 
-            :done="step > 1" :header-nav="step > 1">              
+            :done="step > 1">              
               <DatosPersonales />
           </q-step>
 
           <q-step :name="2" title="Facturación y Notificaciones" caption="Dia de pago, Corte, aviso"
-            icon="create_new_folder" :done="step > 2" :header-nav="step > 2" done-color="secondary">
+            icon="create_new_folder" :done="step > 2" done-color="secondary">
             <FactAndNot />
           </q-step>
 
           <q-step :name="3" title="Servicios" 
             caption="Queues, PPPoE, Hotspot, etc" 
-            icon="add_comment" :header-nav="step > 3">
-             <ServicioInternet />
+            icon="add_comment">
+             <ServicioInternet :edit="props.edit" />
           </q-step>
 
         </q-stepper>

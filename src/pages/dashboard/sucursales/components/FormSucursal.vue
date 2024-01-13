@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useSucursal } from '../composables/useSucursal';
+  import { useSucursal } from '../composables/useSucursal';
 
   const props = defineProps<{ edit: boolean }>();
 
   const { 
-    api,
     claim,
     cargarCompanies,
     formSucursal, 

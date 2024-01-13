@@ -2,10 +2,10 @@
 import { ref } from "vue";
 import { useEditCliente } from "../../composables/useEditCliente.js";
 import { useCliente } from "../../composables/useCliente.js";
+import { useImpresion } from "../../composables/useImpresion.js";
 import ModalPago from "./ModalPago.vue";
 import { date, Dialog } from 'quasar'
 import { Manager } from "socket.io-client";
-import axios from "axios";
 
   const columns = ref([
     { name: 'x', align: 'center', label: ' ', field: 'x' },
@@ -147,7 +147,8 @@ import axios from "axios";
   }
 
   const imprimir = async ( data, tipo, pago = null) => {
-        if ( pago ) {
+
+    if ( pago ) {
       data.company_name = pago.company_name
       data.ruc = pago.ruc
       data.direccion = pago.direccion
@@ -160,7 +161,21 @@ import axios from "axios";
       num_doc: cliente[0].numero_documento,
       email: cliente[0].email
     }
-    await axios.post('http://127.0.0.1:3001/api/impresion', { data, dataCliente, userName: claim.fullName, tipo });      
+
+    const { imprimirAbono, imprimirFactura } = useImpresion();
+
+    let plantilla = ''
+    if ( tipo == 'Recibo' )
+      plantilla = imprimirAbono( data, dataCliente, claim.fullName, tipo );      
+    else
+      plantilla = imprimirFactura( data, dataCliente, claim.fullName, tipo );
+
+    var ventanaImpresion = window.open('', '_blank');
+
+    ventanaImpresion.document.write( plantilla );
+
+    ventanaImpresion.print();
+    ventanaImpresion.close();
   }
 
   const borrarAbono = ( abono, abonos, valorServicio, pago_id ) => {

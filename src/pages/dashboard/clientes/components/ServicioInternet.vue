@@ -1,26 +1,39 @@
 <script setup>
+  import ModalMapBox from '../../../../components/ModalMapBox.vue'
   import { useCliente } from '../composables/useCliente';
+  import { ref } from 'vue';
 
   const ipsUsadas = [];
   let puertosUsados = [];
   const { 
-      api, 
-      claim, 
-      formInternet, 
-      listIps,
-      listCajasNap,
-      listPuertosCajaNap,
-      groupedIpsByRed,
-      listRedes,
-      optionsListIps,
-      listRouter,
-      listServicionsInternet,
-      obtenerListaSubred,
-      validacionesInternet, 
-      mostrarNotify, 
-      validDecimal,
-      step
-    } = useCliente();
+    api, 
+    claim, 
+    formInternet, 
+    listIps,
+    listCajasNap,
+    listPuertosCajaNap,
+    groupedIpsByRed,
+    listRedes,
+    optionsListIps,
+    listRouter,
+    listServicionsInternet,
+    obtenerListaSubred,
+    validacionesInternet, 
+    mostrarNotify, 
+    validDecimal,
+    step
+  } = useCliente();
+
+  const modalAgregarCoordenadas = ref( false );
+  const objMap = ref({ edit: false, coords: '' });
+  const props = defineProps(['edit'])
+
+  const showModalMap = () => {
+    if ( props.edit ) 
+      objMap.value = { edit: true, coords: formInternet.value.coordenadas }
+
+    modalAgregarCoordenadas.value = true;
+  }
 
   const cargarRouter = async () => {
     const { data } = await api.get(`/router/find/${ claim.company.id }`);
@@ -209,6 +222,11 @@
     })
   }
 
+  const coordenadasSelected = ( coords ) => {
+    formInternet.value.coordenadas = `${ coords.lng }, ${ coords.lat }`;
+    modalAgregarCoordenadas.value = false
+  }
+
   if ( listRouter.value.length == 0 ) cargarRouter();
 
 </script>
@@ -254,12 +272,13 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input v-model.trim="formInternet.coordenadas"
-            :error="!validacionesInternet.coordenadas.isValid"           
-            input-class="resaltarTextoInput" dense outlined>
+            <q-input v-model.trim="formInternet.direccion"
+            input-style="width: 81%"
+            :error="!validacionesInternet.direccion.isValid"           
+            dense outlined>
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                  {{ validacionesInternet.coordenadas.message }}
+                  {{ validacionesInternet.direccion.message }}
                 </label>
               </template>
               <template v-slot:append>
@@ -282,16 +301,18 @@
             </label>
           </div>        
           <div class="col-xs-12 col-md-7">
-            <q-input v-model.trim="formInternet.direccion"
-            :error="!validacionesInternet.direccion.isValid"           
-            input-class="resaltarTextoInput" dense outlined>
+            <q-input v-model.trim="formInternet.coordenadas"
+            placeholder="Coordenadas Longitud, Latitud" input-style="width: 81%"
+            :error="!validacionesInternet.coordenadas.isValid"           
+             dense outlined>
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                  {{ validacionesInternet.direccion.message }}
+                  {{ validacionesInternet.coordenadas.message }}
                 </label>
               </template>
               <template v-slot:append>
                 <q-badge filled color="blue-grey-6" 
+                  @click="showModalMap"
                   style="height: 100%;width: 19%;position: absolute;right: 0px;justify-content: center;font-size:14px; cursor: pointer;">
                   <q-icon name="fa-solid fa-location-dot" size="xs" />
                 </q-badge>
@@ -525,4 +546,10 @@
         </q-btn>
     </div>
   </div>
+
+  <q-dialog v-model="modalAgregarCoordenadas">
+    <ModalMapBox :objMap="objMap"
+      @coordenadasSelected="coordenadasSelected" />
+  </q-dialog>
+  
 </template>

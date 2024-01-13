@@ -1,8 +1,11 @@
 <script setup lang="ts">
-  import { onMounted } from 'vue';
+  import { onMounted, ref } from 'vue';
   import { useRouter } from '../composables/useRouter';
+  import ModalMapBox from '../../../../../components/ModalMapBox.vue'
 
   const props = defineProps<{ edit: boolean }>();
+  const modalAgregarCoordenadas = ref( false );
+  const objMap = ref({ edit: false, coords: '' });
 
   const { 
     claim,
@@ -19,6 +22,18 @@
     validaciones.value.ip_host.isValid = true
     const soloNumerosYPuntos = event.target.value.replace(/[^0-9.]/g, "");
     formRouter.value.ip_host = soloNumerosYPuntos
+  }
+
+  const coordenadasSelected = ( coords: any ) => {
+    formRouter.value.ubicacion = `${ coords.lng }, ${ coords.lat }`
+    modalAgregarCoordenadas.value = false
+  }
+
+  const showModalMap = () => {
+    if ( props.edit ) 
+      objMap.value = { edit: true, coords: formRouter.value.ubicacion }
+
+    modalAgregarCoordenadas.value = true;
   }
 
   onMounted(async () => {
@@ -133,15 +148,22 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input v-model.trim="formRouter.ubicacion" 
-              :error="!validaciones.ubicacion.isValid" 
-              @update:model-value="validaciones.ubicacion.isValid = true" 
-              input-class="resaltarTextoInput" dense outlined>
+            <q-input v-model.trim="formRouter.ubicacion"
+            placeholder="Coordenadas Longitud, Latitud" input-style="width: 81%"
+            :error="!validaciones.ubicacion.isValid"           
+             dense outlined>
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   {{ validaciones.ubicacion.message }}
                 </label>
-              </template> 
+              </template>
+              <template v-slot:append>
+                <q-badge filled color="blue-grey-6" 
+                  @click="showModalMap"
+                  style="height: 100%;width: 19%;position: absolute;right: 0px;justify-content: center;font-size:14px; cursor: pointer;">
+                  <q-icon name="fa-solid fa-location-dot" size="xs" />
+                </q-badge>
+              </template>
             </q-input>
           </div>
         </div>
@@ -324,6 +346,11 @@
       </div>
     </div>
   </q-form>
+
+  <q-dialog v-model="modalAgregarCoordenadas">
+    <ModalMapBox :objMap="objMap"
+      @coordenadasSelected="coordenadasSelected" />
+  </q-dialog>
 </template>
 
 <style>
