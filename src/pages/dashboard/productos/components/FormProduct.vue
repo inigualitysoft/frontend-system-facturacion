@@ -1,7 +1,27 @@
 <script setup lang="ts">
   import { useProduct } from "../composables/useProducts";
+  import { ref } from 'vue';
 
   const props = defineProps<{ edit: boolean }>();
+  const listSucursales: any = ref([]);
+  const { claim, api, mostrarNotify, selectSucursal } = useProduct();
+
+  const getSucursales = async () => {
+    try {
+      const { data } = await api.get('/sucursal');
+      data.forEach((companie: any) => {
+        listSucursales.value.push({
+          label:  companie.nombre,
+          value:  companie.id
+        })
+      });
+      // if ( listSucursales.value.length !== 0 ) selectSucursal.value = listSucursales.value[0].value
+    } catch (error: any){
+      mostrarNotify( 'warning', 'No se puedo cargar las sucursales' )
+    }
+  }
+
+  getSucursales();
 
   const { 
     formProduct, 
@@ -19,14 +39,14 @@
       <div class="row q-pt-lg q-gutter-lg justify-center">
 
         <div class="col-xs-12 col-sm-5">
-          <label>Codigo Barra / Serial:</label>
+          <label>Codigo / Serial:</label>
           <q-input v-model="formProduct.codigoBarra" 
             @keyup="allowOnlyNumber" 
             dense filled required />
         </div>
 
         <div class="col-xs-12 col-sm-5">
-          <label>Nombre Producto:</label>
+          <label>Nombre:</label>
           <q-input v-model.trim="formProduct.nombre" @keyup="transformToUpperCase" dense filled required />
         </div>
 
@@ -35,7 +55,7 @@
           <q-input type="number" v-model.trim="formProduct.precio_compra" 
             min="0" input-class="resaltarTextoInput"
             step=".01" @keyup="validDecimal('pvm')"
-            dense filled required />
+            dense filled />
         </div>
 
         <div class="col-xs-12 col-sm-5">
@@ -63,10 +83,25 @@
         </div>
 
         <div class="col-xs-12 col-sm-5">
+          <label>Tipo:</label>
+          <q-select v-model="formProduct.tipo" filled dense required 
+            :options="['Producto', 'Servicio']">
+          </q-select>
+        </div>
+
+        <div class="col-xs-12 col-sm-5">
           <label>Stock:</label>
           <q-input v-model="formProduct.stock" readonly
             input-class="resaltarTextoInput"
             @keyup="allowOnlyNumber" dense filled required />
+        </div>
+
+        <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+          class="col-xs-12 col-sm-5">
+          <label>Sucursal:</label>
+          <q-select filled dense v-model="selectSucursal"
+            emit-value map-options :options="listSucursales">
+          </q-select>
         </div>
 
         <div class="col-xs-9 col-sm-12 q-mt-lg q-mb-md flex justify-center">

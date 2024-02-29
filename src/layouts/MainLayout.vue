@@ -8,7 +8,7 @@
           <div v-if="!$q.screen.xs" class="row justify-center justify-between text-h6" 
             :class="[!$q.dark.isActive ? 'text-black' : '']">
             <div>
-              <span class="text-weight-regular">Usuario: </span>
+              <span class="text-weight-regular">Bienvenido: </span>
               <span class="text-weight-light">{{ fullName }}</span>
             </div>
             <div>
@@ -118,6 +118,11 @@
                   active-class="bg-light-blue-9" :to="{ name: 'Ver Usuarios' }"
                   dense-toggle label="Gestión Personal" :header-inset-level="0">
                 </q-expansion-item>
+                
+                <q-expansion-item hide-expand-icon icon="fa-solid fa-gears" class="item-options"
+                  active-class="bg-light-blue-9" :to="{ name: 'Rol-Permiso' }"
+                  dense-toggle label="Roles y Permisos" :header-inset-level="0">
+                </q-expansion-item>
 
                 <q-expansion-item hide-expand-icon icon="mail" class="item-options"
                   active-class="bg-light-blue-9" 
@@ -189,7 +194,13 @@
       permisoRequerido: 'cliente.index'
     },
     {
-      title: 'Productos',
+      title: 'Customer',
+      icon: 'fa fa-user-tag',
+      link: '/customer',
+      permisoRequerido: 'customer.index'
+    },
+    {
+      title: 'Productos y Servicios',
       icon: 'inventory',
       link: '/productos',
       permisoRequerido: 'Ver Productos'

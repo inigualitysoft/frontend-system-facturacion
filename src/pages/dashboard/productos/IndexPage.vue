@@ -260,11 +260,12 @@ import useHelpers from "../../../composables/useHelpers";
             </template>
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
-                <q-badge outline class="q-py-xs q-px-md"
-                  :color="( props.row.isActive ) ? 'positive' : 'dark'">
-                    <span v-if="props.row.isActive">Activo</span>
-                    <span v-else>Inactivo</span>
-                </q-badge>
+                <template v-if="props.row.isActive">
+                    <q-badge outline color="positive" label="Activo" class="q-pa-sm" />
+                </template>
+                <template v-else>
+                    <q-badge outline color="red" label="Inactivo" class="q-pa-sm" />
+                </template>
               </q-td>
             </template>
 

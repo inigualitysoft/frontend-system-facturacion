@@ -84,6 +84,18 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true} 
       },        
       { 
+        path: 'roles-permisos', 
+        name: 'Rol-Permiso',
+        component: () => import('pages/dashboard/roles-permisos/IndexPage.vue'),
+        meta: { requiresAuth: true} 
+      },        
+      { 
+        path: 'customer', 
+        name: 'customer.index',
+        component: () => import('pages/dashboard/clientess/IndexPage.vue'),
+        meta: { requiresAuth: true} 
+      },        
+      { 
         path: 'clientes', 
         name: 'cliente.index',
         component: () => import('pages/dashboard/clientes/IndexPage.vue'),

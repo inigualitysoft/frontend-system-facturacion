@@ -1,7 +1,6 @@
 import provincias from "../../../../apis/provincias.json";
 import { ref, onMounted, watch } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
-import { api } from "boot/axios";
 
 export interface Proveedor {
   id?:              string;
@@ -38,7 +37,7 @@ const formProveedor = ref<Proveedor>({
 
 export const useProveedor = () => {
     
-    const { mostrarNotify } = useHelpers();
+    const { api, mostrarNotify } = useHelpers();
 
     const limpiarFormulario = () => {
       formProveedor.value.razon_social = ''

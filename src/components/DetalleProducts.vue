@@ -12,7 +12,7 @@ const columns: any = [
 
 const props = defineProps<{ detalleData: any }>();
 
-let estado;
+let estado: string;
 if (props.detalleData.buyToProduct) {
   if( props.detalleData.isActive ) estado = 'Aceptado'
   else estado = 'Anulado'
@@ -20,7 +20,7 @@ if (props.detalleData.buyToProduct) {
   estado = props.detalleData.estadoSRI
 }
 
-const descargarDocumento = ( tipo ) => {
+const descargarDocumento = ( tipo: string ) => {
 
 }
 

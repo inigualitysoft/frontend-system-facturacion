@@ -72,6 +72,7 @@ const useHelpers = () => {
   }
 
   return{
+    api,
     claim,
     confirmDelete,
     mostrarNotify,

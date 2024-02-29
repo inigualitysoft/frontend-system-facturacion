@@ -1,9 +1,9 @@
-<script setup lang="ts">
+<script setup>
   import { useEmail } from "../composables/useEmail";
   import { useSucursal } from "./../../sucursales/composables/useSucursal";
   import { useRoute } from "vue-router";
 
-  const props = defineProps<{ edit: boolean }>();
+  const props = defineProps(['edit']);
   const route = useRoute();
 
   const { 

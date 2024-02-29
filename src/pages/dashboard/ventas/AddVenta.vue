@@ -43,12 +43,15 @@
     customer_id: import.meta.env.VITE_CONSUMIDOR_FINAL_ID,
     numero_comprobante: '--- --- ---------',
     products: [],
-    user_id: ''
+    user_id: '',
+    forma_pago: '',
+    descripcion: ''
   });
 
   const validaciones = ref({
     customer_id: { message: '', isValid: true },
     sucursal_id: { message: '', isValid: true },
+    forma_pago:  { message: '', isValid: true }
   })
 
   watch(sucursal_selected, (currentValue, _) => { getNumFactura(); });
@@ -107,7 +110,7 @@
       listClientes.value.unshift({ 
         label: 'CONSUMIDOR FINAL', 
         value: import.meta.env.VITE_CONSUMIDOR_FINAL_ID, 
-        cedula: '9999999999999' 
+        num_doc: '9999999999999' 
       });
       optionsClients = listClientes.value;
       formVenta.value.customer_id = customer_id;
@@ -146,9 +149,21 @@
         existError = true;
       }
 
+      if ( valorFactura.value.total > 50 && formVenta.value.forma_pago == '01' ) {
+        validaciones.value.forma_pago.message = 'La factura supera los $500.00, debes elegir otra forma de pago'
+        validaciones.value.forma_pago.isValid = false;
+        existError = true;
+      }
+
       if (rows.value.length == 0){
         existError = true;
         mostrarNotify('warning', 'Debes agregar algun producto..');
+      } 
+
+      if ( formVenta.value.forma_pago.length == 0 ){
+        validaciones.value.forma_pago.message = 'Debes elegir una forma de pago'
+        validaciones.value.forma_pago.isValid = false;
+        existError = true;
       } 
       
       rows.value.forEach((row, index) => {
@@ -156,7 +171,7 @@
           existError = true;
           mostrarNotify('warning', `Agrega una cantidad cantidad al producto: ${ row.nombre } de la fila: ${ index + 1 }`);          
         }
-        if (row.cantidad > row.stock) {
+        if (row.cantidad > row.stock && row.tipo != 'Servicio') {
           existError = true;
           mostrarNotify('warning', `La cantidad de venta del producto: ${ row.nombre } supera su stock disponible`);          
         }
@@ -347,8 +362,8 @@
       </div>
     </div>
 
-    <div class="row q-pt-lg q-mx-lg">
-      <div class="col-xs-12 col-md-6">
+    <div class="row q-pt-lg q-mx-lg q-col-gutter-md">
+      <div class="col-xs-12 col-md-6 q-pl-none">
         <label>Filtrar por codigo de barra o nombre del producto:</label>
         <q-input outlined bottom-slots :loading="loadingState" dense
           v-model.trim="filterByCodBarra" @keyup.enter="buscarProducto">
@@ -359,10 +374,35 @@
           </template>
         </q-input>
       </div>
+
+      <div class="col-xs-12 col-sm-5" 
+      :class="$q.screen.width <= 1023 ? 'q-pl-none q-mb-lg' : 'offset-1'">
+        <label>Forma de pago:</label>
+        <q-select dense v-model.trim="formVenta.forma_pago" filled 
+          emit-value map-options :error="!validaciones.forma_pago.isValid"
+          @update:model-value="validaciones.forma_pago.isValid = true"
+          :options="[
+            { label: 'SIN UTILIZACION DEL SISTEMA FINANCIERO', value: '01' }, 
+            { label: 'COMPENSACIÓN DE DEUDAS', value: '15' },
+            { label: 'TARJETA DE DÉBITO', value: '16' },
+            { label: 'DINERO ELECTRÓNICO', value: '17' },
+            { label: 'TARJETA PREPAGO', value: '18' },
+            { label: 'TARJETA DE CRÉDITO', value: '19' },
+            { label: 'OTROS CON UTILIZACIÓN DEL SISTEMA FINANCIERO', value: '20' },
+            { label: 'ENDOSO DE TÍTULOS', value: '21' },
+            ]">
+          <template v-slot:error>
+            <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+              {{ validaciones.forma_pago.message }}
+            </label>
+          </template>
+        </q-select>
+      </div>
+
     </div>
   
     <q-form @submit="onSubmit('EMISION')">
-      <div class="row q-mx-lg justify-center">
+      <div class="row q-mx-lg justify-center q-mt-md">
         <div class="col-12">
           <q-table :rows="rows" :columns="columns" row-key="name" 
             :class="[$q.dark.isActive ? '' : 'my-sticky-header-table3']"
@@ -381,7 +421,8 @@
               <q-td :props="props">
                   <q-input input-class="resaltarTextoInput" dense required 
                   @change="getSubtotalByProduct( props.row, 'ventas' )" 
-                  min="0" :max="props.row.stock"
+                  min="0" :max="props.row.stock" 
+                  :readonly="props.row.tipo == 'Servicio'"
                   type="number" style="width: 100px;" v-model.trim="props.row.cantidad" />
               </q-td>
             </template>
@@ -403,6 +444,9 @@
             <template v-slot:body-cell-pvp="props">
               <q-td :props="props">
                 ${{ props.row.pvp }}
+                <q-popup-edit v-model="props.row.pvp" v-slot="scope">
+                  <q-input v-model="scope.value" dense autofocus counter @keyup.enter="scope.set" />
+                </q-popup-edit>
               </q-td>
             </template>
 
@@ -416,7 +460,18 @@
 
           </q-table>    
         </div>
-        <div class="col-12" style="display: flex;justify-content: end;">
+
+        <div class="col-xs-12 col-sm-7 row items-center" 
+        :class="$q.screen.width <= 1023 ? 'q-mt-lg q-mb-sm' : ''">
+          <div class="col-3 text-right">
+            <label class="q-pr-md">Descripción</label>
+          </div>
+          <div class="col-9">
+            <q-input v-model="formVenta.descripcion" filled type="textarea" rows="4" />
+          </div>
+        </div>
+
+        <div class="col-xs-12 col-sm-5" style="display: flex;justify-content: end;">
           <table :class="[!$q.screen.xs ? 'linearTablaDetalle' : '']">
             <tr class="text-right">
               <td><b>TOTAL BRUTO:</b></td>

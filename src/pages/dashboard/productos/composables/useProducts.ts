@@ -1,5 +1,4 @@
 import { ref } from 'vue'
-import { api } from "boot/axios";
 import useHelpers from "../../../../composables/useHelpers";
 
 export interface Product {
@@ -10,6 +9,7 @@ export interface Product {
   precio_compra:  number;
   pvp:            number;
   stock:          number;
+  tipo:           string;
   descuento:      number;
   created_at?:    Date;
   updated_at?:    Date;
@@ -22,28 +22,31 @@ const formProduct = ref<Product>({
   nombre: '',
   precio_compra: 0,
   pvp: 0,
+  tipo: '',
   stock: 0,
   descuento: 0.00
 })
 
-const loading = ref( false );   
+const loading              = ref( false );   
 const modalAgregarProducto = ref( false );
 const modalEditarProducto  = ref( false );
 const actualizarTabla      = ref( false );
+const selectSucursal       = ref('')
 const modalFiltrarArticulo = ref( false );
 
 export const useProduct = () => {
 
-  const { claim, mostrarNotify } = useHelpers();
+  const { api, claim, mostrarNotify } = useHelpers();
 
   const limpiarFormulario = () => {
-    formProduct.value.aplicaIva = false;
-    formProduct.value.codigoBarra = '';
-    formProduct.value.nombre = '';
+    formProduct.value.aplicaIva     = false;
+    formProduct.value.codigoBarra   = '';
+    formProduct.value.nombre        = '';
     formProduct.value.precio_compra = 0.00;
-    formProduct.value.pvp = 0.00;
-    formProduct.value.stock = 0.00;
-    formProduct.value.descuento = 0.00;
+    formProduct.value.pvp           = 0.00;
+    formProduct.value.stock         = 0.00;
+    formProduct.value.tipo          = '';
+    formProduct.value.descuento     = 0.00;
   }
 
   const allowOnlyNumber = () => {
@@ -57,8 +60,7 @@ export const useProduct = () => {
     if (formProduct.value.descuento.toString().length > 0) 
       formProduct.value.descuento = parseFloat(formProduct.value.descuento.toString().replace(/\D/g, ''));      
     else
-      formProduct.value.descuento= 0
-
+      formProduct.value.descuento = 0;
   }
 
   const transformToUpperCase = () => {
@@ -93,18 +95,25 @@ export const useProduct = () => {
 
   const onSubmit = async ( edit: boolean ) => {
     try {
+      if ( selectSucursal.value.length == 0 ) 
+        return mostrarNotify('warning', 'Elige una sucursal por favor');
+      if ( formProduct.value.tipo.length == 0 ) 
+        return mostrarNotify('warning', 'Completa el campo tipo por favor');
+
       loading.value = true;
 
+      let headers = { headers: { sucursal_id: selectSucursal.value } };
+
       if ( !edit ) 
-        await api.post('/products', formProduct.value)
+        await api.post('/products', formProduct.value, headers)
       else
-        await api.patch('/products/' + formProduct.value.id, formProduct.value)
+        await api.patch('/products/' + formProduct.value.id, formProduct.value, headers)
   
       mostrarNotify( 'positive', `Producto ${ edit ? 'editado' : 'agregado' } exitosamente`)
 
       modalAgregarProducto.value = false;
       modalEditarProducto.value  = false;
-      actualizarTabla.value      = true
+      actualizarTabla.value      = true;
   
       limpiarFormulario()
 
@@ -116,6 +125,7 @@ export const useProduct = () => {
   }
 
   return {
+    api,
     allowOnlyNumber,
     actualizarTabla,
     claim,
@@ -123,7 +133,9 @@ export const useProduct = () => {
     transformToUpperCase,
     limpiarFormulario,
     loading,
+    mostrarNotify,
     onSubmit,
+    selectSucursal,
     validDecimal,
     modalAgregarProducto,
     modalEditarProducto

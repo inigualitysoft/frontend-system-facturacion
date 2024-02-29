@@ -6,18 +6,18 @@ const loading  = ref( false );
 const selectedRouter  = ref('');  
 const listRouters = ref([]);
 const formInternet = ref({
-  id: '',
-  nombre_plan: '',
-  descripcion: '',
-  precio_plan: 0.00,
-  impuesto: 0,
-  descarga_Mbps: 0,
-  subida_Mbps: 0,
-  limit_at: 0,
-  burst_limit: 0,
-  prioridad: '',
-  address_list: '',
-  router_id: ''
+  id:             '',
+  nombre_plan:    '',
+  descripcion:    '',
+  precio_plan:    0.00,
+  impuesto:       0,
+  descarga_Mbps:  0,
+  subida_Mbps:    0,
+  limit_at:       0,
+  burst_limit:    0,
+  prioridad:      '',
+  address_list:   '',
+  router_id:      ''
 })
 
 const validaciones = ref({
@@ -31,7 +31,7 @@ const validaciones = ref({
   burst_limit:    { message: '', isValid: true },
   prioridad:      { message: '', isValid: true },
   address_list:   { message: '', isValid: true },
-  router_id:   { message: '', isValid: true }
+  router_id:      { message: '', isValid: true }
 })
 
 const validDecimal = ( campo ) => {

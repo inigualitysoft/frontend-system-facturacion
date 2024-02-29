@@ -1,15 +1,16 @@
 <script setup>
   import ModalMapBox from '../../../../components/ModalMapBox.vue'
   import { useCliente } from '../composables/useCliente';
-  import { ref } from 'vue';
+  import { ref, watch } from 'vue';
 
-  const ipsUsadas = [];
+  let ipsUsadas = [];
   let puertosUsados = [];
   const { 
     api, 
     claim, 
     formInternet, 
     listIps,
+    loading,
     listCajasNap,
     listPuertosCajaNap,
     groupedIpsByRed,
@@ -21,12 +22,14 @@
     validacionesInternet, 
     mostrarNotify, 
     validDecimal,
+    validarFormInternet,
     step
   } = useCliente();
 
   const modalAgregarCoordenadas = ref( false );
   const objMap = ref({ edit: false, coords: '' });
-  const props = defineProps(['edit'])
+  const props = defineProps(['edit', 'servicio'])
+  const emit = defineEmits(['actualizarDatos']);
 
   const showModalMap = () => {
     if ( props.edit ) 
@@ -36,18 +39,52 @@
   }
 
   const cargarRouter = async () => {
+
+    if ( props.edit ) {
+      formInternet.value.router_id          = props.servicio.router_id.id;
+      formInternet.value.direccion          = props.servicio.direccion;
+      formInternet.value.coordenadas        = props.servicio.coordenadas;
+      formInternet.value.perfil_internet    = props.servicio.perfil_internet.id;
+      formInternet.value.precio             = props.servicio.precio;
+      formInternet.value.fecha_instalacion  = props.servicio.fecha_instalacion;
+      formInternet.value.mac                = props.servicio.mac;
+      formInternet.value.red_id             = `${ props.servicio.red_id.id }|${ props.servicio.indice }`;
+      formInternet.value.ipv4               = props.servicio.ipv4;
+      formInternet.value.caja_id            = !props.servicio.caja_id ? '' : props.servicio.caja_id.id;
+      formInternet.value.puerto_id          = !props.servicio.puerto_id ? '' : props.servicio.puerto_id.id;
+    }
+
+    const router_id = formInternet.value.router_id;
+    formInternet.value.router_id = ''
+    
     const { data } = await api.get(`/router/find/${ claim.company.id }`);
     
-    data.forEach(router => {
-      listRouter.value.push({ label: router.nombre, value: router.id })
+    listRouter.value = [];
+    data.forEach((router, index) => {
+      listRouter.value.push({ 
+        label: router.nombre, 
+        value: router.id,
+        ip_host: router.ip_host,
+        puerto_api: router.puerto_api,
+        user: router.user_api,
+        password: router.password_api
+      })
+      
+      if ( (index + 1) == data.length ) formInternet.value.router_id = router_id;      
+
     });    
   }
 
   const getServiciosInternet = async () => {   
     validacionesInternet.value.router_id.isValid = true;
     
+    if ( !props.edit ) {
+      formInternet.value.perfil_internet = ''
+      formInternet.value.precio = 0.00;      
+    }
+
+    const internet_id = formInternet.value.perfil_internet;
     formInternet.value.perfil_internet = ''
-    formInternet.value.precio = 0.00
     listServicionsInternet.value = [];
 
     let headers = { headers: { router_id: formInternet.value.router_id } };
@@ -56,12 +93,14 @@
     
     if ( data.length == 0 ) mostrarNotify( 'warning', 'Por favor agrega un perfil de internet' )
     else
-      data.forEach(internet => {
+      data.forEach((internet, index) => {
         listServicionsInternet.value.push({ 
           label: internet.nombre_plan, 
           value: internet.id,
-          precio_plan: internet.precio_plan 
+          precio_plan: internet.precio_plan,
+          detalles: internet 
         })
+        if ( ( index + 1 ) == data.length  ) formInternet.value.perfil_internet = internet_id
       });
 
     cargarRedesIPv4();
@@ -90,9 +129,12 @@
     let headers = { headers: { router_id: formInternet.value.router_id } };
 
     const resp = await api.get(`/customers/get-ips/${ formInternet.value.router_id }`);
-    resp.data.forEach( x => { 
+    resp.data.forEach( (x, index) => { 
       if ( x.puerto_id ) puertosUsados.push( x.puerto_id.id ) 
-      ipsUsadas.push( x.ipv4 )  
+      ipsUsadas.push( x.ipv4 );
+    
+      if (( index + 1 ) == resp.data.length && props.edit) 
+        ipsUsadas = ipsUsadas.filter( ip => ip != props.servicio.ipv4)
     })
 
     await Promise.resolve();
@@ -104,7 +146,6 @@
     data.forEach((x) => {
       const red  = x.red;
       const cidr = x.cidr.split(' ')[0]
-      const rangoIps = x.cidr.split('-')[1].split(',')[1].split(' ')[1];
 
       const listIps = obtenerListaSubred(`${ red }/${ cidr }`)
       const groupedRedes = groupedIpsByRed( listIps );
@@ -115,8 +156,6 @@
       else
         totalIps = 256;
 
-      let children = [];
-    
       let claves = Object.keys(groupedRedes); 
       for(let i = 0; i < claves.length; i++){
         const ipUsadas = getIpsUsadasPorRed( groupedIps, claves[i] );
@@ -134,13 +173,14 @@
           red_name: x.nombre,
           cidr
         })    
-
       }
     });
   }
 
   const obtenerIps = () => {
-    formInternet.value.ipv4 = '';
+
+    if ( !props.edit ) formInternet.value.ipv4 = ''; 
+
     const red = listRedes.value.find( red => red.value == formInternet.value.red_id)
 
     const subRedes = listRedes.value.filter( x => x.red_name == red.red_name )
@@ -171,7 +211,8 @@
     })
 
     if ( listIps.value.length > 0 ) { 
-      formInternet.value.ipv4 = listIps.value[0];
+      if ( !props.edit ) formInternet.value.ipv4 = listIps.value[0];
+      
       validacionesInternet.value.ipv4.isValid = true;
     }
   }
@@ -179,6 +220,7 @@
   const getCajasNap = async () => {
     let headers = { headers: { router_id: formInternet.value.router_id } };
 
+    listCajasNap.value = [];
     const { data } = await api.get('/caja-nap', headers);
     data.forEach((x) => { 
       listCajasNap.value.push({
@@ -227,7 +269,56 @@
     modalAgregarCoordenadas.value = false
   }
 
+  watch(
+    () => formInternet.value.router_id,
+    ( router ) => { 
+      if ( formInternet.value.router_id.length != 0 ) getServiciosInternet(); 
+    }
+  )
+
+  watch(
+    () => formInternet.value.red_id,
+    ( red ) => { 
+      if ( props.edit )
+        setTimeout(() => { obtenerIps(); }, 2000)        
+      else{
+        if( !formInternet.value.indice )
+          obtenerIps();
+      }
+    }
+  )
+
+  const loadingUpdate = ref( false )
+  const actualizarServicio = async () => {
+    try {
+      loadingUpdate.value = true;
+      const existError = validarFormInternet();
+
+      const result = listServicionsInternet.value.filter( x => x.value == formInternet.value.perfil_internet );
+
+      if ( !existError ) {  
+        const { data } = await api.put(`/customers/actualizarDatosServicio/${ props.servicio.id }`, {
+          ...formInternet.value,
+          indice: formInternet.value.red_id.split('|')[1],
+          red_id: formInternet.value.red_id.split('|')[0],
+          cliente: props.servicio.cliente,
+          perfil_internet: result[0].detalles,
+          ipv4_old: props.servicio.ipv4,
+          estado: props.servicio.estado
+        })      
+        
+        mostrarNotify( 'positive', data.msg);
+        loadingUpdate.value = false;
+        emit('actualizarDatos')
+      }
+    } catch (error) {
+      loadingUpdate.value = false;
+      mostrarNotify( 'warning', error.response.data.message )
+    }        
+  }
+
   if ( listRouter.value.length == 0 ) cargarRouter();
+  else if( props.edit ) cargarRouter();
 
 </script>
 
@@ -246,7 +337,6 @@
             </div>
             <div class="col-xs-12 col-md-7 justify-center">
               <q-select dense v-model.trim="formInternet.router_id" filled 
-                @update:model-value="getServiciosInternet"
                 :error="!validacionesInternet.router_id.isValid" 
                 emit-value map-options
                 :options="listRouter">
@@ -430,7 +520,6 @@
           </div>
           <div class="col-xs-12 col-md-7 justify-center">
             <q-select dense v-model.trim="formInternet.red_id" filled 
-              @update:model-value="obtenerIps" 
               :error="!validacionesInternet.red_id.isValid" 
               emit-value map-options
               :options="listRedes">
@@ -535,16 +624,26 @@
         <q-btn v-if="$q.screen.width > 600"
           icon="arrow_back" @click="step = 2"
           outline rounded class="q-ml-md" 
+          :style="props.edit ? 'visibility: hidden;' : ''"
           :color="!$q.dark.isActive ? 'blue-grey-10' : 'blue-grey-2'">
           &nbsp; Anterior
         </q-btn>
 
-        <q-btn type="submit"
-          icon-right="save" 
+        <q-btn v-if="!props.edit"
+          type="submit" icon-right="save" 
+          :loading="loading"
           outline rounded class="q-mr-lg" style="color: #696cff">
           &nbsp; Guardar&nbsp;
         </q-btn>
+
+        <q-btn v-else
+          @click="actualizarServicio"
+          icon-right="save" outline rounded class="q-mr-lg" 
+          style="color: #696cff">
+          &nbsp; Actualizar&nbsp;
+        </q-btn>
     </div>
+
   </div>
 
   <q-dialog v-model="modalAgregarCoordenadas">

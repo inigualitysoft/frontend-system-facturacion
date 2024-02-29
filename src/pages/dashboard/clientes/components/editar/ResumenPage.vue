@@ -1,8 +1,12 @@
 <script setup>
   import { ref } from 'vue';
+  import { date } from 'quasar'
   import { useCliente } from '../../composables/useCliente';
+  import { useEditCliente } from '../../composables/useEditCliente';
 
-  const {  api, mostrarNotify, formCliente, validaciones, validarDatosPersonales } = useCliente();
+  const { api, mostrarNotify, formCliente, validaciones, validarDatosPersonales } = useCliente();
+  
+  const { dia_pago, dia_corte, dia_crear_factura } = useEditCliente();
 
   const loadingUpdate = ref( false )
   const actualizarDatosPersonales = async () => {
@@ -19,10 +23,9 @@
         loadingUpdate.value = false;
       } catch (error) {
         loadingUpdate.value = false;
-        mostrarNotify( 'warning', error.response.data.message )
+        mostrarNotify( 'warning', error.response.data.message );
       }
-    }
-    
+    }    
   }
 
 </script>
@@ -188,7 +191,7 @@
                           <q-icon name="calendar_month" style="font-size: 32px;" />
                         </div>
                         <div style="width: 70%; text-align: left;">
-                          <div>22/12/2023</div>
+                          <div>{{ dia_pago }}</div>
                           <br>
                           <div>Día de pago</div>                      
                         </div>
@@ -208,9 +211,9 @@
                           <q-icon name="calendar_month" style="font-size: 32px;" />
                         </div>
                         <div style="width: 70%; text-align: left;">
-                          <div>22/12/2023</div>
+                          <div>{{ date.formatDate(dia_crear_factura, 'DD/MM/YYYY') }} 12:00 AM</div>
                           <br>
-                          <div>Día de pago</div>                      
+                          <div>Crear Factura</div>                      
                         </div>
                       </div>
                     </q-badge>
@@ -228,9 +231,9 @@
                           <q-icon name="calendar_month" style="font-size: 32px;" />
                         </div>
                         <div style="width: 70%; text-align: left;">
-                          <div>22/12/2023</div>
+                          <div>{{ dia_corte }}</div>
                           <br>
-                          <div>Día de pago</div>                      
+                          <div>Día de corte</div>                      
                         </div>
                       </div>
                     </q-badge>

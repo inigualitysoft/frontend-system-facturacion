@@ -1,36 +1,14 @@
 <script setup>
   import { ref } from 'vue';
   import { useCliente } from '../composables/useCliente';
+  import { useEditCliente } from '../composables/useEditCliente';
   import { date } from 'quasar'
 
-  const { 
-    api, 
-    mes_pago,
-    mostrarNotify, 
-    formFacturacion, 
-    validacionesFacturacion, 
-    validarFormFact, 
-    step 
-  } = useCliente();
-
-  let dia_pago;
-  let dia_corte;
-  let crear_factura;
-  let dia_gracia = formFacturacion.value.dia_gracia.split(' ')[0];
-
-  if( mes_pago.value.estado == 'pagado' ){
-    dia_pago = date.addToDate(mes_pago.value.dia_pago, { months: 1 })
-    dia_corte = 'Desactivado';
-  }else{
-    dia_pago = date.formatDate(mes_pago.value.dia_pago, 'DD/MM/YYYY')
-    dia_corte = date.addToDate(mes_pago.value.dia_pago, { day: dia_gracia })
-  }
-
-  const arrayFechaPago = mes_pago.value.dia_pago.split('-');
-  crear_factura = date.addToDate(`${arrayFechaPago[0]}-${ arrayFechaPago[1] }-02`, { months: 1 });
+  const { api, mostrarNotify, formFacturacion, validacionesFacturacion, validarFormFact, step } = useCliente();
+  const { dia_pago, dia_corte, dia_crear_factura } = useEditCliente()
 
   const props = defineProps(['edit']);
-  const loadingUpdate = ref( false )
+  const loadingUpdate = ref( false );
 
   const actualizarDatosFactura = async () => {
     const existError = validarFormFact();
@@ -54,6 +32,7 @@
   let diaCrearFactura = new Array(25).fill(0).map( (_, idx) => 
                       `${ idx + 1 }  ${ idx == 0 ? 'Día' : 'Días' } antes` );
   let diaGracia = new Array(25).fill(0).map( (_, idx) => `${ idx + 1 }  ${ idx == 0 ? 'Día' : 'Días' }` );
+
   let diaAplicarCorte = new Array(12).fill(0).map( (_, idx) => 
     `${ idx + 1 }  ${ idx == 0 ? 'Mes' : 'Meses' } ${ idx == 0 ? 'Vencido' : 'Vencidos' }` );
 
@@ -122,32 +101,6 @@
         </div>
       </div>
     </div>
-
-    <!-- <div class="col-xs-12 col-md-6" :class="$q.screen.width < 1022 ? 'q-pt-none' : 'q-pt-xs'">
-      <div class="row">
-        <div class="col-xs-12 col-md-4 flex items-center justify-end" 
-          :class="[ $q.screen.width < 1022 
-            ? 'justify-center q-mt-md q-pb-xs' 
-            : 'justify-end text-right q-pb-md']">
-          <label :class="$q.screen.width < 1022 || 'q-pr-md'">
-            Crear Factura:
-          </label>
-        </div>
-        <div class="col-xs-12 col-md-7">
-          <q-select dense v-model.trim="formFacturacion.crear_factura" outlined 
-            :options="diaCrearFactura"
-            @update:model-value="validacionesFacturacion.crear_factura.isValid = true"
-            :error="!validacionesFacturacion.crear_factura.isValid" >
-              <template v-slot:error>
-                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                  {{ validacionesFacturacion.crear_factura.message }}
-                </label>
-              </template>
-          </q-select>
-        </div>
-      </div>
-    </div> -->
-
     <div class="col-xs-12 col-md-6" :class="$q.screen.width < 1022 ? 'q-pt-none' : 'q-pt-xs'">
       <div class="row">
         <div class="col-xs-12 col-md-4 flex items-center justify-end" 
@@ -284,6 +237,7 @@
       </div>
     </div> 
 
+    <!---------------------- RESUMEN DE LOS PAGOS --------------------->
     <template v-if="edit">
       <div class="col-md-12 q-py-md">
         <div class="row q-col-gutter-sm">
@@ -305,7 +259,7 @@
               style="width: 100%;text-align: center;font-size: 15px;"
               outline color="red-4">
               Día de corte: <span class="text-weight-bold">
-                &nbsp;{{ date.formatDate(dia_corte, 'DD/MM/YYYY') }}
+                &nbsp;{{ dia_corte }}
               </span> 
             </q-badge>
           </div>
@@ -316,13 +270,13 @@
               style="width: 100%;text-align: center;font-size: 15px;"
               outline color="cyan-4">
               Crear factura: <span class="text-weight-bold">
-                &nbsp;{{ date.formatDate(crear_factura, 'DD/MM/YYYY') }} 12:00 AM
+                &nbsp;{{ date.formatDate(dia_crear_factura, 'DD/MM/YYYY') }} 12:00 AM
               </span>
             </q-badge>
           </div>
-
         </div>
       </div>
+      <!---------------------- FIN RESUMEN DE LOS PAGOS --------------------->
 
       <div class="col-xs-12 col-md-12 flex q-py-md justify-center" 
         style="padding-bottom: 0px;"

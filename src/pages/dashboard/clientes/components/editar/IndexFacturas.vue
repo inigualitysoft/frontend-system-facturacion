@@ -4,6 +4,7 @@ import { useEditCliente } from "../../composables/useEditCliente.js";
 import { useCliente } from "../../composables/useCliente.js";
 import { useImpresion } from "../../composables/useImpresion.js";
 import ModalPago from "./ModalPago.vue";
+import ModalNuevaFactura from "./ModalNuevaFactura.vue";
 import { date, Dialog } from 'quasar'
 import { Manager } from "socket.io-client";
 
@@ -21,8 +22,15 @@ import { Manager } from "socket.io-client";
   const nuevoPago = ref( true );
   const servicioSelected = ref({});
 
-  const { api, servicios, pagos, showModalPago } = useEditCliente();
-  const { claim, mes_pago, route } = useCliente();
+  const { 
+    api, 
+    servicios, 
+    pagos, 
+    showModalPago, 
+    showModalNuevaFactura, 
+    dia_vencimiento 
+  } = useEditCliente();
+  const { claim, route } = useCliente();
 
   /* --------------------- IMPLEMENTACION DE WEBSOCKET ---------------------- */
   let socket;
@@ -53,33 +61,27 @@ import { Manager } from "socket.io-client";
     try {
       pagos.value = []
       const { data } = await api.get('/pagos/find/' + servicios.value[0].servicio_id);
-
       
       if( data.length > 0 ){
         if( data[0].servicio.factura_id.tipo_comprobante == 'Recibo' )
-        columns.value[1].label = 'Tipo Comprobante'
-      
-        mes_pago.value.dia_pago = data[0].dia_pago;
-        if ( data[0].estadoSRI !== 'PAGADO' || data[0].estadoSRI !== 'AUTORIZADO' ) 
-          mes_pago.value.estado = 'pendiente';
-        else
-          mes_pago.value.estado = 'pagado';
+          columns.value[1].label = 'Tipo Comprobante'
       }
-    
-      data.forEach(x => {
-        const dia_vencimiento = date.addToDate(x.created_at, { 
-          days: (x.servicio.factura_id.dia_pago - 1 ) 
-        })
-  
+
+      data.forEach(x => {  
+        
         let impuesto;
-        if(x.servicio.factura_id.tipo_impuesto == 'Impuestos incluido'){
-          impuesto = `${ Math.floor((parseFloat( x.servicio.precio ) * 0.12) * 100) / 100 }`
-        }else impuesto = 0.00      
-  
+        if(x.servicio.factura_id.tipo_impuesto == 'Impuestos incluido')
+        impuesto = `${ Math.floor((parseFloat( x.servicio.precio ) * 0.12) * 100) / 100 }`
+      else 
+          impuesto = 0.00      
+        
         let totalPagado = 0;
         x.pagos.forEach( pago => { totalPagado += parseFloat(pago.valor) });
         const estado = x.estadoSRI?.trim();
   
+        let diasGracias = parseInt(x.servicio.factura_id.dia_gracia.split(' ')[0]);
+        const fechaPago = date.addToDate(x.dia_pago, { days: ( diasGracias + 1 ) })
+
         pagos.value.push({
           ambiente: x.sucursal_id ? x.sucursal_id.ambiente : '',
           clave_acceso: x.clave_acceso,
@@ -88,23 +90,23 @@ import { Manager } from "socket.io-client";
           sucursal_id: x.sucursal_id !== null ? x.sucursal_id.id : null,
           pago_id: x.id,
           ruc: x.servicio.perfil_internet.router_id.company_id.ruc,
-          direccion: x.sucursal_id !==null ? x.sucursal_id.direccion : null,
+          direccion: x.sucursal_id !== null ? x.sucursal_id.direccion : null,
           emitido: date.formatDate(x.created_at, 'DD/MM/YYYY'),
-          vencimiento: date.formatDate(dia_vencimiento, 'DD/MM/YYYY'),
+          vencimiento: date.formatDate(fechaPago, 'DD/MM/YYYY'),
           precio: `${ x.servicio.precio }`,
           tipo_comprobante: x.servicio.factura_id.tipo_comprobante,
           iva: impuesto,
           pagos: x.pagos,
           pagado: totalPagado,
+          servicio: x.servicio,
           estado,
           cancelado: ( totalPagado >= parseFloat(x.servicio.precio)) ? true : false,
           expand: false,
           loading: false
         })
-      });      
+      });   
     } catch (error) {
       console.log( error );
-      // console.log( error.response.data );
     }
   }
 
@@ -238,13 +240,13 @@ import { Manager } from "socket.io-client";
 
   const downloadRide = async ( clave_acceso ) => {
     await api.post(`/CE/facturas/getRide/${ clave_acceso }`, { }, {responseType: 'blob'}).then(response => {
-        var oMyBlob = new Blob([response.data], {type : 'application/pdf'}); 
-        var url = URL.createObjectURL(oMyBlob);
-        window.open(url);
-      }).catch(error => {
-        if(error.response.status == 422) {
-          this.$setLaravelErrors(error.response.data.errors);                               
-        }                
+      var oMyBlob = new Blob([response.data], {type : 'application/pdf'}); 
+      var url = URL.createObjectURL(oMyBlob);
+      window.open(url);
+    }).catch(error => {
+      if(error.response.status == 422) {
+        this.$setLaravelErrors(error.response.data.errors);                               
+      }                
     }) 
   }
 
@@ -257,9 +259,15 @@ import { Manager } from "socket.io-client";
     <div class="my-card">
 
       <div class="q-pt-none">
-        <div class="row q-pt-sm">
+        <div class="row">
           <div class="col-12">
             <div class="row">
+
+              <div class="col-12 text-right">
+                <q-btn @click="showModalNuevaFactura = true"
+                  outline color="primary" label="Factura de Servicio" 
+                  class="q-mr-xs" :class="!$q.screen.xs || 'q-mt-sm'" />
+              </div>
 
               <div class="col-12 q-mt-md">
                 <q-table :rows="pagos" :columns="columns"
@@ -315,6 +323,11 @@ import { Manager } from "socket.io-client";
                         :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'" 
                         :label="props.row.estado" />
 
+                        <q-badge v-else-if="props.row.estado == 'PAGADO'" 
+                        outline class="q-py-xs q-px-md"
+                        :color="'secondary'" 
+                        :label="props.row.estado" />
+
                         <q-badge v-else outline class="q-py-xs q-px-md" 
                           :color="$q.dark.isActive ? 'warning' : 'orange-10'">
                           PAGADO <br> - <br> {{ props.row.estado }}
@@ -341,9 +354,9 @@ import { Manager } from "socket.io-client";
                           </q-tooltip>
                         </q-btn>
                         <q-btn v-if="props.row.estado == 'AUTORIZADO'"
-                              round color="blue-grey" icon="print" 
-                              @click="imprimir(props.row, 'factura')"
-                              size="10px" class="q-mr-sm">
+                            round color="blue-grey" icon="print" 
+                            @click="imprimir(props.row, 'factura')"
+                            size="10px" class="q-mr-sm">
                           <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
                             Imprimir comprobante
                           </q-tooltip>
@@ -460,6 +473,10 @@ import { Manager } from "socket.io-client";
   <q-dialog v-model="showModalPago">
     <ModalPago :servicio="servicioSelected" :nuevoPago="nuevoPago" 
       @actualizar-datos="getPagosServicio" />
+  </q-dialog>
+
+  <q-dialog v-model="showModalNuevaFactura">
+    <ModalNuevaFactura @actualizar-datos="getPagosServicio" />
   </q-dialog>
 </template>
 

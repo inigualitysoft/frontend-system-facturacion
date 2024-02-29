@@ -107,7 +107,7 @@
           </div>
 
           <div class="col-xs-11 col-md-5" 
-            :style="$q.screen.width < 600 || 'position: relative; top: 12px;left: 24px;'">
+            :class="$q.screen.width < 600 || 'obligadoContb'">
             <label>Obligado Contabilidad:</label>
             <q-toggle color="green" size="lg" v-model="formEmpresa.obligado_contabilidad"/>
           </div>
@@ -238,4 +238,10 @@
 
 </template>
 
-
+<style>
+.obligadoContb{
+  position: relative; 
+  top: 12px;
+  left: 24px;
+}
+</style>

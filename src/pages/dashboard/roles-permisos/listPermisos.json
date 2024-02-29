@@ -1,0 +1,83 @@
+[
+    {
+      "label": "Seleccionar todos los permisos",
+      "value": "Seleccionar todos los permisos",
+      "children": [
+        {
+          "label": "Routers",
+          "value": "Routers",
+          "children": [
+            { "label": "Ver Routers", "value": "index.routers" },
+            { "label": "Crear Router", "value": "crear.router" },
+            { "label": "Editar Router", "value": "editar.router" },
+            { "label": "Activar Router", "value": "activar.router" },
+            { "label": "Inactivar Router", "value": "inactivar.router" },
+            { "label": "Importar Clientes", "value": "importar-clientes.router" },
+            { "label": "Reparar Router", "value": "reparar.router" },
+            { "label": "Eliminar Router", "value": "eliminar.router" }
+          ]
+        },
+        {
+          "label": "Servicios",
+          "value": "Servicios",
+          "children": [
+            { "label": "Ver Servicios", "value": "index.servicios" },
+            { "label": "Crear Servicio", "value": "crear.servicio" },
+            { "label": "Editar Servicio", "value": "editar.servicio" },
+            { "label": "Activar Servicio", "value": "activar.servicio" },
+            { "label": "Inactivar Servicio", "value": "inactivar.servicio" },
+            { "label": "Eliminar Servicio", "value": "eliminar.servicio" }
+          ]
+        },
+        {
+          "label": "Cajas-Nap",
+          "value": "Cajas-Nap",
+          "children": [
+            { "label": "Ver Cajas Nap", "value": "index.cajas-nap" },
+            { "label": "Crear Caja Nap", "value": "crear.cajas-nap" },
+            { "label": "Editar Caja Nap", "value": "editar.cajas-nap" },
+            { "label": "Activar Caja Nap", "value": "activar.cajas-nap" },
+            { "label": "Inactivar Caja Nap", "value": "inactivar.cajas-nap" },
+            { "label": "Eliminar Caja Nap", "value": "eliminar.cajas-nap" }
+          ]
+        },
+        {
+          "label": "Redes",
+          "value": "Redes",
+          "children": [
+            { "label": "Ver Redes", "value": "index.red" },
+            { "label": "Crear Red", "value": "crear.red" },
+            { "label": "Editar Red", "value": "editar.red" },
+            { "label": "Activar Red", "value": "activar.red" },
+            { "label": "Inactivar Red", "value": "inactivar.red" },
+            { "label": "Eliminar Red", "value": "eliminar.red" }
+          ]
+        },
+        {
+          "label": "Proveedores",
+          "value": "Proveedores",
+          "children": [
+            { "label": "Ver Proveedores", "value": "index.proveedores" },
+            { "label": "Crear Proveedor", "value": "crear.proveedor" },
+            { "label": "Editar Proveedor", "value": "editar.proveedor" },
+            { "label": "Activar Proveedor", "value": "activar.proveedor" },
+            { "label": "Inactivar Proveedor", "value": "inactivar.proveedor" },
+            { "label": "Eliminar Proveedor", "value": "eliminar.proveedor" }
+          ]
+        },
+        {
+          "label": "Clientes",
+          "value": "Clientes",
+          "children": [
+            { "label": "Ver Clientes", "value": "index.clientes" },
+            { "label": "Crear Cliente", "value": "crear.cliente" },
+            { "label": "Editar Cliente", "value": "editar.cliente" },
+            { "label": "Activar Cliente", "value": "activar.cliente" },
+            { "label": "Inactivar Cliente", "value": "inactivar.cliente" },
+            { "label": "Eliminar Cliente", "value": "eliminar.cliente" }
+          ]
+        }
+      ]
+    }
+  ]
+  

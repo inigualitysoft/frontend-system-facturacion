@@ -1,6 +1,5 @@
 import { ref, onMounted, watch } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
-import { api } from "boot/axios";
 import { date, Dialog } from 'quasar'
 
 const loading  = ref( false );  
@@ -13,10 +12,6 @@ let listServicionsInternet = ref([]);
 const listRedes = ref([]);
 const listIps = ref([]);
 const optionsListIps = ref([]);
-const mes_pago = ref({
-  dia_pago: '',
-  estado: ''
-});
 
 let listCajasNap = ref([]);
 let listPuertosCajaNap = ref([]);
@@ -89,7 +84,7 @@ const validaciones = ref({
 
 export const useCliente = () => {
 
-    const { claim, router, mostrarNotify, confirmDelete, isDeleted, route } = useHelpers();
+    const { api, claim, router, mostrarNotify, confirmDelete, isDeleted, route } = useHelpers();
     const camposRequeridos = ['nombres', 'tipo_documento', 'numero_documento', 'email', 'celular', 'direccion'];
     const camposReqFacturacion = ['tipo', 'dia_pago', 'tipo_impuesto', 'dia_gracia', 'aplicar_corte', 'tipo_comprobante'];
     const camposReqInternet = ['perfil_internet', 'precio', 'red_id', 'ipv4'];
@@ -233,10 +228,7 @@ export const useCliente = () => {
         }
       }
 
-
-      if( !existError) {
-        done3.value = true;
-      }
+      if( !existError) done3.value = true;
 
       return existError;
     }
@@ -264,14 +256,33 @@ export const useCliente = () => {
       }).onOk(async () => {
         try {
           loading.value = true;
+          const route    = listRouter.value.find( route => route.value == formInternet.value.router_id);
+          const internet = listServicionsInternet.value.find( internet => internet.value == formInternet.value.perfil_internet);
+
+          const fechaActual = new Date();
+          const dia  = fechaActual.getDate();
+          const mes  = fechaActual.getMonth();
+          const anio = fechaActual.getFullYear();
+
+          let fechaPago = ''
+          if ( dia > formFacturacion.value.dia_pago) 
+            fechaPago = new Date(anio, ( mes + 2 ), formFacturacion.value.dia_pago);
+          else
+            fechaPago = new Date(anio, ( mes + 1 ), formFacturacion.value.dia_pago);
+          
           if ( !edit ){
-            if ( formInternet.value.red_id.includes('|') ) 
-              formInternet.value.red_id = formInternet.value.red_id.split('|')[0]
-            
+            if ( formInternet.value.red_id.includes('|') ){
+              formInternet.value.indice = formInternet.value.red_id.split('|')[1]            
+              formInternet.value.red_id = formInternet.value.red_id.split('|')[0]            
+            } 
+
             await api.post('/customers', {
               cliente:      formCliente.value,
               facturacion:  formFacturacion.value,
-              servicio:     formInternet.value
+              servicio:     formInternet.value,
+              route,
+              internet,
+              fechaPago
             })
           } 
           else
@@ -282,6 +293,7 @@ export const useCliente = () => {
           loading.value = false;
           router.push({ name: 'cliente.index' });
         } catch (error) {
+          console.log( error );
           mostrarNotify( 'warning', error.response.data.message )
           loading.value = false;
         }        
@@ -342,7 +354,6 @@ export const useCliente = () => {
     return {
       api,
       claim,
-      mes_pago,
       formCliente,
       formFacturacion,
       loading,

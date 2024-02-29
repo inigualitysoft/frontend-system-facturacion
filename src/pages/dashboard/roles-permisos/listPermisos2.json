@@ -1,0 +1,83 @@
+[
+    {
+      "label": "Seleccionar todos los permisos",
+      "value": "Seleccionar todos los permisos",
+      "children": [
+        {
+          "label": "Productos Y Servicios",
+          "value": "Productos Y Servicios",
+          "children": [
+            { "label": "Ver Prod. Y Serv.", "value": "index.productos" },
+            { "label": "Crear Prod. Y Serv.", "value": "crear.productos" },
+            { "label": "Editar Prod. Y Serv.", "value": "editar.productos" },
+            { "label": "Activar Prod. Y Serv.", "value": "activar.productos" },
+            { "label": "Inactivar Prod. Y Serv.", "value": "inactivar.productos" },
+            { "label": "Eliminar Prod. Y Serv.", "value": "eliminar.productos" }
+          ]
+        },
+        {
+          "label": "Compras",
+          "value": "Compras",
+          "children": [
+            { "label": "Ver Compras", "value": "index.compras" },
+            { "label": "Crear Compra", "value": "crear.compra" },            
+            { "label": "Anular Compra", "value": "anular.compra" }            
+          ]
+        },
+        {
+          "label": "Ventas",
+          "value": "Ventas",
+          "children": [
+            { "label": "Ver Ventas", "value": "index.ventas" },
+            { "label": "Crear Venta", "value": "crear.venta" },            
+            { "label": "Anular Venta", "value": "anular.venta" }            
+          ]
+        },
+        {
+          "label": "Gestión Personal",
+          "value": "Gestión Personal",
+          "children": [
+            { "label": "Ver Usuarios", "value": "index.usuario" },
+            { "label": "Crear Usuario", "value": "crear.usuario" },
+            { "label": "Editar Usuario", "value": "editar.usuario" },
+            { "label": "Activar Usuario", "value": "activar.usuario" },
+            { "label": "Inactivar Usuario", "value": "inactivar.usuario" },
+            { "label": "Eliminar Usuario", "value": "eliminar.usuario" }
+          ]
+        },
+        {
+          "label": "Roles Y Permisos",
+          "value": "Roles Y Permisos",
+          "children": [
+            { "label": "Ver Roles", "value": "index.rol" },
+            { "label": "Crear Rol", "value": "crear.rol" },
+            { "label": "Editar Rol", "value": "editar.rol" },
+            { "label": "Activar Rol", "value": "activar.rol" },
+            { "label": "Inactivar Rol", "value": "inactivar.rol" },
+            { "label": "Eliminar Rol", "value": "eliminar.rol" }
+          ]
+        },
+        {
+          "label": "Correo",
+          "value": "Correo",
+          "children": [
+            { "label": "Ver Correos", "value": "index.correo" },
+            { "label": "Editar Correo", "value": "editar.correo" }
+          ]
+        },
+        {
+          "label": "Empresas",
+          "value": "Empresas",
+          "children": [
+            { "label": "Ver Empresas", "value": "index.empresa" },
+            { "label": "Crear Empresa", "value": "crear.empresa" },
+            { "label": "Editar Empresa", "value": "editar.empresa" },
+            { "label": "Activar Empresa", "value": "activar.empresa" },
+            { "label": "Inactivar Empresa", "value": "inactivar.empresa" },
+            { "label": "Eliminar Empresa", "value": "eliminar.empresa" }
+          ]
+        }
+      ]
+    }
+  ]
+  

@@ -52,7 +52,7 @@ const cargarCompanies = async () => {
 export const useRouter = ( edit ) => {
 
     const { mostrarNotify, claim, router, route } = useHelpers();
-    const camposRequeridos = ['nombre', 'user_api', 'tipo_router', 'password_api', 'ubicacion', 'registro_trafico', 'control_velocidad', 'seguridad', 'seguridad_alterna', 'ip_host', 'puerto_api']
+    const camposRequeridos = ['nombre', 'user_api', 'tipo_router', 'ubicacion', 'registro_trafico', 'control_velocidad', 'seguridad', 'seguridad_alterna', 'ip_host', 'puerto_api']
 
     const limpiarFormulario = () => {
       formRouter.value = {
@@ -127,11 +127,10 @@ export const useRouter = ( edit ) => {
           NotSetHeaderCompany: claim.roles[0] == 'Super-Administrador' ? true : false
         }};
 
-        let response;
         if ( !edit ){
-          response = await api.post('/router', formRouter.value, headers)
+          await api.post('/router', formRouter.value, headers)
         }else{
-          response = await api.patch('/router/' + formRouter.value.id, formRouter.value)
+          await api.patch('/router/' + formRouter.value.id, formRouter.value)
         }
         
         mostrarNotify( 'positive', `Router ${ edit ? 'editado' : 'agregado' } exitosamente`);

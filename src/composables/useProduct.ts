@@ -29,14 +29,20 @@ export const useProduct = () => {
     //VERIFICAR SI YA SE AGREGO ESTE ARTICULO
     const resultado = rows.value.some( (row: any) => row.codigoBarra == data.codigoBarra )
     if ( !resultado ){
-      if ( modulo !== 'compras' && data.stock <= 0 ) 
-      return mostrarNotify('negative', `No hay stock del articulo ${ data.nombre }`);
+      if ( modulo !== 'compras' && data.stock <= 0 && data.tipo != 'Servicio') 
+        return mostrarNotify('negative', `No hay stock del articulo ${ data.nombre }`);
     
-      data.cantidad  = modulo == 'proforma' ? data.cantidad : 0;
+      let cantidad = 0;
+      if (modulo == 'proforma') cantidad = data.cantidad
+      else if (data.tipo == 'Servicio') cantidad = 1
+      else cantidad = 0;
+
+      data.cantidad  = cantidad;
       data.v_total   = modulo == 'proforma' ? data.v_total : 0;
       data.descuento = (modulo == 'venta' || modulo == 'proforma') ? data.descuento : 0;
     
       rows.value.unshift( data );
+      if (data.tipo == 'Servicio') getSubtotalByProduct( data, 'ventas' )
       filterByCodBarra.value = ''
     }
     else

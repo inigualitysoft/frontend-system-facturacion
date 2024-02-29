@@ -294,7 +294,7 @@
           </div>
         </div>
       </div>
-
+      
       <div v-if="listRouters.length > 1"
         class="col-xs-12 col-md-6">
         <div class="row">

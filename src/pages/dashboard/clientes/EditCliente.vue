@@ -2,21 +2,47 @@
   import { useCliente } from './composables/useCliente';
   import { useEditCliente } from "./composables/useEditCliente";
   import IndexPage from "./components/editar/IndexPage.vue";
-  import { ref } from 'vue';
+  import { date } from 'quasar'
 
   const { api, route, formCliente, formFacturacion } = useCliente();
-  const { servicios } = useEditCliente();
-  const client_name = ref('');
+  const { client_name, dia_vencimiento, mes_pago, servicios } = useEditCliente();
+
+  const consultarPagos = async () => {
+    const { data } = await api.get('/pagos/find/' + servicios.value[0].servicio_id);
+    if( data.length > 0 ){
+
+      mes_pago.value.dia_pago = data[0].dia_pago;
+      if ( data[0].estadoSRI !== 'PAGADO' && data[0].estadoSRI !== 'AUTORIZADO' ) 
+        mes_pago.value.estado = 'pendiente';
+      else
+        mes_pago.value.estado = 'pagado';
+    }
+
+    mes_pago.value.meses_vencidos = data.reduce((cont, x) => 
+          cont + (x.estadoSRI == 'NO PAGADO' || x.estadoSRI == 'PENDIENTE'), 0);
+      
+    data.forEach((x, index) => {
+      let diasGracias = parseInt(x.servicio.factura_id.dia_gracia.split(' ')[0]);
+
+      dia_vencimiento.value = date.addToDate(x.dia_pago, { days: ( diasGracias + 1 ) })
+
+      if ( index == 0 ) mes_pago.value.dia_vencimiento = dia_vencimiento.value;
+    })
+  }
 
   const getClient = async () => {
     servicios.value = [];
     const { data } = await api.get('/customers/find/' + route.params.client_id);
+
+    client_name.value = data[0].nombres;
+    formCliente.value = { ...data[0] }
     
     data[0].planInternet.forEach(x => {
 
       formFacturacion.value = { ...x.factura_id }
 
       servicios.value.push({
+        detalles: { ...x, cliente: client_name.value },
         servicio_id: x.id,
         precio: x.precio,
         direccion: `${ x.direccion == '' ? '- - - - -' : x.direccion }`,
@@ -26,10 +52,10 @@
         router: x.router_id.nombre,
         estado: `${ x.isActive ? 'Activo' : 'Inactivo' }`
       });
-    });
+
+    });   
     
-    client_name.value = data[0].nombres
-    formCliente.value = { ...data[0] }
+    consultarPagos();    
   }
   
   getClient();

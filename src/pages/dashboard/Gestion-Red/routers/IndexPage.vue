@@ -1,10 +1,10 @@
-<script setup lang="ts">
+<script setup>
   import { ref, watch } from 'vue';
-  import { api } from "boot/axios";
+  import { Dialog } from "quasar";
   import useHelpers from "../../../../composables/useHelpers";
-  import { useRouter } from "./composables/useRouter";
+  import ModalImportarClientes from "./components/ModalImportarClientes.vue";
   
-  const columns: any = [
+  const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { align: 'center', label: 'Nombre Router', field: 'nombre', name: 'nombre' },
     { align: 'center', label: 'IP/Host', field: 'ip_host', name: 'ip_host' },
@@ -12,30 +12,31 @@
     { name: 'estado', label: 'Estado', align: 'center', field: 'estado' },
   ]
 
-  let { claim, formRouter } = useRouter();
+  const filter                 = ref('')
+  const rows                   = ref([]);
+  const loading                = ref( false );
+  const showModalImportClients = ref( false );
+  const router_selected        = ref('');
 
-  const filter  = ref('')
-  const rows    = ref([]);
-  const loading = ref( false );
-
-  const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { api, claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
   const getRouters = async () => {
     loading.value = true;
     try {
       const { data } = await api.get('/router');
-      data.forEach((x: any) => {
+      data.forEach(x => {
         x.empresa_name = x.company_id.nombre_comercial
-        x.estado = x.isActive ? 'Activo' : 'Inactivo'
+        x.estado = x.isActive ? 'Activo' : 'Inactivo',
+        x.loading = false;
       });
       rows.value = data;
-    } catch (error: any) {
+    } catch (error) {
       mostrarNotify( 'warning', error.response.data.message )
     }
     loading.value = false;
   }
 
-  const activarDesactivarSucursal = async (router_id: string, estado: boolean) => {
+  const activarDesactivarSucursal = async (router_id, estado) => {
     try {
       const { data: { msg } } = await api.patch(`/router/${ router_id }/${ estado }`)
       mostrarNotify('positive', msg );
@@ -46,11 +47,52 @@
   }
 
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getRouters() });
-  const eliminarRouter = async (router_id: string ) => {
+  const eliminarRouter = async (router_id ) => {
     try {
       confirmDelete('Estas seguro de eliminar este router?', `/router/${ router_id }`);
     } catch (error) {
       console.log(error);
+    }
+  }
+
+  const confirmarRepararRouter = async ( router_id ) => {
+    Dialog.create({
+      title: 'Confirmar',
+      message: '¿Deseas reescribir los clientes existente al mickrotik?',
+      ok: { push: true, label:'SI', color: 'teal-7' },
+      cancel: { push: true, color: 'blue-grey-8', label: 'Cancelar' }
+    }).onOk( async () => {
+      try {
+        await api.post(`/mikrotik/reparar-router/${ router_id }`)
+
+        mostrarNotify('warning', "Clientes agregados exitosamente");
+      } catch (error) {
+        if( typeof(error.response.data.message) == 'object' ){
+          error.response.data.message.unshift('No pudo agregar los siguientes clientes porque ya existen:');
+        }
+        mostrarNotify('warning', error.response.data.message);
+      }
+    })
+  }
+
+  const downloadExcel = async ( router_id, index ) => {
+    try {
+      rows.value[index].loading = true
+
+      const response = await api.post(`/mikrotik/download-clients-excel/${ router_id }`, { }, {responseType: 'arraybuffer'});
+  
+      const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'ejemplo.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);    
+      
+      rows.value[index].loading = false
+    } catch (error) {
+      console.log( error );
+      rows.value[index].loading = false
     }
   }
 
@@ -99,7 +141,7 @@
               <q-btn flat round dense
                 :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
                 @click="props.toggleFullscreen"
-                v-if="mode === 'list'" >
+                v-if="mode === 'list'">
                 <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
                   {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                 </q-tooltip>
@@ -107,9 +149,7 @@
 
               <q-btn flat round dense
                 :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
-                v-if="!props.inFullscreen"
-              >
+                @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'" v-if="!props.inFullscreen">
                 <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
                   {{ mode === 'grid' ? 'List' : 'Grid' }}
                 </q-tooltip>
@@ -130,11 +170,38 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                <q-btn round color="blue-grey" v-if="props.row.isActive"
-                  @click="$router.push({ name: 'router.edit', params: { router_id: props.row.id } })"
-                  icon="edit" class="q-mr-sm" size="10px" />
 
                 <template v-if="props.row.isActive">
+                  <q-btn round color="blue-grey" 
+                    @click="$router.push({ name: 'router.edit', params: { router_id: props.row.id } })"
+                    icon="edit" class="q-mr-sm" size="10px" />
+
+                  <q-btn @click="confirmarRepararRouter( props.row.id )"
+                    round color="blue-grey" 
+                    icon="fa-solid fa-gears" class="q-mr-sm" size="10px">
+                    <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                      Reparar router
+                    </q-tooltip>
+                  </q-btn>
+                  
+                  <q-btn @click="downloadExcel( props.row.id, props.rowIndex )"
+                    :loading="props.row.loading"
+                    round color="blue-grey" 
+                    icon="fa-solid fa-file-excel" class="q-mr-sm" size="10px">
+                    <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                      Descargar plantilla clientes
+                    </q-tooltip>
+                  </q-btn>
+
+                  <q-btn @click="showModalImportClients = true, router_selected = props.row.id"
+                    :loading="props.row.loading"
+                    round color="blue-grey" 
+                    icon="upload" class="q-mr-sm" size="10px">
+                    <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                      Importar Clientes
+                    </q-tooltip>
+                  </q-btn>
+
                   <q-btn round color="blue-grey"
                     v-if="props.row.isActive && claim.roles[0] == 'Super-Administrador'"
                     icon="close"
@@ -172,6 +239,10 @@
       </div>
     </div>
   </div>
+
+  <q-dialog v-model="showModalImportClients">
+    <ModalImportarClientes :router_selected="router_selected" />
+  </q-dialog>
   
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs && claim.roles[0] == 'Super-Administrador'">
