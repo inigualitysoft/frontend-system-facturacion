@@ -14,7 +14,7 @@
         <q-card flat class="shadow_custom">
 
           <div class="row q-py-md q-pl-md" :class="$q.screen.xs ? 'justify-center' : 'justify-between'">
-            <div v-if="claim.roles[0] == 'Super-Administrador'"
+            <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR'"
                 class="col-xs-12 col-sm-12 col-md-6">
                 <q-breadcrumbs class="row q-mr-lg" 
                 :class="[ $q.screen.width < 1022 ? 'justify-center q-pt-sm' : 'justify-start ']">

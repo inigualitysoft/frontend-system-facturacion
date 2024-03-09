@@ -79,7 +79,7 @@
         }
       })
   
-      if ( (claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador') 
+      if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR') 
             && formPago.value.sucursal_id == '' && props.servicio.tipo_comprobante != 'Recibo' &&
             parseFloat(formPago.value.montoCancelar) >= parseFloat(formPago.value.montoPendiente)) {
         validaciones.value['sucursal_id'].message = 'Debes seleccionar una sucursal'
@@ -191,7 +191,7 @@
       formPago.value.sucursal_id = sucursales.value[0].value;
   }
 
-  if ( claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador' )
+  if ( claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR' )
     getSucursales( claim.company.id );
 
 </script>

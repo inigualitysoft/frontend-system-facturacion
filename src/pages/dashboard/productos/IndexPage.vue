@@ -1,11 +1,11 @@
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, watch } from 'vue'
-import { api } from "boot/axios";
-// import FiltrarProduct from './FiltrarProduct.vue'
+import ModalCargarExcel from "./components/ModalCargarExcel.vue";
 import AddProduct from './AddProduct.vue'
 import EditProduct from './EditProduct.vue'
 import { useProduct } from "./composables/useProducts";
 import useHelpers from "../../../composables/useHelpers";
+import useRolPermisos from "src/composables/useRolPermisos.js";
 
   let { 
     actualizarTabla,
@@ -15,7 +15,7 @@ import useHelpers from "../../../composables/useHelpers";
     formProduct
   } = useProduct();
 
-  const columns: any = [
+  const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'codigoBarra', label: 'Codigo de Barra', align: 'center', field: 'codigoBarra' },
     { name: 'producto', label: 'Producto', align: 'center', field: 'nombre' },
@@ -24,7 +24,9 @@ import useHelpers from "../../../composables/useHelpers";
     { name: 'estado', label: 'Estado', align: 'center', field: 'isActive' }
   ]
   
-  const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const showModalUploadFile = ref( false );
+  const { api, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { validarPermisos } = useRolPermisos();
 
   // const formFiltrarArticulo = ref({
   //     page: '',
@@ -34,11 +36,11 @@ import useHelpers from "../../../composables/useHelpers";
   //     busqueda: ''
   // })
 
-  const rows = ref([]);
-  const tipoBusqueda = ref('codigo');
-  const filter = ref<any>('');
-  const tableRef = ref();
-  const loading = ref(false);
+  const rows           = ref([]);
+  const tipoBusqueda   = ref('codigo');
+  const filter         = ref('');
+  const tableRef       = ref();
+  const loading        = ref(false);
   const selectSucursal = ref('');
   const listSucursales = ref([]);
 
@@ -50,7 +52,7 @@ import useHelpers from "../../../composables/useHelpers";
     rowsNumber: 5
   })
 
-  const activarDesactivarProduct = async (product_id: string, estado: boolean) => {
+  const activarDesactivarProduct = async (product_id, estado) => {
     try {
       const { data: { msg } } = await api.patch(`/products/${ product_id }/${ estado }`)
       mostrarNotify('positive', msg );
@@ -77,7 +79,7 @@ import useHelpers from "../../../composables/useHelpers";
     } 
   });
 
-  const eliminarProducto = async ( producto_id: string ) => {
+  const eliminarProducto = async ( producto_id ) => {
     try {
       confirmDelete('Estas seguro de eliminar este producto?', `/products/${ producto_id }`);
     } catch (error) {
@@ -89,20 +91,20 @@ import useHelpers from "../../../composables/useHelpers";
     loading.value = true;
     try {
       const { data } = await api.get('/sucursal');
-      data.forEach((companie: any) => {
+      data.forEach(( companie ) => {
         listSucursales.value.push({
           label:  companie.nombre,
           value:  companie.id
         })
       });
       if ( listSucursales.value.length !== 0 ) selectSucursal.value = listSucursales.value[0].value
-    } catch (error: any) {
+    } catch ( error ) {
       mostrarNotify( 'warning', error.response.data.message )
     }
     loading.value = false;
   }
 
-  const getArticulos = async (page: number = 1, rowsPerPage: number = 5, filtro = null) => {
+  const getArticulos = async (page = 1, rowsPerPage = 5, filtro = null) => {
 
     if ( listSucursales.value.length == 0 ) await getSucursales();
     
@@ -121,7 +123,7 @@ import useHelpers from "../../../composables/useHelpers";
     }
   }
 
-  async function onRequest ( props:any ) {
+  async function onRequest ( props ) {
 
     // formFiltrarArticulo.value.busqueda = filter.value
 
@@ -137,6 +139,12 @@ import useHelpers from "../../../composables/useHelpers";
     pagination.value.descending  = descending
 
     loading.value = false
+  }
+
+  const downloadFile = () => {
+    var archivoURL = "/plantillas/productos_plantilla.xlsx";
+
+    window.location.href = archivoURL;
   }
 
   onMounted(() => {
@@ -170,13 +178,13 @@ import useHelpers from "../../../composables/useHelpers";
               </template>
 
               <template v-slot:top-left="props">
-                <div v-if="claim.roles[0] !== 'Super-Administrador' && claim.roles[0] !== 'Administrador'"
+                <div v-if="claim.roles[0] !== 'SUPER-ADMINISTRADOR' && claim.roles[0] !== 'ADMINISTRADOR'"
                   class="text-center row justify-center" style="width: 100%;">
                   <label class="q-mb-sm text-grey-7 text-h6">
                     Listado de Productos
                   </label>
                 </div>
-                <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+                <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
                 style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
                   <label class="q-mr-sm row items-center">
                     <span>Sucursal: </span> 
@@ -190,9 +198,29 @@ import useHelpers from "../../../composables/useHelpers";
               </template>
 
               <template v-slot:top-right="props">
-                <q-btn v-if="!$q.screen.xs"
+                <q-btn v-if="!$q.screen.xs && validarPermisos('crear.productos')"
                   @click="modalAgregarProducto = !modalAgregarProducto" 
                   outline color="primary" label="Agregar Producto" class="q-mr-xs"/>
+
+                <q-btn-dropdown outline class="q-mr-sm q-ml-xs"
+                  color="primary" icon="fa-solid fa-file-excel">
+                  <q-list>
+                    <q-item clickable v-close-popup
+                      @click="showModalUploadFile = true">
+                      <q-item-section>
+                        <q-item-label>Importar Excel</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                    <q-item @click="downloadFile"
+                      clickable v-close-popup>
+                      <q-item-section>
+                        <q-item-label>Exportar Excel</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                  </q-list>
+                </q-btn-dropdown>
 
                 <q-input :style="$q.screen.width > 700 || 'width: 70%'"
                   outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
@@ -224,13 +252,15 @@ import useHelpers from "../../../composables/useHelpers";
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                <q-btn round color="blue-grey"
-                  @click="formProduct = { ...props.row }, modalEditarProducto = true"
-                  icon="edit" class="q-mr-sm" size="10px" />
-
+                
                 <template v-if="props.row.isActive">
+                  <q-btn v-if="validarPermisos('editar.productos')"
+                    round color="blue-grey"
+                    @click="formProduct = { ...props.row }, modalEditarProducto = true"
+                    icon="edit" class="q-mr-sm" size="10px" />
+
                   <q-btn round color="blue-grey"
-                    v-if="props.row.isActive"
+                    v-if="validarPermisos('inactivar.productos')"
                     icon="close"
                     @click="activarDesactivarProduct(props.row.id, false)"
                     size="10px" />
@@ -238,12 +268,12 @@ import useHelpers from "../../../composables/useHelpers";
 
                 <template v-else>
                   <q-btn round color="blue-grey"
-                    v-if="!props.row.isActive"
+                    v-if="validarPermisos('activar.productos')"
                     icon="done" size="10px"
                     @click="activarDesactivarProduct(props.row.id, true)" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                    v-if="!props.row.isActive"
+                    v-if="!props.row.isActive && validarPermisos('eliminar.productos')"
                     icon="delete" size="10px"
                     @click="eliminarProducto(props.row.id)" />
                 </template>
@@ -283,20 +313,23 @@ import useHelpers from "../../../composables/useHelpers";
       </div>
     </div>
   </div>
-  
-    <q-dialog v-model="modalAgregarProducto">
-      <AddProduct />
-    </q-dialog>
-  
-    <q-dialog v-model="modalEditarProducto">
-      <EditProduct />
-    </q-dialog> 
-  
-    <q-page-sticky position="bottom-right" :offset="[18, 18]"
-        v-if="$q.screen.xs">
-      <q-btn round color="secondary" size="lg"
-          icon="add" @click="modalAgregarProducto = true" />
-    </q-page-sticky>
-  
+
+  <q-dialog v-model="modalAgregarProducto">
+    <AddProduct />
+  </q-dialog>
+
+  <q-dialog v-model="modalEditarProducto">
+    <EditProduct />
+  </q-dialog> 
+
+  <q-page-sticky position="bottom-right" :offset="[18, 18]"
+      v-if="$q.screen.xs && validarPermisos('crear.productos')">
+    <q-btn round color="secondary" size="lg"
+        icon="add" @click="modalAgregarProducto = true" />
+  </q-page-sticky>
+
+  <q-dialog v-model="showModalUploadFile">
+    <ModalCargarExcel @actualizarDatos="getArticulos()" />
+  </q-dialog>
 </template>
   

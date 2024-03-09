@@ -13,11 +13,12 @@
     try {
       loading.value = true;
 
-      const { data: { token } } = await api.post('/auth/login', form.value);
-      
+      const { data: { token, permisos } } = await api.post('/auth/login', form.value);
+
       const authUserStore = useAuthUserStore();
 
       authUserStore.setToken( token );
+      authUserStore.setPermisos( permisos );
 
       location.href ='/'
     } catch ( error: any ) {

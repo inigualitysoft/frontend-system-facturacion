@@ -120,7 +120,7 @@ export const useInternet = ( edit ) => {
 
         let headers = { headers: { 
           router_id: formInternet.value.router_id, 
-          NotSetHeaderCompany: claim.roles[0] == 'Super-Administrador' ? true : false
+          NotSetHeaderCompany: claim.roles[0] == 'SUPER-ADMINISTRADOR' ? true : false
         }};
 
         if ( !edit ){

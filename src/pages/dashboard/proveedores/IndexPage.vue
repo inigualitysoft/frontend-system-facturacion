@@ -5,6 +5,7 @@
   import { useProveedor } from "./composables/useProveedor";
   import AddProveedor from './AddProveedor.vue'
   import EditProveedor from './EditProveedor.vue'
+  import useRolPermisos from "src/composables/useRolPermisos.js"; 
   
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -17,6 +18,7 @@
   ]
   
   const filter = ref(''), rows = ref([]);
+  const { validarPermisos } = useRolPermisos();
 
   let { 
     actualizarLista,
@@ -99,7 +101,7 @@
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="!$q.screen.xs"
+              <q-btn v-if="!$q.screen.xs && validarPermisos('crear.proveedor')"
                 @click="modalAgregarProveedor = !modalAgregarProveedor" 
                 outline color="primary" label="Agregar Proveedor" class="q-mr-xs"/>
 
@@ -144,13 +146,14 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                <q-btn v-if="props.row.isActive"
-                  round color="blue-grey"
-                  @click="formProveedor = { ...props.row }, modalEditarProveedor = true" icon="edit" class="q-mr-sm" size="10px" />
-
+                
                 <template v-if="props.row.isActive">
+                  <q-btn v-if="validarPermisos('editar.proveedor')"
+                    round color="blue-grey"
+                    @click="formProveedor = { ...props.row }, modalEditarProveedor = true" icon="edit" class="q-mr-sm" size="10px" />
+
                   <q-btn round color="blue-grey"
-                    v-if="props.row.isActive"
+                    v-if="validarPermisos('inactivar.proveedor')"
                     icon="close"
                     @click="activarDesactivarProveedor(props.row.id, false)"
                     size="10px" />
@@ -158,13 +161,13 @@
 
                 <template v-else>
                   <q-btn round color="blue-grey"
-                    v-if="!props.row.isActive"
+                    v-if="validarPermisos('activar.proveedor')"
                     icon="done"
                     @click="activarDesactivarProveedor(props.row.id, true)"
                     size="10px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                  v-if="!props.row.estado"
+                  v-if="!props.row.estado && validarPermisos('eliminar.proveedor')"
                   icon="delete"
                   @click="eliminarProveedor(props.row.id)"
                   size="10px" />                    
@@ -188,7 +191,7 @@
   </div>
   
     <q-page-sticky position="bottom-right" :offset="[18, 18]"
-        v-if="$q.screen.xs">
+        v-if="$q.screen.xs && validarPermisos('crear.proveedor')">
       <q-btn round color="secondary" size="lg" icon="add" @click="modalAgregarProveedor = !modalAgregarProveedor" />
     </q-page-sticky>
    

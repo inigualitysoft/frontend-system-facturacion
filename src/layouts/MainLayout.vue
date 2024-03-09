@@ -82,65 +82,50 @@
               </q-item-section>
             </q-item>
 
-            <q-list class="q-ml-sm">
-              <q-expansion-item expand-separator icon="language" label="Gestion de Red">
-
-                <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'index.routers' }"
-                  dense-toggle label="Routers" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'internet.index' }"
-                  dense-toggle label="Internet" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'cNap.index' }"
-                  dense-toggle label="Cajas Nap" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item hide-expand-icon icon="radio_button_checked" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'redesIpv4.index' }"
-                  dense-toggle label="Redes IPv4" :header-inset-level="0">
-                </q-expansion-item>
-
-              </q-expansion-item>
-            </q-list>
-
-
-            <EssentialLink v-for="link in essentialLinks" :key="link.title" v-bind="link" />
+            <template v-for="link in essentialLinks" :key="link.title">
+              <EssentialLink v-if="validarPermisos(link.permisoRequerido)" v-bind="link" />
+            </template>
 
             <q-list class="q-ml-sm">
-              <q-expansion-item expand-separator icon="settings" label="Ajustes">
+              <q-expansion-item
+                expand-separator icon="settings" label="Ajustes">
 
-                <q-expansion-item hide-expand-icon icon="group" class="item-options"
+                <q-expansion-item v-if="validarPermisos('index.usuario')"
+                  hide-expand-icon icon="group" class="item-options"
                   active-class="bg-light-blue-9" :to="{ name: 'Ver Usuarios' }"
                   dense-toggle label="Gestión Personal" :header-inset-level="0">
                 </q-expansion-item>
                 
-                <q-expansion-item hide-expand-icon icon="fa-solid fa-gears" class="item-options"
+                <q-expansion-item v-if="validarPermisos('index.rol')"
+                  hide-expand-icon icon="fa-solid fa-gears" class="item-options"
                   active-class="bg-light-blue-9" :to="{ name: 'Rol-Permiso' }"
                   dense-toggle label="Roles y Permisos" :header-inset-level="0">
                 </q-expansion-item>
 
-                <q-expansion-item hide-expand-icon icon="mail" class="item-options"
+                <q-expansion-item v-if="validarPermisos('index.correo')"
+                  hide-expand-icon icon="mail" class="item-options"
                   active-class="bg-light-blue-9" 
-                    :to="claim.roles[0] == 'Super-Administrador' 
+                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR' 
                       ? { name: 'emails' } 
                       : { name: 'email.edit', params: { email_id: claim.company.id } }"
                   dense-toggle label="Servidor de Correo" :header-inset-level="0">
                 </q-expansion-item>
 
-
-                <q-expansion-item hide-expand-icon icon="local_convenience_store" class="item-options"
+                <q-expansion-item v-if="validarPermisos('index.empresa')"
+                  hide-expand-icon icon="local_convenience_store" class="item-options"
                   active-class="bg-light-blue-9" :to="{ name: 'Ver Empresas' }"
                   dense-toggle label="Empresa" :header-inset-level="0">
                 </q-expansion-item>
 
-                <q-expansion-item hide-expand-icon icon="local_convenience_store" class="item-options"
+                <q-expansion-item v-if="validarPermisos('index.sucursal')"
+                  hide-expand-icon icon="local_convenience_store" class="item-options"
                   active-class="bg-light-blue-9" :to="{ name: 'Ver Sucursales' }"
                   dense-toggle label="Sucursales" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item hide-expand-icon icon="description" class="item-options"
+                  active-class="bg-light-blue-9" :to="{ name: 'Config Proforma' }"
+                  dense-toggle label="Proforma" :header-inset-level="0">
                 </q-expansion-item>
 
               </q-expansion-item>
@@ -151,8 +136,7 @@
 
       </div>
       <div class="q-mini-drawer-hide absolute" style="top: 30px; right: -17px">
-        <q-btn dense round
-          style="background-color: #696cff;color: white;border: 6px solid #f2f2f7;"
+        <q-btn dense round style="background-color: #696cff;color: white;border: 6px solid #f2f2f7;"
           unelevated icon="chevron_left" @click="miniState = true" />
       </div>
     </q-drawer>
@@ -179,49 +163,46 @@
   import { useAuthUserStore } from "stores/auth-user"
   import JWT from 'jwt-client'
   import EssentialLink from "../components/EssentialLink.vue";
+  import useRolPermisos from "src/composables/useRolPermisos.js"; 
 
   const essentialLinks = [  
     {
       title: 'Proveedores',
       icon: 'fa fa-truck',
       link: '/proveedores',
-      permisoRequerido: 'Ver Proveedores'
+      permisoRequerido: 'index.proveedores'
     },
     {
       title: 'Clientes',
       icon: 'fa fa-user-tag',
-      link: '/clientes',
-      permisoRequerido: 'cliente.index'
-    },
-    {
-      title: 'Customer',
-      icon: 'fa fa-user-tag',
       link: '/customer',
-      permisoRequerido: 'customer.index'
+      permisoRequerido: 'index.clientes'
     },
     {
       title: 'Productos y Servicios',
       icon: 'inventory',
       link: '/productos',
-      permisoRequerido: 'Ver Productos'
+      permisoRequerido: 'index.productos'
     },
     {
       title: 'Compras',
       icon: 'fa-solid fa-cart-shopping',
       link: '/compras',
-      permisoRequerido: 'Ver Articulos'
+      permisoRequerido: 'index.compras'
     },
     {
       title: 'Ventas',
       icon: 'fa fa-cash-register',
       link: '/ventas',
-      permisoRequerido: 'Ver Ventas'
+      permisoRequerido: 'index.ventas'
     },
   ]
 
   const $q = useQuasar();
   const router = useRouter();
   const authUserStore = useAuthUserStore();
+  const { validarPermisos } = useRolPermisos();
+
   let fullName = '';
   let rol = '';
 

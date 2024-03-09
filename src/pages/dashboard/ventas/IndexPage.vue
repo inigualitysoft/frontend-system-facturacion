@@ -1,9 +1,6 @@
 <script setup lang="ts">
   import { Manager, Socket } from "socket.io-client";
-  import { useAuthUserStore } from "stores/auth-user"
-  import JWT from 'jwt-client'
   import { ref, watch } from 'vue'
-  import { api } from "boot/axios";
   import useRolPermisos from "../../../composables/useRolPermisos";
   import useHelpers from "../../../composables/useHelpers";
   import { date, useQuasar } from 'quasar'
@@ -13,10 +10,9 @@
   /* --------------------- IMPLEMENTACION DE WEBSOCKET ---------------------- */
   let socket: Socket;
 
-  const authUserStore = useAuthUserStore();
-  const { claim } = JWT.read( authUserStore.token )
+  const { api, claim } = useHelpers();
 
-  const connectToServer = ( token: string ) => {
+  const connectToServer = ( token?: string ) => {
     const manager = new Manager(`${ import.meta.env.VITE_BASE_URL }/socket.io/socket.io.js`, {
       extraHeaders: {
         autentication: claim.id
@@ -32,7 +28,7 @@
   }
   // ---------------------------------------------------------------------------
   
-  const columns = [
+  const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'sucursal', label: 'Sucursal', align: 'center' },
     { name: 'num_comprobante', label: 'Num. Comprobante', field: 'numero_comprobante', align: 'center' },
@@ -55,7 +51,7 @@
   const sucursales = ref([]);
   const sucursal_selected = ref([]);
   const { validarPermisos } = useRolPermisos();
-  const { mostrarNotify } = useHelpers();
+  
   const $q = useQuasar();
   const loading = ref( false )
 
@@ -70,7 +66,7 @@
       }};
       const { data } = await api.get('/invoices', headers);
 
-      data.map( (venta) => venta.created_at = date.formatDate(venta.created_at, 'DD/MM/YYYY HH:mm a') );
+      data.map( (venta: any) => venta.created_at = date.formatDate(venta.created_at, 'DD/MM/YYYY HH:mm a') );
 
       rows.value = data;
       loading.value = false;
@@ -162,7 +158,7 @@
     getVentas();
   })
   
-  if (claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador') 
+  if (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR') 
     getSucursales(claim.company.id)
   else
     getVentas();
@@ -220,7 +216,7 @@
                   </q-select>
                 </div>
   
-                <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+                <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
                 :style="!$q.screen.xs || 'width: 100%;justify-content: center;'"
                   style="display: flex;" :class="[ $q.screen.xs ? 'q-mb-md' : 'q-ml-lg' ]">
                   <label class="q-mr-sm row items-center">
@@ -233,7 +229,7 @@
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="$q.screen.width >= 1023" 
+              <q-btn v-if="$q.screen.width >= 1023 && validarPermisos('crear.venta')" 
                 @click="$router.push('/ventas/add')" 
                 outline color="primary" label="Agregar Venta" class="q-mr-xs"/>
 
@@ -317,7 +313,7 @@
                   round color="blue-grey" icon="description" size="10px" class="q-mr-sm" />
 
                 <q-btn round color="blue-grey"
-                  v-if="props.row.customer_id.nombres !== 'CONSUMIDOR FINAL' && (props.row.estadoSRI == 'AUTORIZADO' || props.row.respuestaSRI?.includes('ERROR SECUENCIAL REGISTRADO'))"
+                  v-if="props.row.customer_id.nombres !== 'CONSUMIDOR FINAL' && (props.row.estadoSRI == 'AUTORIZADO' || props.row.respuestaSRI?.includes('ERROR SECUENCIAL REGISTRADO')) && validarPermisos('anular.venta')"
                   @click="anularFactura( props.row )"
                   icon="close" size="10px" />
               </q-td>
@@ -339,7 +335,7 @@
   </div>
     
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
-      v-if="$q.screen.width <= 1023">
+      v-if="$q.screen.width <= 1023 && validarPermisos('crear.venta')">
     <q-btn round color="secondary" size="lg"
         icon="add" @click=" $router.push('/ventas/add')" />
   </q-page-sticky>

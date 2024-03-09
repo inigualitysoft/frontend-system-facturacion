@@ -1,12 +1,8 @@
 <script setup lang="ts">
   import FormUser from "./components/FormUser.vue";
   import { useUser } from './composables/useUser.js';
-  import { api } from "boot/axios";
-  import { useRoute } from "vue-router";
-  import { onMounted } from 'vue';
 
-  const { formUser, limpiarFormulario } = useUser();
-  const route = useRoute();
+  const { api, formUser, limpiarFormulario, route } = useUser();
 
   const getUser = async () => {
     const { data } = await api.get('/auth/find/' + route.params.term);
@@ -14,10 +10,8 @@
     formUser.value = { ...restUser, company: company.id }
   }
 
-  onMounted(() => { 
-    limpiarFormulario();
-    getUser(); 
-  })
+  limpiarFormulario();
+  getUser(); 
    
 </script>
 

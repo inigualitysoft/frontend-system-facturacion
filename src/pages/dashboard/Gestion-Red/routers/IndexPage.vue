@@ -127,7 +127,7 @@
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="!$q.screen.xs && claim.roles[0] == 'Super-Administrador'"
+              <q-btn v-if="!$q.screen.xs && claim.roles[0] == 'SUPER-ADMINISTRADOR'"
                 @click="$router.push({ name: 'router.add' })"
                 outline color="primary" label="Agregar Router" class="q-mr-xs"/>
 
@@ -203,7 +203,7 @@
                   </q-btn>
 
                   <q-btn round color="blue-grey"
-                    v-if="props.row.isActive && claim.roles[0] == 'Super-Administrador'"
+                    v-if="props.row.isActive && claim.roles[0] == 'SUPER-ADMINISTRADOR'"
                     icon="close"
                     @click="activarDesactivarSucursal(props.row.id, false)"
                     size="10px" />
@@ -217,7 +217,7 @@
                     size="10px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                    v-if="!props.row.isActive && claim.roles[0] == 'Super-Administrador'"
+                    v-if="!props.row.isActive && claim.roles[0] == 'SUPER-ADMINISTRADOR'"
                       icon="delete" @click="eliminarRouter(props.row.id)"
                   size="10px" />
 
@@ -245,7 +245,7 @@
   </q-dialog>
   
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
-      v-if="$q.screen.xs && claim.roles[0] == 'Super-Administrador'">
+      v-if="$q.screen.xs && claim.roles[0] == 'SUPER-ADMINISTRADOR'">
     <q-btn round color="secondary" size="lg" icon="add" 
       @click="$router.push({ name: 'router.add' })" />
   </q-page-sticky>

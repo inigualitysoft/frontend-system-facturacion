@@ -15,6 +15,7 @@
     "@quasar/extras": "^1.16.4",
     "@types/formdata": "^0.10.2",
     "axios": "^1.2.1",
+    "exceljs": "^4.4.0",
     "jwt-client": "^0.2.1",
     "mapbox-gl": "^2.8.2",
     "mikro-client": "^0.5.3",

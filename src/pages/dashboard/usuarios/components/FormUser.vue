@@ -2,16 +2,17 @@
 import listPermisos from "../listPermisos.json";
 import { useUser } from "../composables/useUser.js";
 import { ref, onMounted, watch } from 'vue';
-import { api } from "boot/axios";
 import { Screen } from 'quasar'
 
-const props = defineProps<{ edit: boolean }>();
+const props         = defineProps<{ edit: boolean }>();
 const listCompanies = ref<{ label: string; value: string; ruc?: string, icon?: string }[]>([]);
-let optionsCompanies: any = [];
-const sucursales = ref<{}[]>([]);
+const permisos      = ref<any>( listPermisos )
+const sucursales    = ref<{}[]>([]);
+const roles         = ref<{ label: string, value: string, permisos: string[] }[]>([]);
 let cont = false;
 
   const { 
+    api,
     getCompanies,
     formUser, 
     expanded, 
@@ -23,9 +24,17 @@ let cont = false;
   } = useUser();
 
   onMounted( async () => {
-    cargarCompanies();
+    await Promise.all([cargarCompanies(), getRolesAndPermisos()]);
+
+    if ( props.edit && formUser.value.roles[0] == 'SUPER-ADMINISTRADOR' ){
+      await Promise.resolve();
+      permisos.value[0].disabled = true;      
+    }else{
+      permisos.value[0].disabled = false;      
+    } 
+
   })
-  
+
   const cargarCompanies = async () => {
     listCompanies.value = [];
     
@@ -37,7 +46,30 @@ let cont = false;
         value:  companie.id
       })
     });
-    optionsCompanies = listCompanies.value;   
+  }
+
+  const getRolesAndPermisos = async () => {
+
+    const { data } = await api.get('/roles-and-permisos');
+
+    data.forEach((rol: any) => {
+      roles.value.unshift({
+        label:    rol.nombre,
+        value:    rol.nombre,
+        permisos: rol.permisos
+      })
+    });    
+  }
+
+  const getPermisos = () => {
+    const permisosFound = roles.value.find(( rol: any ) => rol.value == formUser.value.roles[0])
+
+    if ( permisosFound?.label == 'SUPER-ADMINISTRADOR' ) 
+      permisos.value[0].disabled = true;      
+    else
+      permisos.value[0].disabled = false;      
+    
+    formUser.value.permisos = permisosFound!.permisos
   }
 
   watch(
@@ -68,7 +100,7 @@ let cont = false;
     data.forEach(( x: any) => {
       sucursales.value.push({ label: x.nombre, value: x.id })
     })      
-  }
+  }  
 </script>
 
 <template>
@@ -198,9 +230,9 @@ let cont = false;
                 class="col-xs-7 col-sm-6 q-ml-md q-mt-sm">
                 <q-select v-model="formUser.roles[0]" outlined dense
                   transition-show="scale" transition-hide="scale" 
-                  @update:model-value="validaciones.roles.isValid = true" 
                   :error="!validaciones.roles.isValid" 
-                  :options="['Super-Administrador', 'Administrador', 'Pagos', 'Soporte Tecnico', 'Vendedor']">
+                  @update:model-value="validaciones.roles.isValid = true, getPermisos()" 
+                  :options="roles" emit-value map-options>
                   <template v-slot:error>
                     <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                       {{ validaciones.roles.message }}
@@ -210,12 +242,12 @@ let cont = false;
               </div>
 
               <div 
-              v-if="formUser.roles[0] !== '' && formUser.company.length !== 0 && formUser.roles[0] !== 'Administrador' && formUser.roles[0] !== 'Super-Administrador'"
+              v-if="formUser.roles[0] !== '' && formUser.company.length !== 0 && formUser.roles[0] !== 'ADMINISTRADOR' && formUser.roles[0] !== 'SUPER-ADMINISTRADOR'"
                 class="col-4 flex justify-end items-center q-mt-sm">
                 <label>Sucursal:</label>
               </div>
               <div 
-              v-if="formUser.roles[0] !== '' && formUser.company.length !== 0 && formUser.roles[0] !== 'Administrador' && formUser.roles[0] !== 'Super-Administrador'"
+              v-if="formUser.roles[0] !== '' && formUser.company.length !== 0 && formUser.roles[0] !== 'ADMINISTRADOR' && formUser.roles[0] !== 'SUPER-ADMINISTRADOR'"
                 class="col-xs-7 col-sm-6 q-ml-md q-mt-sm">
                 <q-select v-model="formUser.sucursales[0]" outlined dense required
                   emit-value map-options transition-show="scale" transition-hide="scale" 
@@ -409,7 +441,7 @@ let cont = false;
               <q-tree class="col-xs-11 col-sm-11 col-sm-11"
                 :class="[$q.screen.xs ? 'offset-1' : '']"
                 :default-expand-all="false"
-                :nodes="listPermisos"
+                :nodes="permisos"
                 label-key="label"
                 node-key="value"
                 control-color="deep-orange-14"

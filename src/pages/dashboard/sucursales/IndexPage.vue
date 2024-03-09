@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { ref, watch } from 'vue';
-  import { api } from "boot/axios";
   import useHelpers from "../../../composables/useHelpers";
   import { useSucursal } from "./composables/useSucursal";
+  import useRolPermisos from "src/composables/useRolPermisos.js"; 
   
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -14,7 +14,7 @@
     { name: 'estado', label: 'Estado', align: 'center' },
   ]
 
-  let { claim, cargarCompanies, listCompanies } = useSucursal();
+  let { api, claim, cargarCompanies, listCompanies } = useSucursal();
 
   const filter  = ref('')
   const rows    = ref([]);
@@ -22,6 +22,7 @@
   const selectCompany = ref(claim.company.id);
 
   const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { validarPermisos } = useRolPermisos();
 
   const getSucursales = async () => {
     loading.value = true;
@@ -85,13 +86,13 @@
             </template>
 
             <template v-slot:top-left="props">
-              <div v-if="claim.roles[0] !== 'Super-Administrador'"
+              <div v-if="claim.roles[0] !== 'SUPER-ADMINISTRADOR'"
                 class="text-center row justify-center" style="width: 100%;">
                 <label class="q-mb-sm text-grey-7 text-h6">
                   Listado de Sucursales
                 </label>
               </div>
-              <div v-if="claim.roles[0] == 'Super-Administrador'"
+              <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR'"
               style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
                 <label class="q-mr-sm row items-center">
                   <span>Empresa: </span> 
@@ -105,7 +106,7 @@
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="!$q.screen.xs"
+              <q-btn v-if="!$q.screen.xs && validarPermisos('crear.sucursal')" 
                 @click="$router.push({ name: 'Agregar Sucursal' })"
                 outline color="primary" label="Agregar Sucursal" class="q-mr-xs"/>
 
@@ -150,13 +151,15 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                <q-btn round color="blue-grey"
-                  @click="$router.push({ name: 'Editar Sucursal', params: { sucursal_id: props.row.id } })"
-                  icon="edit" class="q-mr-sm" size="10px" />
-
+                
                 <template v-if="props.row.isActive">
+                  <q-btn v-if="validarPermisos('editar.sucursal')"
+                    round color="blue-grey"
+                    @click="$router.push({ name: 'Editar Sucursal', params: { sucursal_id: props.row.id } })"
+                    icon="edit" class="q-mr-sm" size="10px" />
+
                   <q-btn round color="blue-grey"
-                    v-if="props.row.isActive"
+                    v-if="validarPermisos('inactivar.sucursal')"
                     icon="close"
                     @click="activarDesactivarSucursal(props.row.id, false)"
                     size="10px" />
@@ -164,13 +167,13 @@
 
                 <template v-else>
                   <q-btn round color="blue-grey"
-                    v-if="!props.row.isActive"
+                    v-if="validarPermisos('activar.sucursal')"
                     icon="done"
                     @click="activarDesactivarSucursal(props.row.id, true)"
                     size="10px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                  v-if="!props.row.estado"
+                  v-if="!props.row.estado && validarPermisos('eliminar.sucursal')"
                   icon="delete"
                   @click="eliminarSucursal(props.row.id)"
                   size="10px" />
@@ -195,7 +198,7 @@
   </div>
   
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
-      v-if="$q.screen.xs">
+      v-if="$q.screen.xs && validarPermisos('crear.sucursal')">
     <q-btn round color="secondary" size="lg" icon="add" 
     @click="$router.push({ name: 'Agregar Sucursal' })" />
   </q-page-sticky>

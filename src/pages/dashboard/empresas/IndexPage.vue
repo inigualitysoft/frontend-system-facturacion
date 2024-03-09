@@ -2,6 +2,7 @@
   import { ref, watch } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
   import { useEmpresa } from "./composables/useEmpresa";
+  import useRolPermisos from "src/composables/useRolPermisos.js"; 
   
   const columns: any = [
     { name: 'acciones', label: 'Acciones', align: 'center' },
@@ -14,7 +15,8 @@
     { label: "Estado", name: "estado", align: "center" }  
   ];
 
-  let { api, formEmpresa } = useEmpresa();
+  let { api } = useEmpresa();
+  const { validarPermisos } = useRolPermisos();
   
   const filter = ref('')
   const rows = ref([]);
@@ -72,7 +74,7 @@
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="!$q.screen.xs"
+              <q-btn v-if="!$q.screen.xs && validarPermisos('crear.empresa')"
                 @click="$router.push({ name: 'Agregar Empresa' })" 
                 outline color="primary" label="Agregar Empresa" class="q-mr-xs"/>
 
@@ -125,29 +127,27 @@
               <q-td :props="props">
                 
                 <template v-if="props.row.isActive">
-                  <q-btn round color="blue-grey"
+                  <q-btn v-if="validarPermisos('editar.empresa')"
+                    round color="blue-grey"
                     @click="$router.push({ name: 'Editar Empresa', params: { empresa_id: props.row.id } })"
                     icon="edit" class="q-mr-sm" size="10px" />
 
                   <q-btn round color="blue-grey"
-                    v-if="props.row.isActive"
-                    icon="close"
-                    @click="activarDesactivarEmpresa(props.row.id, false)"
+                    v-if="validarPermisos('inactivar.empresa')"
+                    icon="close" @click="activarDesactivarEmpresa(props.row.id, false)"
                     size="10px" />
                 </template>
 
                 <template v-else>
                   <q-btn round color="blue-grey"
-                    v-if="!props.row.isActive"
-                    icon="done"
-                    @click="activarDesactivarEmpresa(props.row.id, true)"
+                    v-if="validarPermisos('activar.empresa')"
+                    icon="done" @click="activarDesactivarEmpresa(props.row.id, true)"
                     size="10px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                  v-if="!props.row.estado"
-                  icon="delete"
-                  @click="eliminarCompany(props.row.id)"
-                  size="10px" />
+                    v-if="!props.row.estado && validarPermisos('eliminar.empresa')"
+                    icon="delete" @click="eliminarCompany(props.row.id)"
+                    size="10px" />
                 </template>
 
               </q-td>
@@ -169,7 +169,7 @@
   </div>
   
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
-      v-if="$q.screen.xs">
+      v-if="$q.screen.xs && validarPermisos('crear.empresa')">
     <q-btn round color="secondary" size="lg" icon="add" @click="$router.push({ name: 'Agregar Empresa' })"  />
   </q-page-sticky>
   

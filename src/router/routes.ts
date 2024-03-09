@@ -226,7 +226,13 @@ const routes: RouteRecordRaw[] = [
         name: 'redesIpv4.edit',
         component: () => import('pages/dashboard/Gestion-Red/redes-ipv4/EditPage.vue'),
         meta: { requiresAuth: true }
-      },     
+      },    
+      { 
+        path: 'proforma', 
+        name: 'Config Proforma',
+        component: () => import('pages/dashboard/proforma/IndexPage.vue'),
+        meta: { requiresAuth: true} 
+      },    
     ]
   },
 

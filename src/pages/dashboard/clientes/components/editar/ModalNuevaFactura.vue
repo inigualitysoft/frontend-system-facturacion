@@ -92,7 +92,7 @@ Subida : ${ subida_Mbps } Mbps`;
     })  
   }
 
-  if ( claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador' )
+  if ( claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR' )
     getSucursales( claim.company.id );
   else
     formFactura.value.sucursal_id = claim.sucursales[0]
@@ -288,7 +288,7 @@ Subida : ${ subida_Mbps } Mbps`;
                 </template>  
               </q-table>    
             </div>
-            <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+            <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
               class="col-xs-12 col-sm-5 q-mt-sm">
               <label>Sucursal a Facturar:</label>
               <q-select v-if="sucursales.length > 1"

@@ -96,7 +96,7 @@
             @keyup="allowOnlyNumber" dense filled required />
         </div>
 
-        <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+        <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
           class="col-xs-12 col-sm-5">
           <label>Sucursal:</label>
           <q-select filled dense v-model="selectSucursal"

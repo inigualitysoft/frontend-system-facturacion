@@ -1,10 +1,11 @@
 <script setup>
   import { ref, watch } from 'vue';
-  import { api } from "boot/axios";
   import useHelpers from "../../../composables/useHelpers";
   import AddCliente from './AddCliente.vue'
   import EditCliente from './EditCliente.vue'
   import { useCliente } from "./composables/useCliente";
+  import ModalCargarExcel from "./components/ModalCargarExcel.vue";
+  import useRolPermisos from "src/composables/useRolPermisos.js"; 
   
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -21,11 +22,14 @@
     modalEditarCliente,
     formCliente
   } = useCliente();
+  const { validarPermisos } = useRolPermisos();
   
-  const filter = ref('')
-  const rows = ref([]);
-  const loading = ref( false );
-  const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const showModalUploadFile = ref( false );
+  const filter              = ref('')
+  const rows                = ref([]);
+  const loading             = ref( false );
+  const { api, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  
   watch(actualizarLista, (currentValue, _) => {
     if ( currentValue ) getClientes(); 
   });
@@ -40,6 +44,7 @@
     }
     loading.value = false;
   }
+
   const activarDesactivarCliente = async (cliente_id, estado) => {
     try {
       const { data: { msg } } = await api.patch(`/customers/${ cliente_id }/${ estado }`)
@@ -49,6 +54,7 @@
       console.log(error);
     }
   }
+
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getClientes() })
   const eliminarCliente = async (cliente_id) => {
     try {
@@ -57,6 +63,13 @@
       console.log(error);
     }
   }
+
+  const downloadFile = () => {
+    var archivoURL = "/plantillas/productos_plantilla.xlsx";
+
+    window.location.href = archivoURL;
+  }
+
   getClientes();
   const mode = ref("list");
   const pagination = ref({
@@ -76,22 +89,38 @@
             :filter="filter" :pagination.sync="pagination" >
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
-                <q-th
-                  v-for="col in props.cols"
-                  :key="col.name"
-                  :props="props"
+                <q-th v-for="col in props.cols"
+                  :key="col.name" :props="props"
                   class="text-grey-7 text-weight-bold text-uppercase"
-                  style="font-size: 13px"
-                >
+                  style="font-size: 13px">
                   {{ col.label }}
                 </q-th>
               </q-tr>
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="!$q.screen.xs"
+              <q-btn v-if="!$q.screen.xs && validarPermisos('crear.cliente')"
                 @click="modalAgregarCliente = !modalAgregarCliente" 
                 outline color="primary" label="Agregar Cliente" class="q-mr-xs"/>
+
+                <q-btn-dropdown outline color="primary" icon="fa-solid fa-file-excel">
+                  <q-list>
+                    <q-item clickable v-close-popup
+                      @click="showModalUploadFile = true">
+                      <q-item-section>
+                        <q-item-label>Importar Excel</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                    <q-item @click="downloadFile"
+                      clickable v-close-popup>
+                      <q-item-section>
+                        <q-item-label>Exportar Excel</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                  </q-list>
+                </q-btn-dropdown>
 
               <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                 <template v-slot:append>
@@ -143,13 +172,15 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                <q-btn round color="blue-grey"
-                  @click="formCliente = { ...props.row }, modalEditarCliente = true"
-                  icon="edit" class="q-mr-sm" size="10px" />
-
+                
                 <template v-if="props.row.isActive">
+                  <q-btn v-if="validarPermisos('editar.cliente')"
+                    round color="blue-grey"
+                    @click="formCliente = { ...props.row }, modalEditarCliente = true"
+                    icon="edit" class="q-mr-sm" size="10px" />
+
                   <q-btn round color="blue-grey"
-                    v-if="props.row.isActive"
+                    v-if="props.row.isActive && validarPermisos('inactivar.cliente')"
                     icon="close"
                     @click="activarDesactivarCliente(props.row.id, false)"
                     size="10px" />
@@ -157,13 +188,13 @@
 
                 <template v-else>
                   <q-btn round color="blue-grey"
-                    v-if="!props.row.isActive"
+                    v-if="!props.row.isActive && validarPermisos('activar.cliente')"
                     icon="done"
                     @click="activarDesactivarCliente(props.row.id, true)"
                     size="10px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                  v-if="!props.row.estado"
+                  v-if="!props.row.estado && validarPermisos('eliminar.cliente')"
                   icon="delete"
                   @click="eliminarCliente(props.row.id)"
                   size="10px" />
@@ -188,7 +219,7 @@
   </div>
 
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
-      v-if="$q.screen.xs">
+      v-if="$q.screen.xs && validarPermisos('crear.cliente')">
     <q-btn round color="secondary" size="lg" icon="add" @click="modalAgregarCliente = !modalAgregarCliente" />
   </q-page-sticky>
 
@@ -199,5 +230,9 @@
   <q-dialog v-model="modalEditarCliente">
     <EditCliente />
   </q-dialog> 
+
+  <q-dialog v-model="showModalUploadFile">
+    <ModalCargarExcel @actualizarDatos="getClientes()" />
+  </q-dialog>
 
 </template>

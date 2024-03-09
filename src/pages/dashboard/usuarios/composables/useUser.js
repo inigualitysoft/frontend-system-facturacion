@@ -1,7 +1,5 @@
 import { ref } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
-import { api } from "boot/axios";
-import { useRouter } from "vue-router";
 
 const loading = ref( false );   
 
@@ -12,7 +10,7 @@ const formUser = ref({
   celular: '',
   fullName: '',
   roles: [''],
-  permisos: [],
+  permisos: [''],
   horarios_dias: [],
   horarios_time: ['', ''],
   receiveSupportEmail: false,
@@ -39,15 +37,14 @@ const validaciones = ref({
   confirmPassword:     { message: '', isValid: true }
 })
 
-const getCompanies = async () => {
-  const { data } = await api.get('/companies');
-  return data;
-}
-
 export const useUser = () => {
+  
+    const { api, mostrarNotify, router, route } = useHelpers();
 
-    const { mostrarNotify } = useHelpers();
-    const router = useRouter();
+    const getCompanies = async () => {
+      const { data } = await api.get('/companies');
+      return data;
+    }
 
     const limpiarFormulario = () => {
       formUser.value.email = '';
@@ -85,16 +82,16 @@ export const useUser = () => {
       }
 
       if( formUser.value.company.length !== 0 &&
-        formUser.value.roles[0] !== 'Super-Administrador' && 
-        formUser.value.roles[0] !== 'Administrador' && 
+        formUser.value.roles[0] !== 'SUPER-ADMINISTRADOR' && 
+        formUser.value.roles[0] !== 'ADMINISTRADOR' && 
         formUser.value.sucursales[0].length === 0 ){
         validaciones.value.sucursales.message = 'Debes elegir una sucursal'
         validaciones.value.sucursales.isValid = false
         existError = true;
       }
 
-      if ( formUser.value.roles[0] == 'Super-Administrador' || formUser.value.roles[0] == 'Administrador' )
-        formUser.value.sucursales = [''];
+      if ( formUser.value.roles[0] == 'SUPER-ADMINISTRADOR' || formUser.value.roles[0] == 'ADMINISTRADOR' )
+        formUser.value.sucursales = [];
 
       if (!edit) {
         if( validaciones.value.password.isValid && formUser.value.password.length < 8 ){
@@ -172,6 +169,7 @@ export const useUser = () => {
     }
 
     return {
+      api,
       getCompanies,
       formUser,
       loading,
@@ -179,6 +177,7 @@ export const useUser = () => {
       expanded: ref(['Seleccionar todos los permisos']),
       onSubmit,
       validaciones,
+      route,
       showPass: ref( true ),
       showConfirmPass: ref( true ),
     }

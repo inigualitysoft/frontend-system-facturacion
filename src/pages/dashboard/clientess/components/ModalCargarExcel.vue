@@ -1,0 +1,226 @@
+<script setup>
+  import { ref, watch } from 'vue';
+  import useHelpers from "src/composables/useHelpers";
+
+  const filesSelected     = ref( null );
+  const loading           = ref( false );
+  const rows              = ref([]);
+  const clientes          = ref([]);
+  const sucursales        = ref([]);
+  const sucursal_selected = ref('');
+  const { api, claim }    = useHelpers();
+
+  const emit = defineEmits(['actualizarDatos']);
+
+  const validaciones = ref({
+    file:     { message: '', isValid: true },
+    sucursal: { message: '', isValid: true }
+  })
+
+  watch( filesSelected, ( file ) => {
+
+    const archivo = file[0];
+
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      const data = e.target.result;
+      procesarDatosExcel(data);
+    };
+
+    reader.readAsBinaryString(archivo);
+  });
+
+  const getSucursales = async() => {
+    sucursales.value = [];
+
+    const { data } = await api.get(`/sucursal/find/${ claim.company.id }/company`);
+
+    data.forEach(( x ) => {
+      sucursales.value.push({ label: x.nombre, value: x.id })
+    })
+  }
+
+  function procesarDatosExcel(data) {
+    const workbook = XLSX.read(data, { type: 'binary' });
+
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+    rows.value = jsonData
+  }
+
+  function espera(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  const validarCampos = () => {
+    let existError = false;
+
+    if ( filesSelected.value == null ) {
+      validaciones.value.file.message = 'Debes completar este campo'
+      validaciones.value.file.isValid = false;
+      existError = true;
+    }
+
+    if ( sucursal_selected.value.length == 0 ) {
+      validaciones.value.sucursal.message = 'Debes completar este campo'
+      validaciones.value.sucursal.isValid = false;
+      existError = true;
+    }
+
+    if( validaciones.value.isValid && filesSelected.value[0].type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ){
+      validaciones.value.file.message = 'Debes subir un archivo excel'
+      validaciones.value.file.isValid = false;
+      existError = true;
+    }
+
+    return existError;
+  }
+
+  const uploadFile = async () => {
+    if( validarCampos() ) return;
+
+    loading.value = true;
+    for (let index = 1; index < rows.value.length; index++) {
+      const element = rows.value[index];
+
+      clientes.value.unshift({ nombre: element[0], estado: 'cargando', index })
+
+      try {
+
+        await espera(700)
+        let headers = { headers: { sucursal_id: sucursal_selected.value } };
+
+        let codigo;
+        if ( element[1].toLowerCase() == 'ruc' ) codigo = '04'
+        if ( element[1].toLowerCase() == 'cedula' ) codigo = '05'        
+        if ( element[1].toLowerCase() == 'pasaporte' ) codigo = '06'        
+
+        await api.post('/customers/create', {
+          nombres:          element[0],
+          tipo_documento:   codigo,
+          numero_documento: element[2].toString(),
+          email:            element[3],
+          celular:          element[4].toString(),
+          direccion:        element[5]
+        }, headers)
+
+        let cliente = clientes.value.find( cliente => cliente.index == index)
+        cliente.estado = 'success';
+        
+      } catch (error) {
+        let cliente = clientes.value.find( cliente => cliente.index == index)
+        cliente.estado = 'error'
+      }
+
+      if ( (index + 1) == rows.value.length ){
+        emit('actualizarDatos')
+        loading.value = false;
+      } 
+      
+    }
+  }
+
+  getSucursales();
+
+</script>
+
+<template>
+  <q-card style="width: 600px; max-width: 80vw;">
+    <q-card-section>
+      <div class="text-h6 text-center">
+        Carga masiva de clientes
+        <q-btn round flat dense icon="close" class="float-right" color="grey-8" v-close-popup></q-btn>
+      </div>
+    </q-card-section>
+
+    <q-separator inset></q-separator>
+
+    <q-card-section class="q-pt-md">
+      <div class="row flex flex-center">
+        <div class="col-xs-11 col-sm-9 text-center q-mt-sm">
+          <label>Subir clientes desde excel:</label>
+          <q-file input-class="inputFileClick" accept=".xls, .xlsx" dense
+            :error="!validaciones.file.isValid"
+            @update:model-value="validaciones.file.isValid = true"
+            v-model="filesSelected" outlined multiple append>
+            <template v-slot:append>
+              <q-icon name="fa-solid fa-file-excel">
+              </q-icon>   
+            </template>       
+            <template v-slot:error>
+              <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                {{ validaciones.file.message }}
+              </label>
+            </template>
+          </q-file>
+        </div>
+        <div class="col-xs-11 col-sm-9 text-center q-mt-md">
+          <label>Elige una sucursal:</label>
+          <q-select outlined dense v-model="sucursal_selected"
+            :error="!validaciones.sucursal.isValid"
+            @update:model-value="validaciones.sucursal.isValid = true"
+            emit-value map-options :options="sucursales">
+            <template v-slot:error>
+              <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                {{ validaciones.sucursal.message }}
+              </label>
+            </template>
+          </q-select>
+        </div>
+      </div>  
+
+      <div v-if="clientes.length > 0" class="col-12 q-mt-md">
+        <q-list bordered id="scrollList">
+          <q-item v-for="(cliente, index) in clientes" :key="index"
+            clickable v-ripple>
+            <q-item-section>{{ cliente.nombre }}</q-item-section>
+            <q-item-section avatar>
+              <q-spinner v-if="cliente.estado == 'cargando'"
+                 size="30px" color="primary"></q-spinner>
+              <q-icon v-if="cliente.estado == 'success'" name="check_circle" color="green-9" />
+              <q-icon v-if="cliente.estado == 'error'" name="error" color="negative" />
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div> 
+
+      <div class="col-xs-9 col-md-12 flex justify-center q-ml-none">
+        <q-btn label="Subir clientes" :loading="loading"
+          class="q-px-xl q-mt-md q-mb-md" @click="uploadFile" outline rounded style="color: #696cff" />
+      </div>
+    </q-card-section>
+
+  </q-card>
+</template>
+
+<style>
+#scrollList{
+  min-height: 109px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+#scrollList::-webkit-scrollbar {
+  width: 12px;
+}
+
+/* Fondo del scrollbar (área no ocupada por el thumb) */
+#scrollList::-webkit-scrollbar-track {
+  background-color: #f1f1f1;
+}
+
+/* Estilo del thumb (la barra que puedes arrastrar) */
+#scrollList::-webkit-scrollbar-thumb {
+  background-color: #888;
+  border-radius: 6px;
+}
+
+/* Estilo del thumb en hover */
+#scrollList::-webkit-scrollbar-thumb:hover {
+  background-color: #555;
+}
+</style>
+
+  

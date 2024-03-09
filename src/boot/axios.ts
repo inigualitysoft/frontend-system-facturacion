@@ -24,10 +24,11 @@ api.interceptors.request.use(async function(config){
 	config.headers.Authorization = token ? `${token}` : null;
 	config.headers.rol_name      = claim != null ? `${ claim.claim.roles[0] }` : null;
 
-  if ( claim != null && claim.claim.roles[0] != 'Super-Administrador' && 
-      claim.claim.roles[0] != 'Administrador')
-    config.headers.sucursal_id = (claim != null && claim.claim.sucursales ) 
-            ? `${ claim.claim.sucursales[0] }` : null;
+  if ( claim != null && claim.claim.roles[0] != 'SUPER-ADMINISTRADOR' && 
+  claim.claim.roles[0] != 'ADMINISTRADOR')
+      config.headers.sucursal_id = (claim != null && claim.claim.sucursales.length != 0 ) 
+                                    ? `${ claim.claim.sucursales[0] }` 
+                                    : null;
                                 
   if ( claim != null ){
     if(!config.headers.NotSetHeaderCompany )

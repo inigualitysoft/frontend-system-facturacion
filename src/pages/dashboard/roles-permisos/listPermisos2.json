@@ -2,37 +2,7 @@
     {
       "label": "Seleccionar todos los permisos",
       "value": "Seleccionar todos los permisos",
-      "children": [
-        {
-          "label": "Productos Y Servicios",
-          "value": "Productos Y Servicios",
-          "children": [
-            { "label": "Ver Prod. Y Serv.", "value": "index.productos" },
-            { "label": "Crear Prod. Y Serv.", "value": "crear.productos" },
-            { "label": "Editar Prod. Y Serv.", "value": "editar.productos" },
-            { "label": "Activar Prod. Y Serv.", "value": "activar.productos" },
-            { "label": "Inactivar Prod. Y Serv.", "value": "inactivar.productos" },
-            { "label": "Eliminar Prod. Y Serv.", "value": "eliminar.productos" }
-          ]
-        },
-        {
-          "label": "Compras",
-          "value": "Compras",
-          "children": [
-            { "label": "Ver Compras", "value": "index.compras" },
-            { "label": "Crear Compra", "value": "crear.compra" },            
-            { "label": "Anular Compra", "value": "anular.compra" }            
-          ]
-        },
-        {
-          "label": "Ventas",
-          "value": "Ventas",
-          "children": [
-            { "label": "Ver Ventas", "value": "index.ventas" },
-            { "label": "Crear Venta", "value": "crear.venta" },            
-            { "label": "Anular Venta", "value": "anular.venta" }            
-          ]
-        },
+      "children": [                
         {
           "label": "Gestión Personal",
           "value": "Gestión Personal",
@@ -75,6 +45,18 @@
             { "label": "Activar Empresa", "value": "activar.empresa" },
             { "label": "Inactivar Empresa", "value": "inactivar.empresa" },
             { "label": "Eliminar Empresa", "value": "eliminar.empresa" }
+          ]
+        },
+        {
+          "label": "Sucursales",
+          "value": "Sucursales",
+          "children": [
+            { "label": "Ver Sucursales", "value": "index.sucursal" },
+            { "label": "Crear Sucursal", "value": "crear.sucursal" },
+            { "label": "Editar Sucursal", "value": "editar.sucursal" },
+            { "label": "Activar Sucursal", "value": "activar.sucursal" },
+            { "label": "Inactivar Sucursal", "value": "inactivar.sucursal" },
+            { "label": "Eliminar Sucursal", "value": "eliminar.sucursal" }
           ]
         }
       ]

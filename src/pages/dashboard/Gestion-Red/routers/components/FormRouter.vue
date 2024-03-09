@@ -303,7 +303,7 @@
           </div>
         </div>
       </div>
-      <div v-if="claim.roles[0] == 'Super-Administrador' && !edit"
+      <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' && !edit"
         class="col-xs-12 col-md-6">
         <div class="row">
           <div class="col-xs-12 col-md-4 flex items-center justify-end" 

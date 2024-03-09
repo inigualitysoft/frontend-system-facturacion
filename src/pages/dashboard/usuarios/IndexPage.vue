@@ -1,7 +1,7 @@
 <script setup>
   import { ref, watch } from 'vue';
-  import { api } from "boot/axios";
   import useHelpers from "../../../composables/useHelpers";
+  import useRolPermisos from "src/composables/useRolPermisos.js"; 
   
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -17,7 +17,8 @@
   const rows = ref([]);
 
   const loading = ref( false );
-  const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { api, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { validarPermisos } = useRolPermisos();
 
   const getUsers = async () => {
     loading.value = true;
@@ -72,7 +73,7 @@
                 </q-tr>
               </template>
               <template v-slot:top-right="props">
-                <q-btn v-if="!$q.screen.xs"
+                <q-btn v-if="!$q.screen.xs && validarPermisos('crear.usuario')"
                   @click="$router.push({ name: 'Agregar Usuario' })" 
                   outline color="primary" label="Agregar Usuario" class="q-mr-xs" />
 
@@ -113,12 +114,13 @@
   
               <template v-slot:body-cell-acciones="props">
                 <q-td :props="props">
-                  <q-btn round color="blue-grey"
+                  <q-btn v-if="validarPermisos('editar.usuario')"
+                    round color="blue-grey"
                     @click="$router.push({ name:'Editar Usuario', params: { term: props.row.id } })"
                     icon="edit" class="q-mr-sm" size="11px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                    v-if="props.row.estado == 'Activo'"
+                    v-if="props.row.estado == 'Activo' && validarPermisos('eliminar.usuario')"
                     icon="delete"
                     @click="eliminarUsuario(props.row.id)"
                     size="11px" />                    
@@ -141,7 +143,7 @@
   </div>
   
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
-      v-if="$q.screen.xs">
+      v-if="$q.screen.xs && validarPermisos('crear.usuario')">
     <q-btn round color="secondary" size="lg" icon="add" 
       @click="$router.push({ name: 'Agregar Usuario' })" />
   </q-page-sticky>

@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
 
 export const useAuthUserStore = defineStore('auth/user', {
-  state: (): { token: string, modeDark: boolean } => ({
+  state: (): { token: string, permisos: string[], modeDark: boolean } => ({
     token: '',
+    permisos: [],
     modeDark: true
   }),
   persist: {
@@ -12,6 +13,9 @@ export const useAuthUserStore = defineStore('auth/user', {
   actions: {
     setToken(token: string) {
       this.token = token;
+    },
+    setPermisos(permisos: string[]) {
+      this.permisos = permisos;
     },
     setModeDark(mode: boolean) {
       this.modeDark = mode;

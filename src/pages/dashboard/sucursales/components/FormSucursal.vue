@@ -159,7 +159,7 @@
           </div>
         </div>
       </div>
-      <div v-if="claim.roles[0] == 'Super-Administrador'" class="col-xs-12 col-md-6">
+      <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR'" class="col-xs-12 col-md-6">
         <div class="row">
           <div class="col-xs-12 col-md-5 flex items-center justify-end" 
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'justify-end']">

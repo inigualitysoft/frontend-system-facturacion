@@ -89,7 +89,7 @@
       return mostrarNotify('warning', 'Por favor ingresa el numero de comprobante')
     if ( formCompras.value.descripcion == '' ) 
       return mostrarNotify('warning', 'Por favor ingresa una descripción')    
-    if ( (claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador') 
+    if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR') 
           && sucursal_selected.value == '' )
       return mostrarNotify('warning', 'Debes seleccionar una sucursal');
     if (rows.value.length == 0) 
@@ -137,7 +137,7 @@
     })
   }
 
-  if ( claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador' )
+  if ( claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR' )
     getSucursales( claim.company.id );
 
   getProveedores();
@@ -155,7 +155,7 @@
   }
 
   const buscarProducto = () => {
-    if ( (claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador') && sucursal_selected.value.length == 0 ) {
+    if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR') && sucursal_selected.value.length == 0 ) {
       return mostrarNotify('warning', 'Elige una sucursal primeramente');
     }else{
       filterArticulo('compras')
@@ -237,7 +237,7 @@
       </q-input>
     </div>
 
-    <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+    <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
       class="col-xs-12 col-md-5 q-ml-none q-pl-none" 
       :class="$q.screen.width >= 1023 || 'q-pt-none'">
       <label>Seleccionar Sucursal: 
@@ -255,7 +255,7 @@
       </q-select>
     </div>
 
-    <div v-if="claim.roles[0] !== 'Super-Administrador' && claim.roles[0] !== 'Administrador' && $q.screen.width >= 1023"
+    <div v-if="claim.roles[0] !== 'SUPER-ADMINISTRADOR' && claim.roles[0] !== 'ADMINISTRADOR' && $q.screen.width >= 1023"
       class="col-xs-12 col-md-5 q-pl-none">
       <label>Filtrar por codigo de barra o nombre del producto:</label>
       <q-input outlined bottom-slots :loading="loadingState" dense
@@ -274,7 +274,7 @@
       <q-input v-model.trim="formCompras.descripcion" dense filled required />
     </div>
 
-    <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+    <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
       class="col-xs-12 col-md-5 q-pl-none">
       <label>Filtrar por codigo de barra o nombre del producto:</label>
       <q-input outlined bottom-slots :loading="loadingState" dense
@@ -288,7 +288,7 @@
     </div> 
   </div>
 
-  <div v-if="claim.roles[0] !== 'Super-Administrador' && claim.roles[0] !== 'Administrador' && $q.screen.width <= 1023"
+  <div v-if="claim.roles[0] !== 'SUPER-ADMINISTRADOR' && claim.roles[0] !== 'ADMINISTRADOR' && $q.screen.width <= 1023"
     class="row q-pt-lg q-mx-lg" 
     :class="[$q.screen.width <= 1023 ? 'justify-center' : 'justify-left q-ml-md']">
     <div class="col-xs-12 col-md-5">

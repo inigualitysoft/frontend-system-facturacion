@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { api } from "boot/axios";
 import useHelpers from "../../../composables/useHelpers";
+import useRolPermisos from "src/composables/useRolPermisos.js"; 
 
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -12,10 +12,10 @@ import useHelpers from "../../../composables/useHelpers";
     { name: 'password', label: 'Contraseña', align: 'center', field: 'password' },
   ]
   
-  const { confirmDelete, isDeleted } = useHelpers();
+  const { api } = useHelpers();
+  const { validarPermisos } = useRolPermisos();
 
   const rows = ref([]);
-  const tipoBusqueda = ref('codigo');
   const filter = ref<any>('');
   const tableRef = ref();
   const loading = ref(false);
@@ -28,11 +28,11 @@ import useHelpers from "../../../composables/useHelpers";
     rowsNumber: 5
   })
 
-  const getArticulos = async (page: number = 1, rowsPerPage: number = 5, filtro = null) => {
+  const getEmails = async (page: number = 1, rowsPerPage: number = 5, filtro = null) => {
     try {
       const { data } = await api.get('/email');
 
-      data.forEach(email => {
+      data.forEach((email: any) => {
         email.empresa_name = email.company_id.nombre_comercial
         email.host = email.host == '' ? '----------' : email.host
         email.usuario = email.usuario == '' ? '----------' : email.usuario
@@ -51,7 +51,7 @@ import useHelpers from "../../../composables/useHelpers";
 
     loading.value = true
 
-    await getArticulos( page, rowsPerPage );
+    await getEmails( page, rowsPerPage );
 
     pagination.value.page        = page
     pagination.value.rowsPerPage = rowsPerPage
@@ -122,7 +122,7 @@ import useHelpers from "../../../composables/useHelpers";
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                <q-btn round color="blue-grey"
+                <q-btn v-if="validarPermisos('editar.correo')" round color="blue-grey"
                 @click="$router.push({ name: 'email.edit', params: { email_id: props.row.company_id.id } })"
                   icon="edit" class="q-mr-sm" size="12px" />
               </q-td>

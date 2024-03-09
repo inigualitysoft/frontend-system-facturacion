@@ -71,7 +71,7 @@ export const useProduct = () => {
       if ( data.length === 0 ){
         mostrarNotify('warning', 'No se encontro el articulo...');
         return loadingState.value = false
-      }else if (claim.roles[0] == 'Administrador' || claim.roles[0] == 'Super-Administrador') {
+      }else if (claim.roles[0] == 'ADMINISTRADOR' || claim.roles[0] == 'SUPER-ADMINISTRADOR') {
         if ( sucursal_selected.value !== data[0].sucursal_id.id ){
           mostrarNotify('warning', 'No se encontro el articulo...');
           return loadingState.value = false

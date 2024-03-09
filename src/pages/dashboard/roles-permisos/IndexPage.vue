@@ -3,6 +3,7 @@
   import AddRol from './AddRol.vue'
   import EditRol from './EditRol.vue'
   import { useRol } from "./composables/useRol.js";
+  import useRolPermisos from "src/composables/useRolPermisos.js"; 
 
   let  columns = [
     { name: "id", align: "center", label: "#", field: "change_id", sortable: true },
@@ -22,6 +23,7 @@
     permisosSelected,
     formRol 
   } = useRol();
+  const { validarPermisos } = useRolPermisos();
 
   const rows = ref([]);
   const filter = ref("");
@@ -95,7 +97,8 @@
 
               <template v-slot:top-right="props">
 
-                <q-btn @click="modalAgregarRol = !modalAgregarRol" 
+                <q-btn v-if="!$q.screen.xs && validarPermisos('crear.rol')"
+                  @click="modalAgregarRol = !modalAgregarRol" 
                   outline color="primary" label="Agregar Rol" 
                   :class="$q.screen.width < 700 ? 'q-mb-md q-mt-sm q-mr-xl' : 'q-mr-xs'" />
   
@@ -134,13 +137,13 @@
 
               <template v-slot:body-cell-acciones="props">
                 <q-td :props="props">
-                    <q-btn round color="blue-grey"
+                    <q-btn v-if="validarPermisos('editar.rol')"
+                      round color="blue-grey"
                       @click="editRol( props.row )"
                       icon="edit" class="q-mr-sm" size="11px" />
                       
                       <q-btn round color="blue-grey" class="q-ml-sm"
-                      v-if="(props.row._id !== '6526084e49b020fe18acc228' &&
-                       props.row._id !== '652843199af8de71a4baec8b')"
+                      v-if="validarPermisos('eliminar.rol')"
                       icon="delete"
                       @click="eliminarRol(props.row.id)"
                       size="11px" />
@@ -161,6 +164,11 @@
         </div>
       </div>
     </div>
+
+    <q-page-sticky position="bottom-right" :offset="[18, 18]"
+        v-if="$q.screen.xs && validarPermisos('crear.rol')">
+      <q-btn round color="secondary" size="lg" icon="add" @click="modalAgregarCliente = !modalAgregarCliente" />
+    </q-page-sticky>
   
     <q-dialog v-model="modalAgregarRol">
       <AddRol />

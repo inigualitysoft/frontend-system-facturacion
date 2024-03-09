@@ -19,7 +19,7 @@
   const { claim, sucursal_selected } = useProduct();
 
   let sucursal_user;
-  if ( claim.roles[0] == 'Administrador' || claim.roles[0] == 'Super-Administrador') 
+  if ( claim.roles[0] == 'ADMINISTRADOR' || claim.roles[0] == 'SUPER-ADMINISTRADOR') 
     sucursal_user = sucursal_selected.value
   else
     sucursal_user = claim.sucursales[0]

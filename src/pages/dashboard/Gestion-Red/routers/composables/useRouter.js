@@ -106,7 +106,7 @@ export const useRouter = ( edit ) => {
         }
       });
 
-      if ( !edit && formRouter.value.company_id.length == 0 && claim.roles[0] == 'Super-Administrador') {
+      if ( !edit && formRouter.value.company_id.length == 0 && claim.roles[0] == 'SUPER-ADMINISTRADOR') {
         validaciones.value.company_id.message = 'Debes elegir una empresa'
         validaciones.value.company_id.isValid = false;
         existError = true;
@@ -124,7 +124,7 @@ export const useRouter = ( edit ) => {
 
         let headers = { headers: { 
           company_id: formRouter.value.company_id, 
-          NotSetHeaderCompany: claim.roles[0] == 'Super-Administrador' ? true : false
+          NotSetHeaderCompany: claim.roles[0] == 'SUPER-ADMINISTRADOR' ? true : false
         }};
 
         if ( !edit ){

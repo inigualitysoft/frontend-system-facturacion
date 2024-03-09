@@ -4,58 +4,8 @@
     "value": "Seleccionar todos los permisos",
     "children": [
       {
-        "label": "Routers",
-        "value": "Routers",
-        "children": [
-          { "label": "Ver Routers", "value": "index.routers" },
-          { "label": "Crear Router", "value": "crear.router" },
-          { "label": "Editar Router", "value": "editar.router" },
-          { "label": "Activar Router", "value": "activar.router" },
-          { "label": "Inactivar Router", "value": "inactivar.router" },
-          { "label": "Importar Clientes", "value": "importar-clientes.router" },
-          { "label": "Reparar Router", "value": "reparar.router" },
-          { "label": "Eliminar Router", "value": "eliminar.router" }
-        ]
-      },
-      {
-        "label": "Servicios",
-        "value": "Servicios",
-        "children": [
-          { "label": "Ver Servicios", "value": "index.servicios" },
-          { "label": "Crear Servicio", "value": "crear.servicio" },
-          { "label": "Editar Servicio", "value": "editar.servicio" },
-          { "label": "Activar Servicio", "value": "activar.servicio" },
-          { "label": "Inactivar Servicio", "value": "inactivar.servicio" },
-          { "label": "Eliminar Servicio", "value": "eliminar.servicio" }
-        ]
-      },
-      {
-        "label": "Cajas-Nap",
-        "value": "Cajas-Nap",
-        "children": [
-          { "label": "Ver Cajas Nap", "value": "index.cajas-nap" },
-          { "label": "Crear Caja Nap", "value": "crear.cajas-nap" },
-          { "label": "Editar Caja Nap", "value": "editar.cajas-nap" },
-          { "label": "Activar Caja Nap", "value": "activar.cajas-nap" },
-          { "label": "Inactivar Caja Nap", "value": "inactivar.cajas-nap" },
-          { "label": "Eliminar Caja Nap", "value": "eliminar.cajas-nap" }
-        ]
-      },
-      {
-        "label": "Redes",
-        "value": "Redes",
-        "children": [
-          { "label": "Ver Redes", "value": "index.red" },
-          { "label": "Crear Red", "value": "crear.red" },
-          { "label": "Editar Red", "value": "editar.red" },
-          { "label": "Activar Red", "value": "activar.red" },
-          { "label": "Inactivar Red", "value": "inactivar.red" },
-          { "label": "Eliminar Red", "value": "eliminar.red" }
-        ]
-      },
-      {
         "label": "Proveedores",
-        "value": "Proveedores",
+        "value": "Proveedores",        
         "children": [
           { "label": "Ver Proveedores", "value": "index.proveedores" },
           { "label": "Crear Proveedor", "value": "crear.proveedor" },
@@ -126,8 +76,6 @@
           { "label": "Ver Roles", "value": "index.rol" },
           { "label": "Crear Rol", "value": "crear.rol" },
           { "label": "Editar Rol", "value": "editar.rol" },
-          { "label": "Activar Rol", "value": "activar.rol" },
-          { "label": "Inactivar Rol", "value": "inactivar.rol" },
           { "label": "Eliminar Rol", "value": "eliminar.rol" }
         ]
       },
@@ -149,6 +97,18 @@
           { "label": "Activar Empresa", "value": "activar.empresa" },
           { "label": "Inactivar Empresa", "value": "inactivar.empresa" },
           { "label": "Eliminar Empresa", "value": "eliminar.empresa" }
+        ]
+      },
+      {
+        "label": "Sucursales",
+        "value": "Sucursales",
+        "children": [
+          { "label": "Ver Sucursales", "value": "index.sucursal" },
+          { "label": "Crear Sucursal", "value": "crear.sucursal" },
+          { "label": "Editar Sucursal", "value": "editar.sucursal" },
+          { "label": "Activar Sucursal", "value": "activar.sucursal" },
+          { "label": "Inactivar Sucursal", "value": "inactivar.sucursal" },
+          { "label": "Eliminar Sucursal", "value": "eliminar.sucursal" }
         ]
       }
     ]

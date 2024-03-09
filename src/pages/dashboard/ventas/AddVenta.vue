@@ -31,7 +31,7 @@
   const timeStamp = Date.now()
   let fechaActual = date.formatDate(timeStamp, 'DD/MM/YYYY');
   
-  if ( claim.roles[0] !== 'Super-Administrador' || claim.roles[0] !== 'Administrador' ) 
+  if ( claim.roles[0] !== 'SUPER-ADMINISTRADOR' || claim.roles[0] !== 'ADMINISTRADOR' ) 
     sucursal_selected.value = claim.sucursales[0]
 
   const router = useRouter();
@@ -136,7 +136,7 @@
   const validarCampos = () => {
       let existError = false;  
 
-      if ( (claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador') 
+      if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR') 
           && sucursal_selected.value == '' ) {
         validaciones.value['sucursal_id'].message = 'Debes seleccionar una sucursal'
         validaciones.value['sucursal_id'].isValid = false;
@@ -224,7 +224,7 @@
   }
 
   const buscarProducto = () => {
-    if ( (claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador') && typeof(sucursal_selected.value) == 'undefined' ) {
+    if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR') && typeof(sucursal_selected.value) == 'undefined' ) {
       return mostrarNotify('warning', 'Elige una sucursal primeramente');
     }else{
       filterArticulo('venta')
@@ -233,7 +233,7 @@
 
   const getNumFactura = async () => {
     numFacturaCargado.value = true;
-
+    
     let headers = { headers: { sucursal_id: sucursal_selected.value } };
 
     const { data } = await api.get('/CE/facturas/getNumFactura', headers);
@@ -247,7 +247,7 @@
     rows.value = [];
   })
 
-  if ( claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador' )
+  if ( claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR' )
     getSucursales( claim.company.id );
   else
     getNumFactura();
@@ -336,7 +336,7 @@
         </div>
       </div> -->
 
-      <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+      <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
         class="col-xs-12 col-md-5 q-mt-md" :class="$q.screen.width <= 1023 ? 'q-pl-none' : 'offset-1'">
         <label>Seleccionar Sucursal: 
         </label>

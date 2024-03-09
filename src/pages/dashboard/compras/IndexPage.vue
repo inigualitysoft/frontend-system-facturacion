@@ -1,13 +1,10 @@
 <script setup lang="ts">
   import { ref, watch } from 'vue'
-  import { api } from "boot/axios";
   import useRolPermisos from "../../../composables/useRolPermisos";
   import useHelpers from "../../../composables/useHelpers";
-  import { date, useQuasar } from 'quasar'
+  import { useQuasar } from 'quasar'
   import DetalleCompra from '../../../components/DetalleProducts.vue'
   // import FiltrarCompras from './FiltrarCompras.vue'
-  import { useAuthUserStore } from "stores/auth-user"
-  import JWT from 'jwt-client'
   
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -22,18 +19,16 @@
   
   const rows = ref([]);
   const modalDetalle = ref(false);
+  let detalleData = ref({});
 
   const formFiltrarCompras = ref({ desde: '', hasta: '', pv_id: '' })
 
   const filter = ref('');
-  const compraData = ref({})
   const { validarPermisos } = useRolPermisos();
-  const { mostrarNotify } = useHelpers();
+  const { api, claim, mostrarNotify } = useHelpers();
   const $q = useQuasar();
   const loading = ref( false )
   
-  const authUserStore = useAuthUserStore();
-  const { claim } = JWT.read( authUserStore.token );
   const selectSucursal = ref('');
   const listSucursales = ref([]);
   
@@ -144,13 +139,13 @@
             </template>
 
             <template v-slot:top-left="props">
-              <div v-if="claim.roles[0] !== 'Super-Administrador' && claim.roles[0] !== 'Administrador'"
+              <div v-if="claim.roles[0] !== 'SUPER-ADMINISTRADOR' && claim.roles[0] !== 'ADMINISTRADOR'"
                 class="text-center row justify-center" style="width: 100%;">
                 <label class="q-mb-sm text-grey-7 text-h6">
                   Listado de Compras
                 </label>
               </div>
-              <div v-if="claim.roles[0] == 'Super-Administrador' || claim.roles[0] == 'Administrador'"
+              <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
               style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
                 <label class="q-mr-sm row items-center">
                   <span>Sucursal: </span> 
@@ -164,7 +159,7 @@
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="!$q.screen.xs"
+              <q-btn v-if="!$q.screen.xs && validarPermisos('crear.compra')"
                 @click="$router.push('/compras/add')" 
                 outline color="primary" label="Agregar Compra" class="q-mr-xs"/>
 
@@ -204,16 +199,14 @@
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
                 <q-btn round color="blue-grey"
-                  icon="visibility"
-                  class="q-mr-sm"
+                  icon="visibility" class="q-mr-sm"
                   @click="modalDetalle = true, detalleData = { ...props.row }"
                   size="10px" />
 
                 <q-btn round color="blue-grey"
-                  v-if="props.row.isActive"
+                  v-if="props.row.isActive && validarPermisos('anular.compra')"
                   @click="anularCompra( props.row )"
-                  icon="close"
-                  size="10px" />
+                  icon="close" size="10px" />
               </q-td>
             </template>
 
@@ -233,7 +226,7 @@
   </div>
   
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
-      v-if="$q.screen.xs">
+      v-if="$q.screen.xs && validarPermisos('crear.compra')">
     <q-btn round color="secondary" size="lg"
         icon="add" @click="$router.push('/compras/add')" />
   </q-page-sticky>
