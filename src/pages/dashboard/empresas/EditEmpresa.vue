@@ -1,28 +1,25 @@
 <script setup lang="ts">
-  import FormEmpresa from "./components/FormEmpresa.vue";      
-  import { useEmpresa } from './composables/useEmpresa';  
-  import { useRoute } from "vue-router";
+  import FormEmpresa from "./components/FormEmpresa.vue";
+  import { useEmpresa } from './composables/useEmpresa';
   import { onMounted } from 'vue';
-  import { api } from "boot/axios";
-  
-  const route = useRoute();
-  const { isValid, formEmpresa } = useEmpresa();
+
+  const { api, isValid, formEmpresa, route } = useEmpresa();
 
   const getEmpresa = async () => {
     const { data } = await api.get('/companies/find/' + route.params.empresa_id);
-    formEmpresa.value = { 
-      ...data[0], 
-      logo: null, 
-      logo_old: ( data[0].logo == null ) ? null : data[0].logo, 
+    formEmpresa.value = {
+      ...data[0],
+      logo: null,
+      logo_old: ( data[0].logo == null ) ? null : data[0].logo,
       archivo_certificado: null,
       archivo_certificado_old: data[0].archivo_certificado
     }
   }
-  
+
   isValid.value = false;
 
-  onMounted(() => { 
-    getEmpresa(); 
+  onMounted(() => {
+    getEmpresa();
   })
 
 </script>
@@ -33,7 +30,7 @@
       <div v-if="$q.screen.width > 1022"
         class="offset-1"></div>
       <div class="col-xs-12 q-pl-none" :class="[ $q.screen.width < 1022 ? 'q-pt-sm col-md-6' : 'col-md-5']">
-        <q-breadcrumbs class="row q-mr-xs"         
+        <q-breadcrumbs class="row q-mr-xs"
           :class="[ $q.screen.width < 1022 ? 'justify-center q-pt-sm' : 'justify-start ']">
           <q-breadcrumbs-el label="Inicio" icon="home" to="/" />
           <q-breadcrumbs-el label="Empresas" icon="fa-solid fa-list" to="/empresas" />
@@ -53,10 +50,9 @@
     <div class="row q-col-gutter-md">
       <div class="col-xs-12 col-md-10 q-pt-xs"
        :class="$q.screen.width < 1022 ? '' : 'offset-1' ">
-        <FormEmpresa :edit="true" />          
+        <FormEmpresa :edit="true" />
       </div>
     </div>
-  </div> 
+  </div>
 </template>
 
-  

@@ -1,7 +1,7 @@
 import { ref } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
 
-const loading = ref( false );   
+const loading = ref( false );
 
 const formUser = ref({
   usuario: '',
@@ -18,6 +18,8 @@ const formUser = ref({
   sucursales: [''],
   password: '',
   confirmPassword: '',
+  foto: null,
+  foto_old: null,
   isActive: true
 })
 
@@ -30,6 +32,7 @@ const validaciones = ref({
   roles:               { message: '', isValid: true },
   permisos:            { message: '', isValid: true },
   horarios_dias:       { message: '', isValid: true },
+  foto:                { message: '', isValid: true },
   horarios_time:       { message: '', isValid: true },
   company:             { message: '', isValid: true },
   sucursales:          { message: '', isValid: true },
@@ -38,7 +41,7 @@ const validaciones = ref({
 })
 
 export const useUser = () => {
-  
+
     const { api, mostrarNotify, router, route } = useHelpers();
 
     const getCompanies = async () => {
@@ -59,6 +62,10 @@ export const useUser = () => {
       formUser.value.horarios_dias = [];
       formUser.value.horarios_time = [];
       formUser.value.receiveSupportEmail = false;
+    }
+
+    const onRejected = () => {
+      mostrarNotify( 'negative', `El tipo de archivo es invalido` );
     }
 
     const validarCampos = ( edit ) => {
@@ -82,8 +89,8 @@ export const useUser = () => {
       }
 
       if( formUser.value.company.length !== 0 &&
-        formUser.value.roles[0] !== 'SUPER-ADMINISTRADOR' && 
-        formUser.value.roles[0] !== 'ADMINISTRADOR' && 
+        formUser.value.roles[0] !== 'SUPER-ADMINISTRADOR' &&
+        formUser.value.roles[0] !== 'ADMINISTRADOR' &&
         formUser.value.sucursales[0].length === 0 ){
         validaciones.value.sucursales.message = 'Debes elegir una sucursal'
         validaciones.value.sucursales.isValid = false
@@ -99,7 +106,7 @@ export const useUser = () => {
           validaciones.value.password.isValid = false
           existError = true;
         }
-  
+
         if( validaciones.value.password.isValid && formUser.value.confirmPassword.length < 8 ){
           validaciones.value.confirmPassword.message = 'La contraseña debe tener minimo 8 caracter'
           validaciones.value.confirmPassword.isValid = false
@@ -108,7 +115,7 @@ export const useUser = () => {
           validaciones.value.confirmPassword.message = 'Las contraseñas no coinciden, verificar'
           validaciones.value.confirmPassword.isValid = false
           existError = true;
-        }        
+        }
       }else if(formUser.value.password != undefined){
         if( formUser.value.password.length > 0 && formUser.value.password.length < 8){
           validaciones.value.password.message = 'La contraseña debe tener minimo 8 caracter'
@@ -124,18 +131,18 @@ export const useUser = () => {
           validaciones.value.confirmPassword.isValid = false
           existError = true;
         }
-      }      
+      }
 
       if( validaciones.value.email.isValid && !validEmail.test(formUser.value.email) ){
         validaciones.value.email.message = 'Ingresa un email valido'
         validaciones.value.email.isValid = false
-        existError = true;        
+        existError = true;
       }
-      
+
       if ( formUser.value.permisos.length == 0 ) {
         validaciones.value.permisos.message = '*Debes elegir al menos un permiso'
         validaciones.value.permisos.isValid = false
-        existError = true;        
+        existError = true;
       }
 
       return existError;
@@ -147,18 +154,35 @@ export const useUser = () => {
 
       try {
         loading.value = true;
-        
-        if ( !edit ) 
-          await api.post('/auth/register', { 
-            ...formUser.value, 
-            fullName: formUser.value.fullName.toUpperCase()
-          });
+
+        console.log(formUser.value.sucursales);
+
+        let formData = new FormData();
+        formData.append('usuario', formUser.value.usuario);
+        formData.append('email', formUser.value.email);
+        formData.append('celular', formUser.value.celular);
+        formData.append('fullName', formUser.value.fullName);
+        formData.append('roles', JSON.stringify(formUser.value.roles));
+        formData.append('permisos', JSON.stringify(formUser.value.permisos));
+        formData.append('horarios_dias', JSON.stringify(formUser.value.horarios_dias));
+        formData.append('horarios_time', JSON.stringify(formUser.value.horarios_time));
+        formData.append('receiveSupportEmail', JSON.stringify(formUser.value.receiveSupportEmail));
+        formData.append('company', formUser.value.company);
+        formData.append('sucursales', JSON.stringify(formUser.value.sucursales));
+        formData.append('password', JSON.stringify(formUser.value.password));
+        formData.append('confirmPassword', JSON.stringify(formUser.value.confirmPassword));
+        formData.append('foto', formUser.value.foto);
+        formData.append('foto_old', formUser.value.foto_old);
+        formData.append('isActive', JSON.stringify(formUser.value.isActive));
+
+        if ( !edit )
+          await api.post('/auth/register', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
         else{
-          await api.patch('/auth/edit/' + formUser.value.id, formUser.value);
+          await api.patch('/auth/edit/' + formUser.value.id, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
         }
-    
+
         mostrarNotify( 'positive', `Usuario ${ edit ? 'editado' : 'creado' } exitosamente.` )
-    
+
         loading.value = false;
         router.push({ name: 'Ver Usuarios' });
       } catch (error) {
@@ -173,6 +197,7 @@ export const useUser = () => {
       getCompanies,
       formUser,
       loading,
+      onRejected,
       limpiarFormulario,
       expanded: ref(['Seleccionar todos los permisos']),
       onSubmit,

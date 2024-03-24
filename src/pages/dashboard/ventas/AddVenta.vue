@@ -1,41 +1,37 @@
 <script setup>
   import { ref, watch, onBeforeUnmount } from 'vue';
-  import { api } from "boot/axios";
-  import { useRouter, useRoute } from "vue-router";
   import useHelpers from "../../../composables/useHelpers";
   import { date, Dialog, Loading } from 'quasar'
   import SelectProduct from '../../../components/SelectProduct.vue'
   import { useProduct } from "../../../composables/useProduct";
 
-  const { 
-    filterByCodBarra, 
-    columns, 
-    rows, 
+  const {
+    filterByCodBarra,
+    columns,
+    rows,
     modalSelectProducto,
     loadingState,
     listProductos,
     valorFactura,
-    agregarAndValidarStock, 
-    filterArticulo, 
+    agregarAndValidarStock,
+    filterArticulo,
     getSubtotalByProduct,
     sucursal_selected,
+    iva_selected,
     quitarArticulo
   } = useProduct();
 
   let optionsClients = []
   const listClientes = ref([]);
-  const { claim, mostrarNotify } = useHelpers();
+  const { api, claim, mostrarNotify, route, router } = useHelpers();
   const sucursales = ref([]);
   const modalAgregarCliente = ref(false);
   const numFacturaCargado   = ref( false );
   const timeStamp = Date.now()
   let fechaActual = date.formatDate(timeStamp, 'DD/MM/YYYY');
-  
-  if ( claim.roles[0] !== 'SUPER-ADMINISTRADOR' || claim.roles[0] !== 'ADMINISTRADOR' ) 
-    sucursal_selected.value = claim.sucursales[0]
 
-  const router = useRouter();
-  const route  = useRoute();
+  if ( claim.roles[0] !== 'SUPER-ADMINISTRADOR' || claim.roles[0] !== 'ADMINISTRADOR' )
+    sucursal_selected.value = claim.sucursales[0]
 
   columns.value[7] = { name: 'pvp', label: 'Precio de Venta', align: 'center' }
 
@@ -57,12 +53,12 @@
   watch(sucursal_selected, (currentValue, _) => { getNumFactura(); });
   const getSucursales = async( company_id ) => {
     sucursales.value = [];
-    
+
     const { data } = await api.get(`/sucursal/find/${ company_id }/company`);
 
     data.forEach( x => {
       sucursales.value.push({ label: x.nombre, value: x.id })
-    })  
+    })
   }
 
   const getProforma = async () => {
@@ -83,7 +79,7 @@
       });
     }
   }
-  
+
   const agregarProduct = ( product ) => {
     agregarAndValidarStock( product, 'venta' )
     modalSelectProducto.value = false
@@ -93,7 +89,7 @@
     formVenta.value.customer_id = ''
 
     modalAgregarCliente.value = false;
-    
+
     try {
       const { data: clientes } = await api.get('/customers');
 
@@ -107,10 +103,10 @@
         })
       });
 
-      listClientes.value.unshift({ 
-        label: 'CONSUMIDOR FINAL', 
-        value: import.meta.env.VITE_CONSUMIDOR_FINAL_ID, 
-        num_doc: '9999999999999' 
+      listClientes.value.unshift({
+        label: 'CONSUMIDOR FINAL',
+        value: import.meta.env.VITE_CONSUMIDOR_FINAL_ID,
+        num_doc: '9999999999999'
       });
       optionsClients = listClientes.value;
       formVenta.value.customer_id = customer_id;
@@ -121,22 +117,22 @@
     }
   }
 
-  const filtrarCliente = (val = '', update ) => { 
-    if (val === '') 
+  const filtrarCliente = (val = '', update ) => {
+    if (val === '')
       return update(() => { listClientes.value = optionsClients })
-    
+
     update(() => {
       const needle = val.toLowerCase();
       listClientes.value = listClientes.value.filter( v =>
-        v.num_doc.indexOf(needle) > -1 || v.label.toLowerCase().indexOf(needle) > -1          
+        v.num_doc.indexOf(needle) > -1 || v.label.toLowerCase().indexOf(needle) > -1
       )
     })
   }
 
   const validarCampos = () => {
-      let existError = false;  
+      let existError = false;
 
-      if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR') 
+      if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR')
           && sucursal_selected.value == '' ) {
         validaciones.value['sucursal_id'].message = 'Debes seleccionar una sucursal'
         validaciones.value['sucursal_id'].isValid = false;
@@ -158,22 +154,22 @@
       if (rows.value.length == 0){
         existError = true;
         mostrarNotify('warning', 'Debes agregar algun producto..');
-      } 
+      }
 
       if ( formVenta.value.forma_pago.length == 0 ){
         validaciones.value.forma_pago.message = 'Debes elegir una forma de pago'
         validaciones.value.forma_pago.isValid = false;
         existError = true;
-      } 
-      
+      }
+
       rows.value.forEach((row, index) => {
         if (row.cantidad <= 0) {
           existError = true;
-          mostrarNotify('warning', `Agrega una cantidad cantidad al producto: ${ row.nombre } de la fila: ${ index + 1 }`);          
+          mostrarNotify('warning', `Agrega una cantidad cantidad al producto: ${ row.nombre } de la fila: ${ index + 1 }`);
         }
         if (row.cantidad > row.stock && row.tipo != 'Servicio') {
           existError = true;
-          mostrarNotify('warning', `La cantidad de venta del producto: ${ row.nombre } supera su stock disponible`);          
+          mostrarNotify('warning', `La cantidad de venta del producto: ${ row.nombre } supera su stock disponible`);
         }
       });
 
@@ -184,20 +180,21 @@
 
     if ( validarCampos() ) return;
 
-    formVenta.value = { 
-      ...formVenta.value, 
-      ...valorFactura.value, 
+    formVenta.value = {
+      ...formVenta.value,
+      ...valorFactura.value,
       products: rows.value,
       user_id: claim.id,
-      tipo
+      tipo,
+      porcentaje_iva: iva_selected.value
     }
 
     let message;
-    if (tipo == 'EMISION') 
+    if (tipo == 'EMISION')
       message = '¿Deseas emitir factura de esta proforma?'
-    if (tipo == 'FACTURA') 
+    if (tipo == 'FACTURA')
       message = '¿Deseas generar esta FACTURA?'
-    if (tipo == 'PROFORMA') 
+    if (tipo == 'PROFORMA')
       message = '¿Deseas guardar como PROFORMA?'
 
     Dialog.create({
@@ -207,7 +204,7 @@
     }).onOk(async () => {
       try {
         Loading.show({message: 'Cargando...'});
-        
+
         let headers = { headers: { sucursal_id: sucursal_selected.value } };
 
         await api.post('/invoices', formVenta.value, headers)
@@ -233,7 +230,7 @@
 
   const getNumFactura = async () => {
     numFacturaCargado.value = true;
-    
+
     let headers = { headers: { sucursal_id: sucursal_selected.value } };
 
     const { data } = await api.get('/CE/facturas/getNumFactura', headers);
@@ -251,16 +248,16 @@
     getSucursales( claim.company.id );
   else
     getNumFactura();
-  
-  getClientes();  
-  
+
+  getClientes();
+
 </script>
 
 <template>
   <div class="q-ma-lg q-pt-md q-mb-none" style="margin-bottom: 10px;">
     <div class="row q-col-gutter-lg">
       <div class="col-xs-12 col-md-6" :class="[ $q.screen.width < 1022 ? 'q-pt-sm' : '']">
-        <q-breadcrumbs class="row q-mr-xs" 
+        <q-breadcrumbs class="row q-mr-xs"
           :class="[ $q.screen.width < 1022 ? 'justify-center q-pt-sm' : 'justify-start ']">
           <q-breadcrumbs-el label="Inicio" icon="home" to="/" />
           <q-breadcrumbs-el label="Ventas" icon="payments" to="/ventas" />
@@ -268,7 +265,7 @@
         </q-breadcrumbs>
       </div>
 
-      <div class="col-xs-12 col-md-6" 
+      <div class="col-xs-12 col-md-6"
         :class="[ $q.screen.width < 1022 ? 'text-center q-pt-sm' : 'text-right']">
         <label class="text-h6 text-center">Nueva Venta/Proforma</label>
       </div>
@@ -279,14 +276,14 @@
   <!-- <div class="q-ma-lg q-pt-md"> -->
     <div class="row q-mx-lg q-col-gutter-md">
 
-      <div class="col-xs-12 col-md-6 q-pt-xs q-mt-md" 
+      <div class="col-xs-12 col-md-6 q-pt-xs q-mt-md"
       :class="$q.screen.width >= 1023 || 'text-center'">
         <label class="text-weight-medium"
         :class="[$q.screen.xs ? 'text-subtitle1' : 'text-h5']">Fecha de Emisión:
           <span class="text-weight-regular">{{ fechaActual }}</span>
         </label>
       </div>
-      <div class="col-xs-12 col-md-6" 
+      <div class="col-xs-12 col-md-6"
         :class="$q.screen.width <= 1023 ? 'text-center q-pt-sm' : 'text-right q-pt-xs q-mt-md'">
         <label class="q-mr-lg text-weight-medium" :class="[$q.screen.xs ? 'text-subtitle1' : 'text-h5']">
           <span class="q-mr-sm">N° Factura:</span>
@@ -299,7 +296,7 @@
       </div>
 
       <div class="col-xs-12 col-sm-12 col-md-6 q-mt-md q-pl-none">
-        <label>Seleccionar Cliente: 
+        <label>Seleccionar Cliente:
         </label>
         <q-select color="orange" filled v-model="formVenta.customer_id"
           @update:model-value="validaciones.customer_id.isValid = true"
@@ -327,8 +324,8 @@
           </template>
         </q-select>
       </div>
-      
-      <!-- <div class="col-xs-2 col-sm-2 col-md-1 btnAddCliente q-pt-none flex items-center" 
+
+      <!-- <div class="col-xs-2 col-sm-2 col-md-1 btnAddCliente q-pt-none flex items-center"
         style="margin-left: 0px;align-items: normal;position: relative;top: 5px;">
         <div class="my-content">
           <q-btn round color="primary" size="13px" @click="modalAgregarCliente = true"
@@ -338,7 +335,7 @@
 
       <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
         class="col-xs-12 col-md-5 q-mt-md" :class="$q.screen.width <= 1023 ? 'q-pl-none' : 'offset-1'">
-        <label>Seleccionar Sucursal: 
+        <label>Seleccionar Sucursal:
         </label>
         <q-select filled v-model="sucursal_selected"
           @update:model-value="validaciones.sucursal_id.isValid = true, rows = []"
@@ -375,14 +372,14 @@
         </q-input>
       </div>
 
-      <div class="col-xs-12 col-sm-5" 
+      <div class="col-xs-12 col-sm-5"
       :class="$q.screen.width <= 1023 ? 'q-pl-none q-mb-lg' : 'offset-1'">
         <label>Forma de pago:</label>
-        <q-select dense v-model.trim="formVenta.forma_pago" filled 
+        <q-select dense v-model.trim="formVenta.forma_pago" filled
           emit-value map-options :error="!validaciones.forma_pago.isValid"
           @update:model-value="validaciones.forma_pago.isValid = true"
           :options="[
-            { label: 'SIN UTILIZACION DEL SISTEMA FINANCIERO', value: '01' }, 
+            { label: 'SIN UTILIZACION DEL SISTEMA FINANCIERO', value: '01' },
             { label: 'COMPENSACIÓN DE DEUDAS', value: '15' },
             { label: 'TARJETA DE DÉBITO', value: '16' },
             { label: 'DINERO ELECTRÓNICO', value: '17' },
@@ -400,11 +397,11 @@
       </div>
 
     </div>
-  
+
     <q-form @submit="onSubmit('EMISION')">
       <div class="row q-mx-lg justify-center q-mt-md">
         <div class="col-12">
-          <q-table :rows="rows" :columns="columns" row-key="name" 
+          <q-table :rows="rows" :columns="columns" row-key="name"
             :class="[$q.dark.isActive ? '' : 'my-sticky-header-table3']"
             :hide-pagination="true" :rows-per-page-options="[50]" >
 
@@ -419,9 +416,9 @@
 
             <template v-slot:body-cell-cantidad="props">
               <q-td :props="props">
-                  <q-input input-class="resaltarTextoInput" dense required 
-                  @change="getSubtotalByProduct( props.row, 'ventas' )" 
-                  min="0" :max="props.row.stock" 
+                  <q-input input-class="resaltarTextoInput" dense required
+                  @change="getSubtotalByProduct( props.row, 'ventas' )"
+                  min="0" :max="props.row.stock"
                   :readonly="props.row.tipo == 'Servicio'"
                   type="number" style="width: 100px;" v-model.trim="props.row.cantidad" />
               </q-td>
@@ -429,7 +426,7 @@
 
             <template v-slot:body-cell-descuento="props">
               <q-td :props="props">
-                  <q-input input-class="resaltarTextoInput" dense required 
+                  <q-input input-class="resaltarTextoInput" dense required
                   @change="getSubtotalByProduct( props.row, 'ventas' )" min="0"
                   type="number" style="width: 100px;" v-model="props.row.descuento" />
               </q-td>
@@ -439,7 +436,7 @@
               <q-td :props="props">
                 {{ props.row.aplicaIva ? 'SI' : 'NO' }}
               </q-td>
-            </template>        
+            </template>
 
             <template v-slot:body-cell-pvp="props">
               <q-td :props="props">
@@ -456,12 +453,12 @@
                 @click="quitarArticulo(props.row.id)"
                 icon="close" size="8px" />
               </q-td>
-            </template>  
+            </template>
 
-          </q-table>    
+          </q-table>
         </div>
 
-        <div class="col-xs-12 col-sm-7 row items-center" 
+        <div class="col-xs-12 col-sm-7 row items-center"
         :class="$q.screen.width <= 1023 ? 'q-mt-lg q-mb-sm' : ''">
           <div class="col-3 text-right">
             <label class="q-pr-md">Descripción</label>
@@ -492,7 +489,7 @@
               </td>
             </tr>
             <tr class="text-right">
-              <td><b>IVA(12%):</b></td>
+              <td><b>IVA({{ iva_selected }}%):</b></td>
               <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
                 ${{ valorFactura.iva }}
               </td>
@@ -507,17 +504,17 @@
           </table>
         </div>
 
-        <div class="col-12 flex q-mt-md q-my-lg" 
+        <div class="col-12 flex q-mt-md q-my-lg"
           :class="[ $q.screen.width < 600 ? 'justify-center' : 'justify-between']">
-      
+
           <q-btn v-if="$q.screen.width > 600" icon="arrow_back" @click="$router.push('/ventas')"
-            outline rounded class="q-mr-lg" 
+            outline rounded class="q-mr-lg"
             :color="!$q.dark.isActive ? 'blue-grey-10' : 'blue-grey-2'">
             &nbsp; Regresar
           </q-btn>
-      
-          <q-btn-dropdown v-if="$route.params.venta_id == ''" outline rounded 
-            style="color: #696cff" label="Generar" 
+
+          <q-btn-dropdown v-if="$route.params.venta_id == ''" outline rounded
+            style="color: #696cff" label="Generar"
             :class="$q.screen.width >= 1023 ? 'q-px-xl': 'full-width'">
             <q-list>
               <q-item clickable v-close-popup @click="onSubmit('FACTURA')">
@@ -544,9 +541,9 @@
   <q-dialog v-model="modalSelectProducto">
     <SelectProduct :listProductos="listProductos" @agregarProduct="agregarProduct" />
   </q-dialog>
-  
+
 </template>
-  
+
 <style>
   .linearTablaDetalle{
     margin-right: 0px;
@@ -577,4 +574,3 @@
       background-color: rgb(243, 235, 245);
   }
 </style>
-  

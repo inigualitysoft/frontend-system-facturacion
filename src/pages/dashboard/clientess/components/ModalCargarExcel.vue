@@ -84,35 +84,44 @@
 
     loading.value = true;
     for (let index = 1; index < rows.value.length; index++) {
-      const element = rows.value[index];
 
-      clientes.value.unshift({ nombre: element[0], estado: 'cargando', index })
-
-      try {
-
-        await espera(700)
-        let headers = { headers: { sucursal_id: sucursal_selected.value } };
-
-        let codigo;
-        if ( element[1].toLowerCase() == 'ruc' ) codigo = '04'
-        if ( element[1].toLowerCase() == 'cedula' ) codigo = '05'        
-        if ( element[1].toLowerCase() == 'pasaporte' ) codigo = '06'        
-
-        await api.post('/customers/create', {
-          nombres:          element[0],
-          tipo_documento:   codigo,
-          numero_documento: element[2].toString(),
-          email:            element[3],
-          celular:          element[4].toString(),
-          direccion:        element[5]
-        }, headers)
-
-        let cliente = clientes.value.find( cliente => cliente.index == index)
-        cliente.estado = 'success';
-        
-      } catch (error) {
-        let cliente = clientes.value.find( cliente => cliente.index == index)
-        cliente.estado = 'error'
+      if(rows.value[index].length > 0){
+        const element = rows.value[index];
+  
+        clientes.value.unshift({ 
+          nombre: element[0], 
+          estado: 'cargando', 
+          message: '',
+          index 
+        })
+  
+        try {
+  
+          await espera(700)
+          let headers = { headers: { sucursal_id: sucursal_selected.value } };
+  
+          let codigo;
+          if ( element[1].toLowerCase() == 'ruc' ) codigo = '04'
+          if ( element[1].toLowerCase() == 'cedula' ) codigo = '05'        
+          if ( element[1].toLowerCase() == 'pasaporte' ) codigo = '06'        
+  
+          await api.post('/customers/create', {
+            nombres:          element[0],
+            tipo_documento:   codigo,
+            numero_documento: element[2].toString(),
+            email:            element[3],
+            celular:          element[4].toString(),
+            direccion:        element[5]
+          }, headers)
+  
+          let cliente = clientes.value.find( cliente => cliente.index == index)
+          cliente.estado = 'success';
+          
+        } catch (error) {
+          let cliente = clientes.value.find( cliente => cliente.index == index)
+          cliente.estado = 'error'
+          cliente.message = error.response.data.message
+        }
       }
 
       if ( (index + 1) == rows.value.length ){
@@ -181,7 +190,11 @@
               <q-spinner v-if="cliente.estado == 'cargando'"
                  size="30px" color="primary"></q-spinner>
               <q-icon v-if="cliente.estado == 'success'" name="check_circle" color="green-9" />
-              <q-icon v-if="cliente.estado == 'error'" name="error" color="negative" />
+              <q-icon v-if="cliente.estado == 'error'" name="error" color="negative">
+                <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+                  {{ cliente.message }}
+                </q-tooltip>
+              </q-icon>
             </q-item-section>
           </q-item>
         </q-list>

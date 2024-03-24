@@ -57,17 +57,35 @@
 
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getClientes() })
   const eliminarCliente = async (cliente_id) => {
-    try {
-      confirmDelete('Estas seguro de eliminar este cliente?', `/customers/${ cliente_id }`);
-    } catch (error) {
-      console.log(error);
-    }
+    confirmDelete('Estas seguro de eliminar este cliente?', `/customers/${ cliente_id }`);   
   }
 
   const downloadFile = () => {
-    var archivoURL = "/plantillas/productos_plantilla.xlsx";
+    var archivoURL = "/plantillas/clientes_plantilla.xlsx";
 
     window.location.href = archivoURL;
+  }
+
+  const exportarClientes = async () => {
+    try {
+      const { data } = await api.post(`/customers/download-clients-excel`, { }, { 
+        responseType: 'arraybuffer'
+      });
+
+      const blob = new Blob([ data ], { 
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'clientes.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);   
+
+      console.log( data );
+    } catch (error) {
+      
+    }
   }
 
   getClientes();
@@ -103,7 +121,8 @@
                 @click="modalAgregarCliente = !modalAgregarCliente" 
                 outline color="primary" label="Agregar Cliente" class="q-mr-xs"/>
 
-                <q-btn-dropdown outline color="primary" icon="fa-solid fa-file-excel">
+                <q-btn-dropdown class="q-mr-xs"
+                  outline color="primary" icon="fa-solid fa-file-excel">
                   <q-list>
                     <q-item clickable v-close-popup
                       @click="showModalUploadFile = true">
@@ -115,7 +134,14 @@
                     <q-item @click="downloadFile"
                       clickable v-close-popup>
                       <q-item-section>
-                        <q-item-label>Exportar Excel</q-item-label>
+                        <q-item-label>Exportar Plantilla</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                    <q-item @click="exportarClientes"
+                      clickable v-close-popup>
+                      <q-item-section>
+                        <q-item-label>Exportar Clientes</q-item-label>
                       </q-item-section>
                     </q-item>
 

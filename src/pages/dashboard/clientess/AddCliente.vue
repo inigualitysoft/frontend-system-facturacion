@@ -9,7 +9,7 @@
 <template>
   <q-card style="width: 843px !important;max-width: fit-content">
     <q-card-section>
-        <div class="text-h6">
+        <div class="text-h6 text-center">
           Agregar Cliente
           <q-btn round flat dense icon="close" class="float-right" color="grey-8" v-close-popup></q-btn>
         </div>

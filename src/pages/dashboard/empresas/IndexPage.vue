@@ -172,6 +172,6 @@
       v-if="$q.screen.xs && validarPermisos('crear.empresa')">
     <q-btn round color="secondary" size="lg" icon="add" @click="$router.push({ name: 'Agregar Empresa' })"  />
   </q-page-sticky>
-  
+
 </template>
   

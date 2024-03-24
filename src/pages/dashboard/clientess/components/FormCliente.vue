@@ -62,7 +62,7 @@ const {
 
       <div class="col-xs-9 col-sm-12  flex justify-center">
         <q-btn :label=" !edit ? 'Guardar' : 'Editar'" :loading="loading"
-          class="q-px-xl" type="submit" color="green-9"/>
+          class="q-px-xl" type="submit" outline rounded style="color: #696cff" />
       </div>
 
     </div>

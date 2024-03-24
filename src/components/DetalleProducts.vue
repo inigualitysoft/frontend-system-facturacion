@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import useHelpers from "../composables/useHelpers";
 
 const columns: any = [
   { label: 'Codigo Barra', align: 'left', name: 'codigoBarra' },
@@ -11,6 +12,7 @@ const columns: any = [
 ]
 
 const props = defineProps<{ detalleData: any }>();
+const { api, claim, mostrarNotify } = useHelpers();
 
 let estado: string;
 if (props.detalleData.buyToProduct) {
@@ -20,73 +22,95 @@ if (props.detalleData.buyToProduct) {
   estado = props.detalleData.estadoSRI
 }
 
-const descargarDocumento = ( tipo: string ) => {
+const descargarDocumento = async ( clave_acceso: string, tipo_documento: string ) => {
 
+  try {
+    const { data } = await api.post('/invoices/download-ride-xml', {
+      clave_acceso,
+      tipo_documento,
+      razon_social: claim.company.nombre_comercial
+    },
+      { responseType: 'arraybuffer' }
+    );
+
+    const blob = new Blob([ data ], {
+      type: tipo_documento == 'ride' ?  'application/pdf' : 'application/xml'
+    });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.download = `${ clave_acceso }${ tipo_documento == 'ride' ? '.pdf' : '.xml' }`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+  } catch (error) {
+    mostrarNotify('negative', 'No se encontro el archivo')
+  }
 }
 
 </script>
 
 <template>
-  <q-card 
+  <q-card
     :style="$q.screen.width <= 1023 ? 'max-width: 92vw;' : 'max-width: 60vw;'">
     <q-card-section class="q-pb-none">
       <div class="text-h6 text-center">
-        {{ props.detalleData.buyToProduct 
-            ? 'Detallle de Compra' 
-            : 'Detalle de la Factura/Proforma' 
-        }}        
+        {{ props.detalleData.buyToProduct
+            ? 'Detallle de Compra'
+            : 'Detalle de la Factura/Proforma'
+        }}
       </div>
     </q-card-section>
 
     <q-card-section>
       <div class="row q-gutter-sm text-center">
-        <div class="col-xs-12 col-sm-5" 
+        <div class="col-xs-12 col-sm-5"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
           <label class="text-subtitle1 text-weight-medium">
             Num. Comprobantes:
           </label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-sm flex items-center" 
+        <div class="col-xs-12 col-sm-5 q-mt-sm flex items-center"
         :class="[$q.screen.xs ? 'justify-center' : 'q-ml-lg']">
           <label>{{ props.detalleData.numero_comprobante }}</label>
         </div>
         <div v-if="!props.detalleData.buyToProduct"
-          class="col-xs-12 col-sm-5 q-mt-none" 
+          class="col-xs-12 col-sm-5 q-mt-none"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
           <label class="text-subtitle1 text-weight-medium">Clave de Acceso:</label>
         </div>
-        <div v-if="!props.detalleData.buyToProduct"          
-          class="col-xs-12 col-sm-6 q-mt-none flex items-center" 
+        <div v-if="!props.detalleData.buyToProduct"
+          class="col-xs-12 col-sm-6 q-mt-none flex items-center"
           :class="[$q.screen.xs ? 'justify-left' : 'q-ml-lg text-left']">
           <label style="width: 100%;word-wrap: break-word;">
             {{ props.detalleData.clave_acceso }}
           </label>
         </div>
         <div v-if="props.detalleData.buyToProduct"
-          class="col-xs-12 col-sm-5 q-mt-none" 
+          class="col-xs-12 col-sm-5 q-mt-none"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
           <label class="text-subtitle1 text-weight-medium">Descripción:</label>
         </div>
         <div v-if="props.detalleData.buyToProduct"
-          class="col-xs-12 col-sm-5 q-mt-none flex items-center" 
+          class="col-xs-12 col-sm-5 q-mt-none flex items-center"
           :class="[$q.screen.xs ? 'justify-center' : 'q-ml-lg']">
           <label>{{ props.detalleData.descripcion }}</label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none" 
+        <div class="col-xs-12 col-sm-5 q-mt-none"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
           <label class="text-subtitle1 text-weight-medium">Sucursal:</label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center" 
+        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center"
           :class="[$q.screen.xs ? 'justify-center' : 'q-ml-lg']">
           <label>{{ props.detalleData.sucursal_id.nombre }}</label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none" 
+        <div class="col-xs-12 col-sm-5 q-mt-none"
         :class="[$q.screen.xs ? 'text-center' : 'text-right']">
           <label class="text-subtitle1 text-weight-medium">
             {{ props.detalleData.buyToProduct ? 'Proveedor' : 'Cliente' }}
           </label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center" 
+        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center"
           :class="[$q.screen.xs ? 'justify-center' : 'q-ml-lg']">
           <label v-if="props.detalleData.buyToProduct">
             {{ props.detalleData.proveedor_id.razon_social }}
@@ -95,21 +119,21 @@ const descargarDocumento = ( tipo: string ) => {
             {{ props.detalleData.customer_id.nombres }}
           </label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none" 
+        <div class="col-xs-12 col-sm-5 q-mt-none"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
           <label class="text-subtitle1 text-weight-medium">Usuario:</label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center" 
+        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center"
           :class="[$q.screen.xs ? 'justify-center' : 'q-ml-lg']">
           <label>{{ props.detalleData.user_id.fullName }}</label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none" 
+        <div class="col-xs-12 col-sm-5 q-mt-none"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
           <label class="text-subtitle1 text-weight-medium">
             {{ props.detalleData.buyToProduct ? 'Fecha de Compra:' : 'Fecha de Emisión:' }}
           </label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center" 
+        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center"
           :class="[$q.screen.xs ? 'justify-center' : 'q-ml-lg']">
           <label v-if="props.detalleData.buyToProduct">
             {{ props.detalleData.fecha_compra }}
@@ -118,22 +142,22 @@ const descargarDocumento = ( tipo: string ) => {
             {{ props.detalleData.created_at }}
           </label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none" 
+        <div class="col-xs-12 col-sm-5 q-mt-none"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
           <label class="text-subtitle1 text-weight-medium">
             Estado:
           </label>
         </div>
-        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center" 
+        <div class="col-xs-12 col-sm-5 q-mt-none flex items-center"
           :class="[$q.screen.xs ? 'justify-center' : 'q-ml-lg']">
           <q-badge  outline class="q-py-xs q-px-md"
-            :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'" 
+            :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'"
             :label="estado" />
         </div>
 
         <div class="col-xs-12 col-sm-12 q-my-sm">
           <q-table :class="[$q.dark.isActive ? '' : 'my-sticky-header-table2']"
-            :rows="props.detalleData.invoiceToProduct ? 
+            :rows="props.detalleData.invoiceToProduct ?
               props.detalleData.invoiceToProduct : props.detalleData.buyToProduct"
             :columns="columns"
             hide-bottom
@@ -160,19 +184,19 @@ const descargarDocumento = ( tipo: string ) => {
                 {{ producto.row.product_id.aplicaIva ? 'SI' : 'NO' }}
               </q-td>
 
-            </template> 
+            </template>
 
             <template v-slot:body-cell-total="props">
               <q-td :props="props">${{ props.row.v_total }}</q-td>
-            </template> 
+            </template>
 
             <template v-slot:body-cell-codigoBarra="props">
               <q-td :props="props">{{ props.row.product_id.codigoBarra }}</q-td>
-            </template> 
+            </template>
 
             <template v-slot:body-cell-pvp="props">
               <q-td :props="props">${{ props.row.product_id.pvp }}</q-td>
-            </template> 
+            </template>
 
             <template v-slot:loading>
               <q-inner-loading showing color="primary" />
@@ -183,11 +207,30 @@ const descargarDocumento = ( tipo: string ) => {
 
             <div v-if="!$q.screen.xs"
               class="col-xs-12 col-sm-6 row items-center">
-              <q-btn type="submit" label="Descargar Documento" icon-right="picture_as_pdf"
-                outline rounded style="color: #696cff" />
+              <q-btn-dropdown class="q-mr-xs" label="Descargar Documento"
+                  outline color="primary" icon="download">
+                  <q-list>
+                    <q-item clickable v-close-popup
+                      @click="descargarDocumento(props.detalleData.clave_acceso, 'ride')">
+                      <q-item-section>
+                        <q-item-label>Descargar RIDE</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                    <q-item @click="descargarDocumento(props.detalleData.clave_acceso, 'xml')"
+                      clickable v-close-popup>
+                      <q-item-section>
+                        <q-item-label>Descargar XML</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                  </q-list>
+                </q-btn-dropdown>
+              <!-- <q-btn type="submit" label="Descargar Documento" icon-right="picture_as_pdf"
+                outline rounded style="color: #696cff" /> -->
             </div>
 
-            <div class="col-xs-12 col-sm-6" style="display: flex;justify-content: end;">  
+            <div class="col-xs-12 col-sm-6" style="display: flex;justify-content: end;">
               <table style="margin-right: 5px;">
                 <tr class="text-right">
                   <td><b>TOTAL BRUTO:</b></td>
@@ -208,25 +251,25 @@ const descargarDocumento = ( tipo: string ) => {
                   </td>
                 </tr>
                 <tr class="text-right">
-                  <td class="q-py-none"><b>IVA(12%):</b></td>
+                  <td class="q-py-none"><b>IVA({{ props.detalleData.porcentaje_iva }}%):</b></td>
                   <td style="width: 90px;" class="text-subtitle1 text-weight-regular">
                     {{ props.detalleData.iva }}
                   </td>
                 </tr>
                 <tr class="text-right">
                   <td><b>
-                    {{ props.detalleData.buyToProduct 
+                    {{ props.detalleData.buyToProduct
                       ? 'TOTAL DE COMPRA:'
-                      : 'TOTAL DE VENTA:' 
+                      : 'TOTAL DE VENTA:'
                     }}
-                    
+
                   </b></td>
                   <td style="width: 90px;">
                     <q-badge outline class="text-subtitle1 text-weight-bold"
                         color="secondary" :label="`${ props.detalleData.total }`" />
                   </td>
                 </tr>
-              </table>  
+              </table>
             </div>
 
             <div v-if="$q.screen.xs"

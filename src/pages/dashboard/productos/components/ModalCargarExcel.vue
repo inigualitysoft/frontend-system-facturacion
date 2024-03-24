@@ -81,39 +81,43 @@
   const uploadFile = async () => {
 
     if( validarCampos() ) return;
-
     loading.value = true;
     for (let index = 1; index < rows.value.length; index++) {
-      const element = rows.value[index];
-
-      products.value.unshift({
-        nombre: element[1],
-        estado: 'cargando',
-        index
-      })
       
-      try {
-        await espera(700)
-        let headers = { headers: { sucursal_id: "dbc210c4-454a-496b-815a-5a445054c0e1" } };
-
-        await api.post('/products', {
-          aplicaIva: element[0] == 'SI' ? true : false,
-          codigoBarra: element[0].toString(),
-          nombre: element[1].toUpperCase(),
-          precio_compra: element[2],
-          pvp: element[3],
-          tipo: element[6],
-          stock: element[7],
-          descuento: element[5]
-        }, headers)
-
-        let product = products.value.find( product => product.index == index)
-        product.estado = 'success'
-
-      } catch (error) {
-        console.log( error );
-        let product = products.value.find( product => product.index == index)
-        product.estado = 'error'
+      if(rows.value[index].length > 0){
+        const element = rows.value[index];
+  
+        products.value.unshift({
+          nombre: element[1],
+          estado: 'cargando',
+          message: '',
+          index
+        })
+        
+        try {
+          await espera(700)
+          let headers = { headers: { sucursal_id: sucursal_selected.value } };
+          console.log(element);
+          await api.post('/products', {
+            aplicaIva: element[4] == 'SI' ? true : false,
+            codigoBarra: element[0].toString(),
+            nombre: element[1].toUpperCase(),
+            precio_compra: element[2],
+            pvp: element[3],
+            tipo: element[6],
+            stock: element[7],
+            descuento: element[5]
+          }, headers)
+  
+          let product = products.value.find( product => product.index == index)
+          product.estado = 'success'
+  
+        } catch (error) {
+          let product     = products.value.find( product => product.index == index)
+          product.estado  = 'error'
+          console.log( error );
+          product.message = error.response.data.message;
+        }
       }
 
       if ( (index + 1) == rows.value.length ) {
@@ -180,7 +184,11 @@
               <q-spinner v-if="product.estado == 'cargando'"
                  size="30px" color="primary"></q-spinner>
               <q-icon v-if="product.estado == 'success'" name="check_circle" color="green-9" />
-              <q-icon v-if="product.estado == 'error'" name="error" color="negative" />
+              <q-icon v-if="product.estado == 'error'" name="error" color="negative">
+                <q-tooltip anchor="top middle" self="bottom middle" :offset="[10, 10]">
+                  {{ product.message }}
+                </q-tooltip>
+              </q-icon>
             </q-item-section>
           </q-item>
         </q-list>

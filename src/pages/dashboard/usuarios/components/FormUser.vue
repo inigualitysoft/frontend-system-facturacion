@@ -11,14 +11,15 @@ const sucursales    = ref<{}[]>([]);
 const roles         = ref<{ label: string, value: string, permisos: string[] }[]>([]);
 let cont = false;
 
-  const { 
+  const {
     api,
     getCompanies,
-    formUser, 
-    expanded, 
+    formUser,
+    expanded,
     validaciones,
-    showConfirmPass, 
+    showConfirmPass,
     showPass,
+    onRejected,
     loading,
     onSubmit
   } = useUser();
@@ -28,18 +29,18 @@ let cont = false;
 
     if ( props.edit && formUser.value.roles[0] == 'SUPER-ADMINISTRADOR' ){
       await Promise.resolve();
-      permisos.value[0].disabled = true;      
+      permisos.value[0].disabled = true;
     }else{
-      permisos.value[0].disabled = false;      
-    } 
+      permisos.value[0].disabled = false;
+    }
 
   })
 
   const cargarCompanies = async () => {
     listCompanies.value = [];
-    
+
     const companies = await getCompanies();
-    
+
     companies.forEach((companie: any) => {
       listCompanies.value.push({
         label:  companie.nombre_comercial,
@@ -58,17 +59,17 @@ let cont = false;
         value:    rol.nombre,
         permisos: rol.permisos
       })
-    });    
+    });
   }
 
   const getPermisos = () => {
     const permisosFound = roles.value.find(( rol: any ) => rol.value == formUser.value.roles[0])
 
-    if ( permisosFound?.label == 'SUPER-ADMINISTRADOR' ) 
-      permisos.value[0].disabled = true;      
+    if ( permisosFound?.label == 'SUPER-ADMINISTRADOR' )
+      permisos.value[0].disabled = true;
     else
-      permisos.value[0].disabled = false;      
-    
+      permisos.value[0].disabled = false;
+
     formUser.value.permisos = permisosFound!.permisos
   }
 
@@ -88,19 +89,19 @@ let cont = false;
       getSucursales( formUser.value.company )
     }
   )
-  
+
   const getSucursales = async( company_id: string ) => {
     sucursales.value = [];
     if ( !props.edit || cont ) formUser.value.sucursales = ['']
-    
+
     cont = true;
 
     const { data } = await api.get(`/sucursal/find/${ company_id }/company`);
 
     data.forEach(( x: any) => {
       sucursales.value.push({ label: x.nombre, value: x.id })
-    })      
-  }  
+    })
+  }
 </script>
 
 <template>
@@ -120,8 +121,8 @@ let cont = false;
                 <label>Nombre:</label>
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md">
-                <q-input v-model.trim="formUser.fullName" 
-                @update:model-value="validaciones.fullName.isValid = true" 
+                <q-input v-model.trim="formUser.fullName"
+                @update:model-value="validaciones.fullName.isValid = true"
                 :error="!validaciones.fullName.isValid"
                 input-style="text-transform: uppercase;" dense outlined>
                   <template v-slot:error>
@@ -136,8 +137,8 @@ let cont = false;
                 <label>Usuario:</label>
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md q-my-sm">
-                <q-input v-model.trim="formUser.usuario" 
-                  @update:model-value="validaciones.usuario.isValid = true" 
+                <q-input v-model.trim="formUser.usuario"
+                  @update:model-value="validaciones.usuario.isValid = true"
                   :error="!validaciones.usuario.isValid"
                   dense outlined>
                   <template v-slot:error>
@@ -155,8 +156,8 @@ let cont = false;
                 <label>Email:</label>
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md">
-                <q-input v-model.trim="formUser.email" 
-                  @update:model-value="validaciones.email.isValid = true" 
+                <q-input v-model.trim="formUser.email"
+                  @update:model-value="validaciones.email.isValid = true"
                   :error="!validaciones.email.isValid"
                   type="text" dense outlined>
                   <template v-slot:error>
@@ -174,11 +175,11 @@ let cont = false;
                 <label>Télefono Movil:</label>
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md q-my-sm">
-                <q-input v-model="formUser.celular" 
+                <q-input v-model="formUser.celular"
                   counter maxlength="10"
-                  @keyup="formUser.celular = formUser.celular.replace(/\D/g, '')" 
+                  @keyup="formUser.celular = formUser.celular.replace(/\D/g, '')"
                   lazy-rules
-                  @update:model-value="validaciones.celular.isValid = true" 
+                  @update:model-value="validaciones.celular.isValid = true"
                   :error="!validaciones.celular.isValid"
                   dense outlined>
                   <template v-slot:error>
@@ -192,7 +193,7 @@ let cont = false;
                 </q-input>
               </div>
 
-              <div class="col-11 flex justify-start items-center" 
+              <div class="col-11 flex justify-start items-center"
                 :class="[$q.screen.xs ? 'q-my-md' : '']">
                 <label class="text-h6 text-weight-medium">Configuración:</label>
               </div>
@@ -201,11 +202,11 @@ let cont = false;
                 <label for="">Empresa:</label>
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md">
-                <q-select color="orange" 
-                  transition-show="scale" transition-hide="scale" 
+                <q-select color="orange"
+                  transition-show="scale" transition-hide="scale"
                   outlined v-model="formUser.company" dense
-                  @update:model-value="validaciones.company.isValid = true" 
-                  :error="!validaciones.company.isValid" 
+                  @update:model-value="validaciones.company.isValid = true"
+                  :error="!validaciones.company.isValid"
                   :options="listCompanies" emit-value map-options>
                   <template v-slot:error>
                     <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
@@ -229,9 +230,9 @@ let cont = false;
               <div v-if="formUser.company.length !== 0"
                 class="col-xs-7 col-sm-6 q-ml-md q-mt-sm">
                 <q-select v-model="formUser.roles[0]" outlined dense
-                  transition-show="scale" transition-hide="scale" 
-                  :error="!validaciones.roles.isValid" 
-                  @update:model-value="validaciones.roles.isValid = true, getPermisos()" 
+                  transition-show="scale" transition-hide="scale"
+                  :error="!validaciones.roles.isValid"
+                  @update:model-value="validaciones.roles.isValid = true, getPermisos()"
                   :options="roles" emit-value map-options>
                   <template v-slot:error>
                     <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
@@ -241,18 +242,18 @@ let cont = false;
                 </q-select>
               </div>
 
-              <div 
+              <div
               v-if="formUser.roles[0] !== '' && formUser.company.length !== 0 && formUser.roles[0] !== 'ADMINISTRADOR' && formUser.roles[0] !== 'SUPER-ADMINISTRADOR'"
                 class="col-4 flex justify-end items-center q-mt-sm">
                 <label>Sucursal:</label>
               </div>
-              <div 
+              <div
               v-if="formUser.roles[0] !== '' && formUser.company.length !== 0 && formUser.roles[0] !== 'ADMINISTRADOR' && formUser.roles[0] !== 'SUPER-ADMINISTRADOR'"
                 class="col-xs-7 col-sm-6 q-ml-md q-mt-sm">
                 <q-select v-model="formUser.sucursales[0]" outlined dense required
-                  emit-value map-options transition-show="scale" transition-hide="scale" 
-                  @update:model-value="validaciones.sucursales.isValid = true" 
-                  :error="!validaciones.sucursales.isValid" 
+                  emit-value map-options transition-show="scale" transition-hide="scale"
+                  @update:model-value="validaciones.sucursales.isValid = true"
+                  :error="!validaciones.sucursales.isValid"
                   :options="sucursales">
                   <template v-slot:error>
                     <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
@@ -268,12 +269,12 @@ let cont = false;
                   </template>
                 </q-select>
               </div>
-              
+
               <div class="col-4 flex justify-end items-center q-mt-sm">
                 <label for="">Estado:</label>
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md q-mt-sm">
-                <q-select v-model="formUser.isActive" outlined dense 
+                <q-select v-model="formUser.isActive" outlined dense
                   emit-value map-options
                 :options="[{ label: 'Activo', value: true }, { label: 'Inactivo', value: false }]">
                   <template v-slot:append>
@@ -284,20 +285,44 @@ let cont = false;
                 </q-select>
               </div>
 
-              <div class="col-4 flex justify-end items-center">
-                <label for="">Recibir correo soporte:</label>
+              <div class="col-4 flex justify-end items-center q-mt-sm">
+                <label for="">Foto:</label>
               </div>
-              <div class="col-xs-7 col-sm-6 q-ml-md">
-                <q-toggle color="green" size="lg" v-model="formUser.receiveSupportEmail"/>
+              <div class="col-xs-7 col-sm-6 q-ml-md q-mt-lg">
+                <q-file dense outlined bottom-slots
+                    accept=".jpg, .png, .jpeg" @rejected="onRejected"
+                    @update:model-value="validaciones.foto.isValid = true"
+                    :error="!validaciones.foto.isValid"
+                    v-model="formUser.foto"
+                    :label="formUser.foto_old == null ?
+                      'Cargar Imagen' : formUser.foto_old">
+
+                    <template v-slot:error>
+                      <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                        {{ validaciones.foto.message }}
+                      </label>
+                    </template>
+
+                    <template v-slot:prepend>
+                      <q-icon name="fa-solid fa-image" />
+                    </template>
+
+                    <template v-slot:append>
+                      <q-icon name="close"
+                        v-if="typeof(formUser.foto) === 'object' && formUser.foto !== null"
+                        @click.stop.prevent="formUser.foto = null" class="cursor-pointer" />
+                    </template>
+
+                  </q-file>
               </div>
 
               <div class="col-4 flex justify-end items-center q-my-sm"></div>
               <div class="col-6 q-ml-md q-my-sm"></div>
-              
+
               <div class="col-4 flex justify-end items-center q-my-sm">
                 <label for="">Horario Acceso:</label>
               </div>
-              <div class="col-xs-7 col-sm-6 q-ml-md q-my-sm flex"> 
+              <div class="col-xs-7 col-sm-6 q-ml-md q-my-sm flex">
                 <div style="display: flex;flex-direction: column;">
                   <q-toggle class="q-ml-sm" size="lg" val="Lunes"
                     v-model="formUser.horarios_dias"/>
@@ -377,9 +402,9 @@ let cont = false;
                   </div>
                 </div>
               </div>
-             
+
               <div class="col-11 flex justify-start items-center">
-                <label class="text-h6 text-weight-medium" 
+                <label class="text-h6 text-weight-medium"
                   :class="[$q.screen.xs ? 'q-my-md' : '']">
                   Nueva Contraseña:
                 </label>
@@ -390,7 +415,7 @@ let cont = false;
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md">
                 <q-input :type="showPass ? 'password' : 'text'" outlined dense
-                  @update:model-value="validaciones.password.isValid = true"    
+                  @update:model-value="validaciones.password.isValid = true"
                   :error="!validaciones.password.isValid"
                   v-model.trim="formUser.password">
                   <template v-slot:error>
@@ -412,7 +437,7 @@ let cont = false;
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md q-my-sm">
                 <q-input :type="showConfirmPass ? 'password' : 'text'" outlined dense
-                  @update:model-value="validaciones.confirmPassword.isValid = true"    
+                  @update:model-value="validaciones.confirmPassword.isValid = true"
                   :error="!validaciones.confirmPassword.isValid"
                   v-model.trim="formUser.confirmPassword">
                   <template v-slot:error>
@@ -434,7 +459,7 @@ let cont = false;
 
           <div class="col-xs-11 col-md-4">
             <div class="row">
-              <div class="col-11 flex justify-start items-center" 
+              <div class="col-11 flex justify-start items-center"
                 :class="[$q.screen.xs ? 'q-my-md' : '']">
                 <label class="text-h6 text-weight-medium">Permisos:</label>
               </div>
@@ -450,7 +475,7 @@ let cont = false;
                 v-model:ticked="formUser.permisos" />
 
                 <div v-if="!validaciones.permisos.isValid"
-                  class="col-11 text-center" 
+                  class="col-11 text-center"
                   :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   <label>
                     {{ validaciones.permisos.message }}
@@ -466,7 +491,7 @@ let cont = false;
 
         <q-btn v-if="Screen.width > 600"
           type="submit" icon="arrow_back" @click="$router.push('/usuarios')"
-          outline rounded class="q-mr-lg" 
+          outline rounded class="q-mr-lg"
           :color="!$q.dark.isActive ? 'blue-grey-10' : 'blue-grey-2'">
           &nbsp; Regresar
         </q-btn>

@@ -34,6 +34,9 @@ const useHelpers = () => {
         mostrarNotify('positive', 'Registro eliminado exitosamente');
         isDeleted.value = true;
       } catch (error) {
+        if( error.response.data.code == '23503' )
+          return mostrarNotify('negative', "No es posible borrar este registro, se encuentra en uso.");
+
         mostrarNotify('negative', error.response.data.message);
       }
     })

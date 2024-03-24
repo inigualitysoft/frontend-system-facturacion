@@ -7,7 +7,7 @@ import { useProduct } from "./composables/useProducts";
 import useHelpers from "../../../composables/useHelpers";
 import useRolPermisos from "src/composables/useRolPermisos.js";
 
-  let { 
+  let {
     actualizarTabla,
     claim,
     modalAgregarProducto,
@@ -23,7 +23,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     { name: 'aplicaIva', label: 'Aplica Iva', align: 'center', field: 'aplicaIva' },
     { name: 'estado', label: 'Estado', align: 'center', field: 'isActive' }
   ]
-  
+
   const showModalUploadFile = ref( false );
   const { api, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
   const { validarPermisos } = useRolPermisos();
@@ -56,14 +56,14 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     try {
       const { data: { msg } } = await api.patch(`/products/${ product_id }/${ estado }`)
       mostrarNotify('positive', msg );
-      getArticulos(1, pagination.value.rowsPerPage, null)   
+      getArticulos(1, pagination.value.rowsPerPage, null)
     } catch (error) {
       console.log(error);
     }
   }
 
-  watch( isDeleted, ( newValue, _ ) => { 
-    if ( newValue ) getArticulos(1, pagination.value.rowsPerPage, null)     
+  watch( isDeleted, ( newValue, _ ) => {
+    if ( newValue ) getArticulos(1, pagination.value.rowsPerPage, null)
   })
 
   watch(tipoBusqueda, (currentValue, _) => {
@@ -74,9 +74,9 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
   watch(actualizarTabla, (currentValue, _) => {
     if ( currentValue ){
-      getArticulos(1, pagination.value.rowsPerPage, null)    
+      getArticulos(1, pagination.value.rowsPerPage, null)
       actualizarTabla.value = false
-    } 
+    }
   });
 
   const eliminarProducto = async ( producto_id ) => {
@@ -107,7 +107,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
   const getArticulos = async (page = 1, rowsPerPage = 5, filtro = null) => {
 
     if ( listSucursales.value.length == 0 ) await getSucursales();
-    
+
     let headers = { headers: { sucursal_id: selectSucursal.value } };
 
     try {
@@ -121,6 +121,28 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     } catch (error) {
       console.log(error)
     }
+  }
+
+  const exportarProductos = async () => {
+    try {
+
+      const { data } = await api.post(`/products/download-products-excel`, {
+        sucursal_id: selectSucursal.value
+       }, {
+        responseType: 'arraybuffer'
+      });
+
+      const blob = new Blob([ data ], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'productos_servicios.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+    } catch (error) {}
   }
 
   async function onRequest ( props ) {
@@ -159,7 +181,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-            <q-table title-class="text-grey-7 text-h6" 
+            <q-table title-class="text-grey-7 text-h6"
               :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
               :columns="columns" row-key="name" :grid="mode==='grid'"
               :filter="filter" v-model:pagination="pagination"
@@ -187,7 +209,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                 <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
                 style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
                   <label class="q-mr-sm row items-center">
-                    <span>Sucursal: </span> 
+                    <span>Sucursal: </span>
                   </label>
                   <q-select outlined dense v-model="selectSucursal"
                     @update:model-value="getArticulos()"
@@ -199,7 +221,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
               <template v-slot:top-right="props">
                 <q-btn v-if="!$q.screen.xs && validarPermisos('crear.productos')"
-                  @click="modalAgregarProducto = !modalAgregarProducto" 
+                  @click="modalAgregarProducto = !modalAgregarProducto"
                   outline color="primary" label="Agregar Producto" class="q-mr-xs"/>
 
                 <q-btn-dropdown outline class="q-mr-sm q-ml-xs"
@@ -215,7 +237,14 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                     <q-item @click="downloadFile"
                       clickable v-close-popup>
                       <q-item-section>
-                        <q-item-label>Exportar Excel</q-item-label>
+                        <q-item-label>Exportar Plantilla</q-item-label>
+                      </q-item-section>
+                    </q-item>
+
+                    <q-item @click="exportarProductos"
+                      clickable v-close-popup>
+                      <q-item-section>
+                        <q-item-label>Exportar Productos/Servicios</q-item-label>
                       </q-item-section>
                     </q-item>
 
@@ -252,7 +281,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                
+
                 <template v-if="props.row.isActive">
                   <q-btn v-if="validarPermisos('editar.productos')"
                     round color="blue-grey"
@@ -308,7 +337,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                 <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>  
+          </q-table>
         </q-card>
       </div>
     </div>
@@ -320,7 +349,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
   <q-dialog v-model="modalEditarProducto">
     <EditProduct />
-  </q-dialog> 
+  </q-dialog>
 
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs && validarPermisos('crear.productos')">
@@ -332,4 +361,4 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     <ModalCargarExcel @actualizarDatos="getArticulos()" />
   </q-dialog>
 </template>
-  
+

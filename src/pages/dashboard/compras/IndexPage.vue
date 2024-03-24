@@ -2,10 +2,10 @@
   import { ref, watch } from 'vue'
   import useRolPermisos from "../../../composables/useRolPermisos";
   import useHelpers from "../../../composables/useHelpers";
-  import { useQuasar } from 'quasar'
+  import { useQuasar, date } from 'quasar';
   import DetalleCompra from '../../../components/DetalleProducts.vue'
   // import FiltrarCompras from './FiltrarCompras.vue'
-  
+
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'sucursal', label: 'Sucursal', align: 'center', field: 'sucursal_name' },
@@ -16,34 +16,55 @@
     { name: 'total', label: 'Total', field: 'total', align: 'center' },
     { name: 'estado', label: 'Estado', field: 'estado', align: 'center' }
   ]
-  
+
   const rows = ref([]);
   const modalDetalle = ref(false);
   let detalleData = ref({});
+  const dateOne = ref('');
+  const dateTwo = ref('');
+  const tipo = ref('TODOS');
 
   const formFiltrarCompras = ref({ desde: '', hasta: '', pv_id: '' })
 
   const filter = ref('');
   const { validarPermisos } = useRolPermisos();
-  const { api, claim, mostrarNotify } = useHelpers();
+  const { api, claim, mostrarNotify, route } = useHelpers();
   const $q = useQuasar();
   const loading = ref( false )
-  
+
   const selectSucursal = ref('');
   const listSucursales = ref([]);
-  
+
+  watch(tipo, (currentValue, _) => { getCompras(); });
+
+  const checkRoute = () => {
+    const { fecha } = route.params;
+
+    if (fecha != '') {
+      dateOne.value = fecha.split(' - ')[0].replace(/-/g, "/");
+      dateTwo.value = fecha.split(' - ')[1].replace(/-/g, "/");
+    }
+  }
+
   const getCompras = async () => {
     try {
       loading.value = true;
 
       if ( listSucursales.value.length == 0 ) await getSucursales();
 
-      let headers = { headers: { sucursal_id: selectSucursal.value } };
+      console.log(tipo.value);
+
+      let headers = { headers: {
+        sucursal_id: selectSucursal.value,
+        desde: dateOne.value,
+        hasta: dateTwo.value,
+        tipo: tipo.value
+      }};
 
       const { data } = await api.get('/buys', headers);
 
       data.map( (compra: any) => {
-        compra.fecha_compra = compra.fecha_compra;
+        compra.fecha_compra = date.formatDate(compra.created_at, 'DD/MM/YYYY');
         compra.sucursal_name = compra.sucursal_id.nombre;
         compra.proveedor_name = compra.proveedor_id.razon_social;
         compra.user_name = compra.user_id.fullName;
@@ -57,7 +78,7 @@
       loading.value = false;
     }
   }
-  
+
   const anularCompra = ( compra: any ) => {
     $q.dialog({
       title: '<center>¿Estas seguro de anular esta compra?</center>',
@@ -80,7 +101,7 @@
       }
     })
   }
-  
+
   const actualizarLista = ( data: any ) => {
     rows.value = data.compras;
     data.compras.map( (compra: any) => {
@@ -107,13 +128,14 @@
     }
     loading.value = false;
   }
-  
+
+  checkRoute();
   getCompras();
 
   watch(filter, (newValue, oldValue) => {
     getCompras();
   })
-   
+
   const mode = ref("list");
   const pagination = ref({
     rowsPerPage: 10
@@ -122,9 +144,54 @@
 <template>
   <div class="q-ma-lg q-pt-md">
     <div class="row q-col-gutter-lg">
-      <div class="col-12">
+      <div class="col-12 q-pt-xs">
+
+        <div class="q-my-md"
+          style="display: flex;" :class="[ $q.screen.xs ? 'q-mb-md' : 'q-ml-lg' ]">
+          <label class="q-mr-sm row q-pt-sm">
+            <span>Filtrar por fecha: </span>
+          </label>
+
+          <q-input outlined dense v-model="dateOne" mask="date" >
+            <template v-slot:append>
+
+              <q-icon v-if="dateOne !== ''" name="close" @click="dateOne = '', getCompras()" class="cursor-pointer" />
+
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                  <q-date v-model="dateOne" @update:model-value="getCompras">
+                    <div class="row items-center justify-end">
+                      <q-btn v-close-popup label="Close" color="primary" flat />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+
+          <label class="q-mx-md q-pt-sm">Hasta</label>
+
+          <q-input outlined dense v-model="dateTwo" mask="date">
+            <template v-slot:append>
+
+              <q-icon v-if="dateTwo !== ''" name="close" @click="dateTwo = '', getCompras()" class="cursor-pointer" />
+
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                  <q-date v-model="dateTwo" @update:model-value="getCompras">
+                    <div class="row items-center justify-end">
+                      <q-btn @click="getCompras"
+                        v-close-popup label="Close" color="primary" flat />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+        </div>
+
         <q-card flat class="shadow_custom">
-          <q-table title-class="text-grey-7 text-h6" 
+          <q-table title-class="text-grey-7 text-h6"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
             :filter="filter" :pagination.sync="pagination" >
@@ -145,10 +212,27 @@
                   Listado de Compras
                 </label>
               </div>
+
+              <div style="display: flex;"
+                :style="!$q.screen.xs || 'width: 100%;justify-content: center;position: relative;right: 8px;'"
+                :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
+                <label class="q-mr-sm row items-center">
+                  <span>Tipo: </span>
+                </label>
+                <q-select outlined dense v-model="tipo"
+                emit-value map-options
+                :options="[
+                    { label: 'Todos', value: 'TODOS' },
+                    { label: 'Aceptados', value: 'Aceptados' },
+                    { label: 'Anulados', value: 'Anulados' },
+                  ]">
+                </q-select>
+              </div>
+
               <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
               style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
-                <label class="q-mr-sm row items-center">
-                  <span>Sucursal: </span> 
+                <label class="q-mx-sm row items-center">
+                  <span>Sucursal: </span>
                 </label>
                 <q-select outlined dense v-model="selectSucursal"
                   @update:model-value="getCompras()"
@@ -160,7 +244,7 @@
 
             <template v-slot:top-right="props">
               <q-btn v-if="!$q.screen.xs && validarPermisos('crear.compra')"
-                @click="$router.push('/compras/add')" 
+                @click="$router.push('/compras/add')"
                 outline color="primary" label="Agregar Compra" class="q-mr-xs"/>
 
               <q-input :style="$q.screen.width > 700 || 'width: 70%'"
@@ -219,12 +303,13 @@
                 <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>  
+          </q-table>
         </q-card>
+
       </div>
     </div>
   </div>
-  
+
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs && validarPermisos('crear.compra')">
     <q-btn round color="secondary" size="lg"
@@ -234,9 +319,9 @@
   <q-dialog v-model="modalDetalle">
     <DetalleCompra :detalleData="detalleData" />
   </q-dialog>
-  
+
 </template>
- 
+
 <style>
   .estadoVenta{
     font-size: 14px;
@@ -249,7 +334,7 @@
   .table-ventas thead tr:first-child th {
     /* bg color is important for th; just specify one */
     background-color: #ddebdc; }
-  
+
   .table-ventas tbody tr:nth-child(even) {
     background-color: rgb(124, 27, 27);
     white-space: normal;
@@ -262,4 +347,3 @@
     white-space: normal;
   }
   </style>
-  

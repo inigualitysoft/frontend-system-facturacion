@@ -5,7 +5,7 @@
         <q-btn flat dense round icon="menu" aria-label="Menu"
           color="grey" class="custom-border" @click="drawer=!drawer"/>
         <q-toolbar-title class="q-ml-sm">
-          <div v-if="!$q.screen.xs" class="row justify-center justify-between text-h6" 
+          <div v-if="!$q.screen.xs" class="row justify-center justify-between text-h6"
             :class="[!$q.dark.isActive ? 'text-black' : '']">
             <div>
               <span class="text-weight-regular">Bienvenido: </span>
@@ -20,7 +20,7 @@
 
         <div>
           <q-btn class="q-mr-xs text-grey-6" flat round
-            @click="$q.dark.toggle()" 
+            @click="$q.dark.toggle()"
             :icon="$q.dark.isActive ? 'nights_stay' : 'wb_sunny'"/>
         </div>
 
@@ -28,7 +28,7 @@
           <q-btn class="q-mr-md q-py-xs q-px-sm custom-border" flat
             color="grey" icon="notifications" />
           <q-avatar class="cursor-pointer">
-            <img src="https://cdn.quasar.dev/img/avatar2.jpg">
+            <img :src="ruta_perfil_img">
             <q-menu>
               <q-list style="min-width: 200px">
                 <q-item clickable v-close-popup>
@@ -36,14 +36,11 @@
                 </q-item>
                 <q-separator />
                 <q-item clickable v-close-popup>
-                  <q-item-section>My Profile</q-item-section>
-                </q-item>
-                <q-item clickable v-close-popup>
-                  <q-item-section>Billing</q-item-section>
+                  <q-item-section>Mi Perfil</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item @click="cerrarSesion" clickable v-close-popup>
-                  <q-item-section>Logout</q-item-section>
+                  <q-item-section>Cerrar Sesión</q-item-section>
                 </q-item>
               </q-list>
             </q-menu>
@@ -55,26 +52,26 @@
 
     <q-drawer v-model="drawer" show-if-above :width="260" :mini-width="80"
       :mini="!drawer || miniState" @click.capture="drawerClick"
-      :class="$q.dark.isActive ? '' : 'drawer_cls'" >
+      :class="$q.dark.isActive ? '' : 'drawer_cls'" style="overflow-y: hidden;">
 
       <div style="height: calc(100% - 80px);padding:10px;">
 
-        <q-toolbar @click="$router.push('/')" class="cursor-pointer" style="margin-top: 15px">
-          <q-avatar rounded>
-            <q-icon style="color: #696cff;" size="38px" class="text-weight-bolder" name="rocket_launch"/>
-          </q-avatar>
-
-          <q-toolbar-title style="color: #566a7f;font-size: 1.40rem;letter-spacing: -.5px;" class="text-weight-medium">
-            Admin CRM
-          </q-toolbar-title>
+        <q-toolbar @click="$router.push('/')" class="cursor-pointer justify-center"
+          style="margin-top: 7px">
+          <q-img
+            src="/public//imgs/inigualitySoft.png"
+            spinner-color="white"
+            style="height: auto; max-width: 125px"
+            fit="contain"
+          />
         </q-toolbar>
 
         <q-scroll-area style="height:100%;">
-          <q-list padding>
+          <q-list padding class="q-mt-sm">
 
-            <q-item class="navigation-item q-mx-sm" active-class="tab-active" to="/" exact clickable v-ripple>
+            <q-item class="navigation-item" active-class="tab-active" to="/" exact clickable v-ripple>
               <q-item-section avatar>
-                <q-icon name="home"/>
+                <q-icon name="home" size="35px" />
               </q-item-section>
 
               <q-item-section>
@@ -92,39 +89,39 @@
 
                 <q-expansion-item v-if="validarPermisos('index.usuario')"
                   hide-expand-icon icon="group" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'Ver Usuarios' }"
+                  active-class="tab-active" :to="{ name: 'Ver Usuarios' }"
                   dense-toggle label="Gestión Personal" :header-inset-level="0">
                 </q-expansion-item>
-                
+
                 <q-expansion-item v-if="validarPermisos('index.rol')"
                   hide-expand-icon icon="fa-solid fa-gears" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'Rol-Permiso' }"
+                  active-class="tab-active" :to="{ name: 'Rol-Permiso' }"
                   dense-toggle label="Roles y Permisos" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item v-if="validarPermisos('index.correo')"
                   hide-expand-icon icon="mail" class="item-options"
-                  active-class="bg-light-blue-9" 
-                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR' 
-                      ? { name: 'emails' } 
+                  active-class="tab-active"
+                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
+                      ? { name: 'emails' }
                       : { name: 'email.edit', params: { email_id: claim.company.id } }"
                   dense-toggle label="Servidor de Correo" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item v-if="validarPermisos('index.empresa')"
                   hide-expand-icon icon="local_convenience_store" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'Ver Empresas' }"
+                  active-class="tab-active" :to="{ name: 'Ver Empresas' }"
                   dense-toggle label="Empresa" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item v-if="validarPermisos('index.sucursal')"
                   hide-expand-icon icon="local_convenience_store" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'Ver Sucursales' }"
+                  active-class="tab-active" :to="{ name: 'Ver Sucursales' }"
                   dense-toggle label="Sucursales" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item hide-expand-icon icon="description" class="item-options"
-                  active-class="bg-light-blue-9" :to="{ name: 'Config Proforma' }"
+                  active-class="tab-active" :to="{ name: 'Config Proforma' }"
                   dense-toggle label="Proforma" :header-inset-level="0">
                 </q-expansion-item>
 
@@ -163,9 +160,9 @@
   import { useAuthUserStore } from "stores/auth-user"
   import JWT from 'jwt-client'
   import EssentialLink from "../components/EssentialLink.vue";
-  import useRolPermisos from "src/composables/useRolPermisos.js"; 
+  import useRolPermisos from "src/composables/useRolPermisos.js";
 
-  const essentialLinks = [  
+  const essentialLinks = [
     {
       title: 'Proveedores',
       icon: 'fa fa-truck',
@@ -203,21 +200,25 @@
   const authUserStore = useAuthUserStore();
   const { validarPermisos } = useRolPermisos();
 
-  let fullName = '';
-  let rol = '';
-
+  let fullName, rol, ruta_perfil_img = '';
   const { claim } = JWT.read( authUserStore.token );
+
+  if ( claim.foto )
+    ruta_perfil_img = `${ import.meta.env.VITE_BASE_URL }/images/${ claim.foto }`
+  else
+    ruta_perfil_img = `${ import.meta.env.VITE_BASE_URL }/images/default-perfil.png`
+
   const arrayFullName = claim.fullName.split(' ');
 
   if ( arrayFullName.length > 3 ) {
     const lastName = arrayFullName.pop();
-    
-    fullName = `${ arrayFullName.join(' ') } ${ lastName[0] }.`;    
+
+    fullName = `${ arrayFullName.join(' ') } ${ lastName[0] }.`;
   }else
     fullName = claim.fullName;
 
   rol = claim.roles[0];
-  
+
   watch(
     () => $q.dark.isActive,
     (newValue, _) => {
@@ -229,7 +230,7 @@
   onMounted(() => {
     $q.dark.set( authUserStore.modeDark )
   })
-  
+
   const cerrarSesion = () => {
     authUserStore.$reset();
     router.push('/login');

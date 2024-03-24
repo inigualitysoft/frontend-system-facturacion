@@ -1,5 +1,4 @@
 import { computed, ref } from "vue";
-import { api } from "boot/axios";
 import useHelpers from "../composables/useHelpers";
 
 const rows: any = ref([]);
@@ -23,15 +22,16 @@ const columns: any = ref([
 
 export const useProduct = () => {
 
-  const { mostrarNotify, claim } = useHelpers();
+  const iva_selected = ref(0);
+  const { api, mostrarNotify, claim } = useHelpers();
 
   const agregarAndValidarStock = ( data: any, modulo: string ) => {
     //VERIFICAR SI YA SE AGREGO ESTE ARTICULO
     const resultado = rows.value.some( (row: any) => row.codigoBarra == data.codigoBarra )
     if ( !resultado ){
-      if ( modulo !== 'compras' && data.stock <= 0 && data.tipo != 'Servicio') 
+      if ( modulo !== 'compras' && data.stock <= 0 && data.tipo != 'Servicio')
         return mostrarNotify('negative', `No hay stock del articulo ${ data.nombre }`);
-    
+
       let cantidad = 0;
       if (modulo == 'proforma') cantidad = data.cantidad
       else if (data.tipo == 'Servicio') cantidad = 1
@@ -40,7 +40,7 @@ export const useProduct = () => {
       data.cantidad  = cantidad;
       data.v_total   = modulo == 'proforma' ? data.v_total : 0;
       data.descuento = (modulo == 'venta' || modulo == 'proforma') ? data.descuento : 0;
-    
+
       rows.value.unshift( data );
       if (data.tipo == 'Servicio') getSubtotalByProduct( data, 'ventas' )
       filterByCodBarra.value = ''
@@ -50,13 +50,18 @@ export const useProduct = () => {
   }
 
   const filterArticulo = async ( modulo: string ) => {
-    if( filterByCodBarra.value.length == 0 ) 
+    if( filterByCodBarra.value.length == 0 )
       return mostrarNotify('warning', 'Ingresa el termino de busqueda');
 
     loadingState.value = true
     try {
 
-      const { data } = await api.get(`/products/${ filterByCodBarra.value }`);
+      let { data } = await api.get(`/products/${ filterByCodBarra.value }`);
+
+      data = data.filter( (x: any) => {
+        if (modulo == 'compras' && x.tipo == 'Producto') return x
+        if (modulo == 'venta') return x
+      })
 
       if ( data.length > 1 ) {
         listProductos.value = {
@@ -95,7 +100,15 @@ export const useProduct = () => {
     const indice = rows.value.findIndex( (row: any) => row.id == articulo_id )
     rows.value.splice(indice, 1);
   }
-  
+
+  const getValorIva = async() => {
+    const { data: { iva: empresa_iva } } = await api.get(`/companies/get-iva/${ claim.company.id }`);
+
+    if ( empresa_iva == '4' ) iva_selected.value = 15
+    if ( empresa_iva == '3' ) iva_selected.value = 14
+    if ( empresa_iva == '2' ) iva_selected.value = 12
+  }
+
   const valorFactura = computed(() => {
     let subtotal = 0, iva = 0, descuento = 0, total = 0;
 
@@ -104,8 +117,8 @@ export const useProduct = () => {
         descuento += (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100;
 
       if ( row.aplicaIva )
-        iva += (parseFloat( row.v_total ) - (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100) * 0.12 ; 
-      
+        iva += ((parseFloat( row.v_total ) - (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100) * iva_selected.value) / 100 ;
+
       subtotal += parseFloat(row.v_total)
     })
 
@@ -119,11 +132,13 @@ export const useProduct = () => {
   })
 
   const getSubtotalByProduct = ( row: any, modulo: string = 'compras' ) => {
-    if ( modulo == 'compras' ) 
+    if ( modulo == 'compras' )
       row.v_total = ( parseFloat(row.cantidad) * parseFloat(( Math.floor( row.precio_compra * 100) / 100).toString()))
     else
       row.v_total = ( parseFloat(row.cantidad) * parseFloat(( Math.floor( row.pvp * 100) / 100).toString()))
   }
+
+  getValorIva()
 
   return {
     agregarAndValidarStock,
@@ -135,6 +150,7 @@ export const useProduct = () => {
     listProductos,
     modalSelectProducto,
     sucursal_selected,
+    iva_selected,
     getSubtotalByProduct,
     quitarArticulo,
     valorFactura,
