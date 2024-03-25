@@ -36,7 +36,7 @@ export const useImpresion = () => {
               <td>
                 <pre>Fecha: ${ data.fecha_abono }          Hora: ${ data.hora_abono }</pre>
               </td>
-            </tr>     
+            </tr>
             <tr>
               <td>
                 <pre>Cliente: ${ dataCliente.cliente }</pre>
@@ -129,7 +129,8 @@ export const useImpresion = () => {
   }
 
   const imprimirFactura = ( data, dataCliente, userName, tipo ) => {
-    return `
+    let plantilla = ''
+    plantilla = `
     <html>
     <head>
       <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
@@ -138,6 +139,16 @@ export const useImpresion = () => {
         th, td {
           text-align: center;
           white-space: nowrap; /* Omitir espacios en blanco */
+        }
+        .container {
+          width: 100%x; /* Ancho total para las etiquetas */
+        }
+
+        .content-articulo {
+          display: inline-block;
+          max-width: 100%; /* Ancho máximo para cada etiqueta */
+          margin-bottom: 5px; /* Espacio entre etiquetas */
+          word-wrap: break-word;
         }
       </style>
     </head>
@@ -163,27 +174,27 @@ export const useImpresion = () => {
               <td>
                 <pre>Ambiente: PRUEBA         Emision: NORMAL</pre>
               </td>
-            </tr>   
+            </tr>
             <tr>
               <td>
-                <pre>Fecha: ${ data.pagos[ data.pagos.length - 1 ].fecha_abono }          Hora: ${ data.pagos[ data.pagos.length - 1 ].hora_abono }</pre>
+                <pre>Fecha: ${ data.created_at }</pre>
               </td>
-            </tr>     
+            </tr>
             <tr>
               <td>
-                <pre>Num. Comprobante: ${ data.num_comprobante }</pre>
+                <pre>Num. Comprobante: ${ data.numero_comprobante }</pre>
               </td>
-            </tr>     
+            </tr>
             <tr>
               <td>
                 <pre>Clave Acceso:</pre>
               </td>
-            </tr>     
+            </tr>
             <tr>
               <td>
                 <pre>${ data.clave_acceso }</pre>
               </td>
-            </tr>     
+            </tr>
             <tr>
               <td>
                 <pre>Cliente: ${ dataCliente.cliente }</pre>
@@ -213,40 +224,52 @@ export const useImpresion = () => {
               <td>
                 <pre>----------------------------------------</pre>
               </td>
-            </tr>
+            </tr>`
+
+            data.invoiceToProduct.forEach(element => {
+              plantilla += `
+              <tr>
+                <td style="white-space: unset;">
+                  <div class="container">
+                    <div class="content-articulo" style="width: 30px;">
+                      ${ element.cantidad }
+                    </div>
+                    <div class="content-articulo" style="width: 110px;">
+                      ${ element.product_id.nombre }
+                    </div>
+                    <div class="content-articulo" style="width: 40px;">
+                      $${ element.v_total }
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              `
+            });
+
+            plantilla +=`
             <tr>
               <td>
-                <pre>1     Servicio de Internet        $${ parseFloat(data.precio).toFixed(2)  }</pre>
+              <pre>                        Subtotal: $${data.subtotal}</pre>
               </td>
             </tr>
             <tr>
               <td>
-              <pre>                        Subtotal: $${data.precio}</pre>
+                <pre>                         IVA(${ data.porcentaje_iva }%): $${ data.iva }</pre>
               </td>
             </tr>
             <tr>
               <td>
-                <pre>                        IVA(12%): $00.00</pre>
+                <pre>                        Descuento: $${ data.descuento }</pre>
               </td>
             </tr>
             <tr>
               <td>
-                <pre>                       Descuento: $00.00</pre>
+              <pre>                           Total: $${ data.total }</pre>
               </td>
             </tr>
             <tr>
               <td>
-              <pre>                           Total: $${ data.precio }</pre>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <pre>      Forma de Pago:</pre>
-              </td>
-            </tr>
-            <tr>
-              <td>
-                <pre>SIN UTILIZACION DEL SISTEMA FINANCIERO</pre>
+                <pre>Forma de Pago: ${ data.forma_pago }</pre>
               </td>
             </tr>
             <tr>
@@ -268,6 +291,7 @@ export const useImpresion = () => {
       </body>
     </html>
     `
+    return plantilla
   }
 
   return {

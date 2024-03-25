@@ -6,6 +6,7 @@
   import { date, useQuasar } from 'quasar'
   import DetalleCompra from '../../../components/DetalleProducts.vue'
   import FiltrarVentas from './FiltrarVentas.vue'
+  import { useImpresion } from "../clientes/composables/useImpresion";
 
   /* --------------------- IMPLEMENTACION DE WEBSOCKET ---------------------- */
   let socket;
@@ -48,6 +49,43 @@
   const consumidor_final_id = import.meta.env.VITE_CONSUMIDOR_FINAL_ID;
 
   const formFiltrarVentas = ref({ desde: '', hasta: '', pv_id: '' })
+
+  const imprimirComprobanteFactura = async ( data, tipo, pago = null) => {
+
+    data.company_name = data.sucursal_id.company_id.nombre_comercial
+    data.ruc = data.sucursal_id.company_id.ruc
+    data.direccion = data.sucursal_id.direccion
+
+    const dataCliente = {
+      cliente: data.customer_id.nombres,
+      tipoDoc: data.customer_id.tipo_documento,
+      num_doc: data.customer_id.numero_documento,
+      email: data.customer_id.email
+    }
+
+    if( data.forma_pago == '01') data.forma_pago = 'SIN UTILIZACION DEL SISTEMA FINANCIERO'
+    if( data.forma_pago == '15') data.forma_pago = 'COMPENSACIÓN DE DEUDAS'
+    if( data.forma_pago == '16') data.forma_pago = 'TARJETA DE DÉBITO'
+    if( data.forma_pago == '17') data.forma_pago = 'DINERO ELECTRÓNICO'
+    if( data.forma_pago == '18') data.forma_pago = 'TARJETA PREPAGO'
+    if( data.forma_pago == '19') data.forma_pago = 'TARJETA DE CRÉDITO'
+    if( data.forma_pago == '20') data.forma_pago = 'OTROS CON UTILIZACIÓN DEL SISTEMA FINANCIERO'
+    if( data.forma_pago == '21') data.forma_pago = 'ENDOSO DE TÍTULOS'
+
+    console.log( data );
+    // return
+
+    const { imprimirFactura } = useImpresion();
+
+    let plantilla = imprimirFactura( data, dataCliente, claim.fullName, tipo );
+
+    var ventanaImpresion = window.open('', '_blank');
+
+    ventanaImpresion.document.write( plantilla );
+
+    ventanaImpresion.print();
+    ventanaImpresion.close();
+    }
 
   const tipoComprobantes = ref('Todos');
   const filter = ref('');
@@ -475,6 +513,15 @@
                     size="10px" class="q-mr-sm">
                   <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
                     Emitir Factura Electrónica
+                  </q-tooltip>
+                </q-btn>
+
+                <q-btn v-if="props.row.estadoSRI == 'AUTORIZADO'"
+                    round color="blue-grey" icon="print"
+                    @click="imprimirComprobanteFactura(props.row, 'factura')"
+                    size="10px" class="q-mr-sm">
+                  <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                    Imprimir comprobante
                   </q-tooltip>
                 </q-btn>
 
