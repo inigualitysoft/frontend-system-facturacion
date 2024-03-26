@@ -7,6 +7,7 @@
   import DetalleCompra from '../../../components/DetalleProducts.vue'
   import FiltrarVentas from './FiltrarVentas.vue'
   import { useImpresion } from "../clientes/composables/useImpresion";
+  import ModalReenviarComprobantes from "./ModalReenviarComproantes.vue";
 
   /* --------------------- IMPLEMENTACION DE WEBSOCKET ---------------------- */
   let socket;
@@ -45,12 +46,13 @@
   const dateOne = ref('');
   const dateTwo = ref('');
   const rows = ref([]);
+  const showModalReenvioComprobantes = ref(false);
   const modalDetalle = ref(false);
   const consumidor_final_id = import.meta.env.VITE_CONSUMIDOR_FINAL_ID;
 
   const formFiltrarVentas = ref({ desde: '', hasta: '', pv_id: '' })
 
-  const imprimirComprobanteFactura = async ( data, tipo, pago = null) => {
+  const imprimirComprobanteFactura = async ( data, tipo) => {
 
     data.company_name = data.sucursal_id.company_id.nombre_comercial
     data.ruc = data.sucursal_id.company_id.ruc
@@ -72,9 +74,6 @@
     if( data.forma_pago == '20') data.forma_pago = 'OTROS CON UTILIZACIÓN DEL SISTEMA FINANCIERO'
     if( data.forma_pago == '21') data.forma_pago = 'ENDOSO DE TÍTULOS'
 
-    console.log( data );
-    // return
-
     const { imprimirFactura } = useImpresion();
 
     let plantilla = imprimirFactura( data, dataCliente, claim.fullName, tipo );
@@ -85,13 +84,14 @@
 
     ventanaImpresion.print();
     ventanaImpresion.close();
-    }
+  }
 
   const tipoComprobantes = ref('Todos');
   const filter = ref('');
   const detalleData = ref({})
   const sucursales = ref([]);
   const sucursal_selected = ref([]);
+  const detalleFactura = ref({})
   const { validarPermisos } = useRolPermisos();
 
   const $q = useQuasar();
@@ -311,6 +311,7 @@
   })
 
 </script>
+
 <template>
   <div class="q-mx-lg q-pt-md">
 
@@ -516,7 +517,7 @@
                   </q-tooltip>
                 </q-btn>
 
-                <q-btn v-if="props.row.estadoSRI == 'AUTORIZADO'"
+                <q-btn v-if="props.row.estadoSRI.trim() !== 'PROFORMA'"
                     round color="blue-grey" icon="print"
                     @click="imprimirComprobanteFactura(props.row, 'factura')"
                     size="10px" class="q-mr-sm">
@@ -533,10 +534,20 @@
                   round color="blue-grey" icon="description" size="10px" class="q-mr-sm" />
 
                 <q-btn round color="blue-grey"
-                  v-if="props.row.customer_id.nombres !== 'CONSUMIDOR FINAL' && (props.row.estadoSRI == 'AUTORIZADO' || props.row.respuestaSRI?.includes('ERROR SECUENCIAL REGISTRADO')) && validarPermisos('anular.venta')"
+                  v-if="props.row.customer_id.nombres !== 'CONSUMIDOR FINAL' && (props.row.estadoSRI == 'AUTORIZADO' || props.row.respuestaSRI?.includes('ERROR SECUENCIAL REGISTRADO')) && validarPermisos('anular.venta')" class="q-mr-sm"
                   @click="anularFactura( props.row )"
                   :loading="props.row.loading"
                   icon="close" size="10px" />
+
+                <q-btn v-if="props.row.estadoSRI == 'AUTORIZADO'
+                              || props.row.estadoSRI == 'PROFORMA'"
+                  round color="blue-grey"
+                  @click="showModalReenvioComprobantes = true, detalleFactura = props.row"
+                  icon="forward_to_inbox" size="11px">
+                  <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                    Enviar comprobante por email
+                  </q-tooltip>
+                </q-btn>
               </q-td>
             </template>
 
@@ -563,6 +574,12 @@
 
   <q-dialog v-model="modalDetalle">
     <DetalleCompra :detalleData="detalleData" />
+  </q-dialog>
+
+  <q-dialog v-model="showModalReenvioComprobantes">
+    <ModalReenviarComprobantes
+      @closeModal="showModalReenvioComprobantes = false"
+      :detalleFactura="detalleFactura" />
   </q-dialog>
 
 </template>

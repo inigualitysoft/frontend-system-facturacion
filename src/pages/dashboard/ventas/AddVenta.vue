@@ -68,6 +68,8 @@
       formVenta.value.id           = data.id;
       formVenta.value.clave_acceso = data.clave_acceso;
       formVenta.value.estadoSRI    = data.estadoSRI;
+      formVenta.value.forma_pago   = data.forma_pago
+      formVenta.value.descripcion  = data.descripcion
       sucursal_selected.value      = data.sucursal_id.id
 
       data.invoiceToProduct.forEach(product => {

@@ -6,7 +6,7 @@
 
   const isPwd = ref( true )
   const loading = ref( false )
-  const form = ref({ email: 'juan@gmail.com', password: 'testing' });
+  const form = ref({ email: '', password: '' });
   const { mostrarNotify } = useHelpers();
 
   const onSubmit = async () => {
@@ -37,7 +37,7 @@
       <h1 class="title">Iniciar Sesion</h1>
       <div class="login">
         <div class="element-form">
-          <img src="~assets/logo.png" 
+          <img src="~assets/logo.png"
             style="width: 80%;margin-left: 29px;margin-top: 48px;margin-bottom: 24px;" />
         </div>
         <form @submit.prevent="onSubmit" class="element-form q-mt-md">
@@ -49,7 +49,7 @@
                 <q-icon name="person" color="blue-grey-3" />
               </template>
             </q-input>
-  
+
             <q-input :type="isPwd ? 'password' : 'text'" label-color="blue-grey-3"
               filled bg-color="blue-grey-10" label="Ingresa tu contraseña"
               v-model.trim="form.password" required>
@@ -68,7 +68,7 @@
       </div>
     </section>
 </template>
-  
+
 <style >
 .area-login {
 display: flex;
@@ -160,4 +160,3 @@ margin-bottom: 5rem;
 }
 
 </style>
-  

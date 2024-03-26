@@ -83,21 +83,21 @@
     if( validarCampos() ) return;
     loading.value = true;
     for (let index = 1; index < rows.value.length; index++) {
-      
+
       if(rows.value[index].length > 0){
         const element = rows.value[index];
-  
+
         products.value.unshift({
           nombre: element[1],
           estado: 'cargando',
           message: '',
           index
         })
-        
+
         try {
           await espera(700)
           let headers = { headers: { sucursal_id: sucursal_selected.value } };
-          console.log(element);
+
           await api.post('/products', {
             aplicaIva: element[4] == 'SI' ? true : false,
             codigoBarra: element[0].toString(),
@@ -108,10 +108,10 @@
             stock: element[7],
             descuento: element[5]
           }, headers)
-  
+
           let product = products.value.find( product => product.index == index)
           product.estado = 'success'
-  
+
         } catch (error) {
           let product     = products.value.find( product => product.index == index)
           product.estado  = 'error'
@@ -151,8 +151,8 @@
             v-model="filesSelected" outlined multiple append>
             <template v-slot:append>
               <q-icon name="fa-solid fa-file-excel">
-              </q-icon>   
-            </template>       
+              </q-icon>
+            </template>
             <template v-slot:error>
               <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                 {{ validaciones.file.message }}
@@ -192,7 +192,7 @@
             </q-item-section>
           </q-item>
         </q-list>
-      </div> 
+      </div>
 
       <div class="col-xs-9 col-md-12 flex justify-center q-mt-none q-ml-none">
         <q-btn label="Subir productos" :loading="loading"
@@ -228,4 +228,3 @@
   background-color: #555;
 }
 </style>
-  

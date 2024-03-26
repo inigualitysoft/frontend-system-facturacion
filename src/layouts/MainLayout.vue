@@ -59,7 +59,7 @@
         <q-toolbar @click="$router.push('/')" class="cursor-pointer justify-center"
           style="margin-top: 7px">
           <q-img
-            src="/public//imgs/inigualitySoft.png"
+            src="/imgs/inigualitySoft.png"
             spinner-color="white"
             style="height: auto; max-width: 125px"
             fit="contain"
