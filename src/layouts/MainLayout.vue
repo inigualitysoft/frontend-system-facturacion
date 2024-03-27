@@ -21,12 +21,13 @@
         <div>
           <q-btn class="q-mr-xs text-grey-6" flat round
             @click="$q.dark.toggle()"
-            :icon="$q.dark.isActive ? 'nights_stay' : 'wb_sunny'"/>
+            :icon="$q.dark.isActive ? 'img:https://img.icons8.com/3d-fluency/94/sun.png ' : 'img:https://img.icons8.com/3d-fluency/94/partly-cloudy-night.png'"/>
         </div>
 
         <div class="q-mx-sm">
           <q-btn class="q-mr-md q-py-xs q-px-sm custom-border" flat
-            color="grey" icon="notifications" />
+            color="grey" icon="img:https://img.icons8.com/3d-fluency/94/bell.png" />
+            
           <q-avatar class="cursor-pointer">
             <img :src="ruta_perfil_img">
             <q-menu>
@@ -71,7 +72,8 @@
 
             <q-item class="navigation-item" active-class="tab-active" to="/" exact clickable v-ripple>
               <q-item-section avatar>
-                <q-icon name="home" size="35px" />
+
+                <q-icon  name="img:https://img.icons8.com/fluency/48/home.png" size="35px" />
               </q-item-section>
 
               <q-item-section>
@@ -85,22 +87,22 @@
 
             <q-list class="q-ml-sm">
               <q-expansion-item
-                expand-separator icon="settings" label="Ajustes">
+                expand-separator icon="img:https://img.icons8.com/3d-fluency/94/gear--v1.png" label="Ajustes">
 
                 <q-expansion-item v-if="validarPermisos('index.usuario')"
-                  hide-expand-icon icon="group" class="item-options"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/conference.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Ver Usuarios' }"
                   dense-toggle label="Gestión Personal" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item v-if="validarPermisos('index.rol')"
-                  hide-expand-icon icon="fa-solid fa-gears" class="item-options"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/services--v2.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Rol-Permiso' }"
                   dense-toggle label="Roles y Permisos" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item v-if="validarPermisos('index.correo')"
-                  hide-expand-icon icon="mail" class="item-options"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/gmail.png" class="item-options"
                   active-class="tab-active"
                     :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
                       ? { name: 'emails' }
@@ -109,18 +111,18 @@
                 </q-expansion-item>
 
                 <q-expansion-item v-if="validarPermisos('index.empresa')"
-                  hide-expand-icon icon="local_convenience_store" class="item-options"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/client-company.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Ver Empresas' }"
                   dense-toggle label="Empresa" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item v-if="validarPermisos('index.sucursal')"
-                  hide-expand-icon icon="local_convenience_store" class="item-options"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/skyscrapers.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Ver Sucursales' }"
                   dense-toggle label="Sucursales" :header-inset-level="0">
                 </q-expansion-item>
 
-                <q-expansion-item hide-expand-icon icon="description" class="item-options"
+                <q-expansion-item hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/documents.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Config Proforma' }"
                   dense-toggle label="Proforma" :header-inset-level="0">
                 </q-expansion-item>
@@ -133,7 +135,7 @@
 
       </div>
       <div class="q-mini-drawer-hide absolute" style="top: 30px; right: -17px">
-        <q-btn dense round style="background-color: #696cff;color: white;border: 6px solid #f2f2f7;"
+        <q-btn dense round style="background-color: #21ad23;color: white;border: 6px solid #f2f2f7;"
           unelevated icon="chevron_left" @click="miniState = true" />
       </div>
     </q-drawer>
@@ -165,31 +167,31 @@
   const essentialLinks = [
     {
       title: 'Proveedores',
-      icon: 'fa fa-truck',
+      icon: 'img:https://img.icons8.com/3d-fluency/96/group--v2.png',
       link: '/proveedores',
       permisoRequerido: 'index.proveedores'
     },
     {
       title: 'Clientes',
-      icon: 'fa fa-user-tag',
+      icon: 'img:https://img.icons8.com/color/96/supplier.png',
       link: '/customer',
       permisoRequerido: 'index.clientes'
     },
     {
       title: 'Productos y Servicios',
-      icon: 'inventory',
+      icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',
       link: '/productos',
       permisoRequerido: 'index.productos'
     },
     {
       title: 'Compras',
-      icon: 'fa-solid fa-cart-shopping',
+      icon: 'img:https://img.icons8.com/3d-fluency/94/shopping-cart-loaded.png',
       link: '/compras',
       permisoRequerido: 'index.compras'
     },
     {
       title: 'Ventas',
-      icon: 'fa fa-cash-register',
+      icon: 'img:https://img.icons8.com/3d-fluency/94/fund-accounting.png',
       link: '/ventas',
       permisoRequerido: 'index.ventas'
     },
@@ -255,22 +257,33 @@
 
 <style>
 body {
-  background-color: #f3f3f7;
+  background-color: #71dfcb73;
 }
 body.body--dark {
-  background: #232333
+  background: #2d2d3d
 }
 
-.q-dark {
-  background: #2b2c40;
-}
+/* NAV Y BARRA LATERAL */
+
+/* .q-dark { 
+  /* background: #2b2c40; */
+  /* DEGRADADO TONOS OSCUROS, MINIMALISTA YA AGRADABLE A LA VISTA*/
+  /* background: linear-gradient(to top, #26403c58, transparent); */
+  /* background-image: url(../../public/imgs/fondo_1.png); */
+  /* animation: moveParticle 2s infinite linear;
+  background-size: cover;
+  background-repeat: no-repeat; */
+/* }  */
+
+
 .tab-active {
-  background-color: rgba(105, 108, 255, .16) !important;
-  color: #696cff !important;
+  background-color: #549fb0 !important;
+  color: #ffffff !important;
+  
 }
 
 .navigation-item {
-  border-radius: 5px;
+  border-radius: 50px;
   min-height: 44px !important;
 }
 
@@ -281,9 +294,18 @@ body.body--dark {
 .q-scrollarea--only-vertical .q-scrollarea__content {
   width: 100%
 }
+
+.q-scrollarea__content{
+  padding-bottom: 50px;
+}
 .drawer_cls {
+  /* DEGRADADO TONOS Claros, MINIMALISTA YA AGRADABLE A LA VISTA*/
   background-color: #fff!important;
   color: #697a8d !important;
+  background-image: url(../../public/imgs/fondo_2.jpg);
+  background-size: cover;
+  background-repeat: no-repeat;
+
 }
 .item-options{
   margin-left: 6px;
