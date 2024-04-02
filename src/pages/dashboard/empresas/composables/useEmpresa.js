@@ -14,6 +14,7 @@ const formEmpresa = ref({
   clave_certificado: '',
   archivo_certificado: null,
   archivo_certificado_old: null,
+  fecha_caducidad_certificado: '',
   logo: null,
   iva: '',
   logo_old: null
@@ -85,10 +86,20 @@ export const useEmpresa = () => {
 
           try {
             var p12Asn1 = forge.asn1.fromDer(buffer);
-            forge.pkcs12.pkcs12FromAsn1(p12Asn1, formEmpresa.value.clave_certificado);
+            const p12 = forge.pkcs12.pkcs12FromAsn1(p12Asn1, formEmpresa.value.clave_certificado);
+
+            const bags = p12.getBags({bagType: forge.pki.oids.certBag});
+            const cert = bags[forge.pki.oids.certBag][0];
+
+            const certificate = cert.cert;
+            const validity = certificate.validity;
+            const expiryDate = validity.notAfter;
+
+            formEmpresa.value.fecha_caducidad_certificado = expiryDate;
+
             resolve(false);
           } catch (error) {
-            validaciones.value.clave_certificado.message = 'La contraseña del certificado es incorrecta'
+            validaciones.value.clave_certificado.message = 'La contraseña del certificado esta incorrecta'
             validaciones.value.clave_certificado.isValid = false
             reject(true);
           }
@@ -132,7 +143,7 @@ export const useEmpresa = () => {
       existError.value = false;
       var validEmail =  /^\w+([.-_+]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/;
 
-      if ( !edit && formEmpresa.value.archivo_certificado !== null && formEmpresa.value.clave_certificado.length !== 0 ){
+      if ( formEmpresa.value.archivo_certificado !== null && formEmpresa.value.clave_certificado.length !== 0 ){
         try {
           existError.value = await validarCertificado();
         } catch (error) {
@@ -205,6 +216,7 @@ export const useEmpresa = () => {
       formData.append('clave_certificado', formEmpresa.value.clave_certificado);
       formData.append('archivo_certificado', formEmpresa.value.archivo_certificado);
       formData.append('archivo_certificado_old', formEmpresa.value.archivo_certificado_old);
+      formData.append('fecha_caducidad_certificado', formEmpresa.value.fecha_caducidad_certificado);
       formData.append('logo', formEmpresa.value.logo);
       formData.append('logo_old', formEmpresa.value.logo_old);
 

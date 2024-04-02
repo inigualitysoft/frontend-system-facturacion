@@ -205,32 +205,32 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
 
           <div class="row">
 
-            <div v-if="!$q.screen.xs"
+            <div v-if="!$q.screen.xs && estado !== 'PROFORMA'"
               class="col-xs-12 col-sm-6 row items-center">
               <q-btn-dropdown class="q-mr-xs" label="Descargar Documento"
                   outline color="primary" icon="download">
-                  <q-list>
-                    <q-item clickable v-close-popup
-                      @click="descargarDocumento(props.detalleData.clave_acceso, 'ride')">
-                      <q-item-section>
-                        <q-item-label>Descargar RIDE</q-item-label>
-                      </q-item-section>
-                    </q-item>
+                <q-list>
+                  <q-item clickable v-close-popup
+                    @click="descargarDocumento(props.detalleData.clave_acceso, 'ride')">
+                    <q-item-section>
+                      <q-item-label>Descargar RIDE</q-item-label>
+                    </q-item-section>
+                  </q-item>
 
-                    <q-item @click="descargarDocumento(props.detalleData.clave_acceso, 'xml')"
-                      clickable v-close-popup>
-                      <q-item-section>
-                        <q-item-label>Descargar XML</q-item-label>
-                      </q-item-section>
-                    </q-item>
+                  <q-item @click="descargarDocumento(props.detalleData.clave_acceso, 'xml')"
+                    clickable v-close-popup>
+                    <q-item-section>
+                      <q-item-label>Descargar XML</q-item-label>
+                    </q-item-section>
+                  </q-item>
 
-                  </q-list>
-                </q-btn-dropdown>
-              <!-- <q-btn type="submit" label="Descargar Documento" icon-right="picture_as_pdf"
-                outline rounded style="color: #696cff" /> -->
+                </q-list>
+              </q-btn-dropdown>
             </div>
 
-            <div class="col-xs-12 col-sm-6" style="display: flex;justify-content: end;">
+            <div class="col-xs-12 col-sm-6"
+              :class="[estado == 'PROFORMA' ? 'col-sm-12' : 'col-sm-5' ]"
+              style="display: flex;justify-content: end;">
               <table style="margin-right: 5px;">
                 <tr class="text-right">
                   <td><b>TOTAL BRUTO:</b></td>
@@ -273,7 +273,7 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
             </div>
 
             <div v-if="$q.screen.xs"
-              class="col-xs-12 col-sm-5 row justify-center q-my-sm">
+              class="col-xs-12 row justify-center q-my-sm col-sm-5">
               <q-btn type="submit" label="Descargar Documento" icon-right="picture_as_pdf"
                 outline rounded style="color: #696cff" size="14px" />
             </div>

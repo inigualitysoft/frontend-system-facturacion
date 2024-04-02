@@ -5,8 +5,8 @@
   import EditCliente from './EditCliente.vue'
   import { useCliente } from "./composables/useCliente";
   import ModalCargarExcel from "./components/ModalCargarExcel.vue";
-  import useRolPermisos from "src/composables/useRolPermisos.js"; 
-  
+  import useRolPermisos from "src/composables/useRolPermisos.js";
+
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'nombre', align: 'center', label: 'Cliente', field: 'nombres', sortable: true },
@@ -16,27 +16,28 @@
     { name: 'celular', label: 'Celular', field: 'celular',  align: 'center' },
     { name: 'estado', label: 'Estado', align: 'center', field: 'estado' },
   ]
-  let { 
+  let {
     actualizarLista,
     modalAgregarCliente,
     modalEditarCliente,
     formCliente
   } = useCliente();
   const { validarPermisos } = useRolPermisos();
-  
+
   const showModalUploadFile = ref( false );
   const filter              = ref('')
   const rows                = ref([]);
   const loading             = ref( false );
-  const { api, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
-  
+  const { api, claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+
   watch(actualizarLista, (currentValue, _) => {
-    if ( currentValue ) getClientes(); 
+    if ( currentValue ) getClientes();
   });
   const getClientes = async () => {
     loading.value = true;
     try {
-      const { data } = await api.get('/customers');
+      let headers = { company_id: claim.company.id };
+      const { data } = await api.get('/customers', { headers });
       rows.value = data;
       actualizarLista.value = false;
     } catch (error) {
@@ -57,7 +58,7 @@
 
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getClientes() })
   const eliminarCliente = async (cliente_id) => {
-    confirmDelete('Estas seguro de eliminar este cliente?', `/customers/${ cliente_id }`);   
+    confirmDelete('Estas seguro de eliminar este cliente?', `/customers/${ cliente_id }`);
   }
 
   const downloadFile = () => {
@@ -68,23 +69,23 @@
 
   const exportarClientes = async () => {
     try {
-      const { data } = await api.post(`/customers/download-clients-excel`, { }, { 
+      const { data } = await api.post(`/customers/download-clients-excel`, { }, {
         responseType: 'arraybuffer'
       });
 
-      const blob = new Blob([ data ], { 
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+      const blob = new Blob([ data ], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
       link.download = 'clientes.xlsx';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);   
+      document.body.removeChild(link);
 
       console.log( data );
     } catch (error) {
-      
+
     }
   }
 
@@ -93,7 +94,7 @@
   const pagination = ref({
     rowsPerPage: 10
   })
-    
+
 </script>
 
 <template>
@@ -118,35 +119,35 @@
 
             <template v-slot:top-right="props">
               <q-btn v-if="!$q.screen.xs && validarPermisos('crear.cliente')"
-                @click="modalAgregarCliente = !modalAgregarCliente" 
+                @click="modalAgregarCliente = !modalAgregarCliente"
                 outline color="primary" label="Agregar Cliente" class="q-mr-xs"/>
 
-                <q-btn-dropdown class="q-mr-xs"
-                  outline color="primary" icon="fa-solid fa-file-excel">
-                  <q-list>
-                    <q-item clickable v-close-popup
-                      @click="showModalUploadFile = true">
-                      <q-item-section>
-                        <q-item-label>Importar Excel</q-item-label>
-                      </q-item-section>
-                    </q-item>
+              <q-btn-dropdown class="q-mr-xs"
+                outline color="teal-6" icon="fa-solid fa-file-excel">
+                <q-list>
+                  <q-item clickable v-close-popup
+                    @click="showModalUploadFile = true">
+                    <q-item-section>
+                      <q-item-label>Importar Excel</q-item-label>
+                    </q-item-section>
+                  </q-item>
 
-                    <q-item @click="downloadFile"
-                      clickable v-close-popup>
-                      <q-item-section>
-                        <q-item-label>Exportar Plantilla</q-item-label>
-                      </q-item-section>
-                    </q-item>
+                  <q-item @click="downloadFile"
+                    clickable v-close-popup>
+                    <q-item-section>
+                      <q-item-label>Exportar Plantilla</q-item-label>
+                    </q-item-section>
+                  </q-item>
 
-                    <q-item @click="exportarClientes"
-                      clickable v-close-popup>
-                      <q-item-section>
-                        <q-item-label>Exportar Clientes</q-item-label>
-                      </q-item-section>
-                    </q-item>
+                  <q-item @click="exportarClientes"
+                    clickable v-close-popup>
+                    <q-item-section>
+                      <q-item-label>Exportar Clientes</q-item-label>
+                    </q-item-section>
+                  </q-item>
 
-                  </q-list>
-                </q-btn-dropdown>
+                </q-list>
+              </q-btn-dropdown>
 
               <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                 <template v-slot:append>
@@ -198,7 +199,7 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                
+
                 <template v-if="props.row.isActive">
                   <q-btn v-if="validarPermisos('editar.cliente')"
                     round color="blue-grey"
@@ -231,14 +232,12 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>            
+          </q-table>
         </q-card>
       </div>
     </div>
@@ -255,7 +254,7 @@
 
   <q-dialog v-model="modalEditarCliente">
     <EditCliente />
-  </q-dialog> 
+  </q-dialog>
 
   <q-dialog v-model="showModalUploadFile">
     <ModalCargarExcel @actualizarDatos="getClientes()" />

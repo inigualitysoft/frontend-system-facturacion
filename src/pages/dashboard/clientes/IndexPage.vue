@@ -2,7 +2,7 @@
   import { ref, watch } from 'vue';
   import { useCliente } from "./composables/useCliente";
   import { date } from 'quasar'
-  
+
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'nombre', align: 'center', label: 'Cliente', field: 'nombres', sortable: true },
@@ -18,7 +18,7 @@
   ]
 
   let { api, mostrarNotify, confirmDelete, isDeleted, loading } = useCliente();
-  
+
   const filter = ref('')
   const rows = ref([]);
 
@@ -33,7 +33,7 @@
           x.direccion = `${ x.planInternet[0].direccion == '' ? '- - - - - -' : x.planInternet[0].direccion }`,
           x.instalado = date.formatDate(x.planInternet[0].fecha_instalacion, 'DD/MM/YYYY')
         });
-        rows.value = data;        
+        rows.value = data;
       }
     } catch (error) {
       mostrarNotify( 'warning', error.response.data.message )
@@ -66,7 +66,7 @@
   const pagination = ref({
     rowsPerPage: 10
   })
-    
+
 </script>
 
 <template>
@@ -144,7 +144,7 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                
+
                 <q-btn v-if="props.row.isActive"
                 round color="blue-grey"
                 @click="$router.push({ name: 'cliente.edit', params: { client_id: props.row.id } })"
@@ -185,24 +185,21 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>            
+          </q-table>
         </q-card>
       </div>
     </div>
   </div>
-  
+
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs">
-    <q-btn round color="secondary" size="lg" icon="add" 
+    <q-btn round color="secondary" size="lg" icon="add"
     @click="$router.push({ name: 'cliente.add' })" />
   </q-page-sticky>
-  
+
 </template>
-  

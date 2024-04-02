@@ -33,7 +33,7 @@
   const loading = ref( false )
 
   const selectSucursal = ref('');
-  const listSucursales = ref([]);
+  const listSucursales = ref<{}[]>([]);
 
   watch(tipo, (currentValue, _) => { getCompras(); });
 
@@ -51,8 +51,6 @@
       loading.value = true;
 
       if ( listSucursales.value.length == 0 ) await getSucursales();
-
-      console.log(tipo.value);
 
       let headers = { headers: {
         sucursal_id: selectSucursal.value,
@@ -115,7 +113,7 @@
   const getSucursales = async () => {
     loading.value = true;
     try {
-      const { data } = await api.get('/sucursal');
+      const { data } = await api.get(`/sucursal/find/${ claim.company.id }/company`);
       data.forEach((companie: any) => {
         listSucursales.value.push({
           label:  companie.nombre,
@@ -144,52 +142,70 @@
 <template>
   <div class="q-ma-lg q-pt-md">
     <div class="row q-col-gutter-lg">
-      <div class="col-12 q-pt-xs">
 
-        <div class="q-my-md"
-          style="display: flex;" :class="[ $q.screen.xs ? 'q-mb-md' : 'q-ml-lg' ]">
-          <label class="q-mr-sm row q-pt-sm">
-            <span>Filtrar por fecha: </span>
-          </label>
+      <div class="q-mb-md q-mt-none"
+        style="display: flex;"
+        :class="[ $q.screen.xs ? 'q-mb-md q-pt-sm' : 'q-ml-lg q-pl-none' ]">
+        <div class="row"
+          :class="[ $q.screen.xs ? 'flex-center' : '' ]">
+          <div class="col-xs-12 col-sm-3">
+            <label class="q-mr-sm row q-pt-sm justify-center">
+              <span :class="[ $q.screen.xs ? 'text-weight-bold' : '' ]">
+                Filtrar por fecha:
+              </span>
+            </label>
+          </div>
 
-          <q-input outlined dense v-model="dateOne" mask="date" >
-            <template v-slot:append>
+          <div class="col-xs-10 col-sm-4">
+            <q-input outlined dense v-model="dateOne" mask="date" >
+              <template v-slot:append>
 
-              <q-icon v-if="dateOne !== ''" name="close" @click="dateOne = '', getCompras()" class="cursor-pointer" />
+                <q-icon v-if="dateOne !== ''" name="close" @click="dateOne = '', getCompras()" class="cursor-pointer" />
 
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="dateOne" @update:model-value="getCompras">
-                    <div class="row items-center justify-end">
-                      <q-btn v-close-popup label="Close" color="primary" flat />
-                    </div>
-                  </q-date>
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <q-date v-model="dateOne" @update:model-value="getCompras">
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Close" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+          </div>
 
-          <label class="q-mx-md q-pt-sm">Hasta</label>
+          <div class="col-xs-12 col-sm-1 flex flex-center">
+            <label
+              class="q-mx-md"
+              :class="[ $q.screen.xs ? 'text-weight-medium' : '' ]">
+              Hasta
+            </label>
+          </div>
 
-          <q-input outlined dense v-model="dateTwo" mask="date">
-            <template v-slot:append>
+          <div class="col-xs-10 col-sm-4">
+            <q-input outlined dense v-model="dateTwo" mask="date">
+              <template v-slot:append>
 
-              <q-icon v-if="dateTwo !== ''" name="close" @click="dateTwo = '', getCompras()" class="cursor-pointer" />
+                <q-icon v-if="dateTwo !== ''" name="close" @click="dateTwo = '', getCompras()" class="cursor-pointer" />
 
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="dateTwo" @update:model-value="getCompras">
-                    <div class="row items-center justify-end">
-                      <q-btn @click="getCompras"
-                        v-close-popup label="Close" color="primary" flat />
-                    </div>
-                  </q-date>
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <q-date v-model="dateTwo" @update:model-value="getCompras">
+                      <div class="row items-center justify-end">
+                        <q-btn @click="getCompras"
+                          v-close-popup label="Close" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+          </div>
         </div>
+      </div>
 
+      <div class="col-12 q-pt-xs">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
@@ -296,16 +312,13 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
           </q-table>
         </q-card>
-
       </div>
     </div>
   </div>

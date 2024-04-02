@@ -42,11 +42,17 @@ const validaciones = ref({
 
 export const useUser = () => {
 
-    const { api, mostrarNotify, router, route } = useHelpers();
+    const { api, claim, mostrarNotify, router, route } = useHelpers();
 
     const getCompanies = async () => {
-      const { data } = await api.get('/companies');
-      return data;
+      let data;
+
+      if (claim.roles[0] == 'SUPER-ADMINISTRADOR')
+        data = await api.get('/companies');
+      else
+        data = await api.get(`/companies/find/${ claim.company.id }`);
+
+      return data.data;
     }
 
     const limpiarFormulario = () => {
@@ -62,6 +68,8 @@ export const useUser = () => {
       formUser.value.horarios_dias = [];
       formUser.value.horarios_time = [];
       formUser.value.receiveSupportEmail = false;
+      formUser.value.foto = null
+      formUser.value.foto_old = null
     }
 
     const onRejected = () => {
@@ -155,8 +163,6 @@ export const useUser = () => {
       try {
         loading.value = true;
 
-        console.log(formUser.value.sucursales);
-
         let formData = new FormData();
         formData.append('usuario', formUser.value.usuario);
         formData.append('email', formUser.value.email);
@@ -169,7 +175,7 @@ export const useUser = () => {
         formData.append('receiveSupportEmail', JSON.stringify(formUser.value.receiveSupportEmail));
         formData.append('company', formUser.value.company);
         formData.append('sucursales', JSON.stringify(formUser.value.sucursales));
-        formData.append('password', JSON.stringify(formUser.value.password));
+        formData.append('password', formUser.value.password);
         formData.append('confirmPassword', JSON.stringify(formUser.value.confirmPassword));
         formData.append('foto', formUser.value.foto);
         formData.append('foto_old', formUser.value.foto_old);
@@ -177,9 +183,8 @@ export const useUser = () => {
 
         if ( !edit )
           await api.post('/auth/register', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-        else{
+        else
           await api.patch('/auth/edit/' + formUser.value.id, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-        }
 
         mostrarNotify( 'positive', `Usuario ${ edit ? 'editado' : 'creado' } exitosamente.` )
 

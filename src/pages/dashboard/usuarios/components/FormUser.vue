@@ -2,7 +2,6 @@
 import listPermisos from "../listPermisos.json";
 import { useUser } from "../composables/useUser.js";
 import { ref, onMounted, watch } from 'vue';
-import { Screen } from 'quasar'
 
 const props         = defineProps<{ edit: boolean }>();
 const listCompanies = ref<{ label: string; value: string; ruc?: string, icon?: string }[]>([]);
@@ -21,13 +20,15 @@ let cont = false;
     showPass,
     onRejected,
     loading,
-    onSubmit
+    onSubmit,
+    route
   } = useUser();
 
   onMounted( async () => {
-    await Promise.all([cargarCompanies(), getRolesAndPermisos()]);
+    await Promise.all([await cargarCompanies(), await getRolesAndPermisos()]);
 
-    if ( props.edit && formUser.value.roles[0] == 'SUPER-ADMINISTRADOR' ){
+    if ( (props.edit && formUser.value.roles[0] == 'SUPER-ADMINISTRADOR')
+        || route.name == 'editar.usuario.profile' ){
       await Promise.resolve();
       permisos.value[0].disabled = true;
     }else{
@@ -39,7 +40,7 @@ let cont = false;
   const cargarCompanies = async () => {
     listCompanies.value = [];
 
-    const companies = await getCompanies();
+    const companies: any = await getCompanies();
 
     companies.forEach((companie: any) => {
       listCompanies.value.push({
@@ -194,10 +195,11 @@ let cont = false;
               </div>
 
               <div class="col-11 flex justify-start items-center"
-                :class="[$q.screen.xs ? 'q-my-md' : '']">
-                <label class="text-h6 text-weight-medium">Configuración:</label>
-              </div>
+              :class="[$q.screen.xs ? 'q-my-md' : '']">
+              <label class="text-h6 text-weight-medium">Configuración:</label>
+            </div>
 
+            <template v-if="$route.name != 'editar.usuario.profile' || formUser.roles[0] == 'SUPER-ADMINISTRADOR' || formUser.roles[0] == 'ADMINISTRADOR'">
               <div class="col-4 flex justify-end items-center">
                 <label for="">Empresa:</label>
               </div>
@@ -263,13 +265,12 @@ let cont = false;
                   <template v-slot:no-option>
                     <q-item>
                       <q-item-section class="text-grey">
-                        No se encontro resultados
+                        Debes crear una sucursal
                       </q-item-section>
                     </q-item>
                   </template>
                 </q-select>
               </div>
-
               <div class="col-4 flex justify-end items-center q-mt-sm">
                 <label for="">Estado:</label>
               </div>
@@ -284,6 +285,7 @@ let cont = false;
                   </template>
                 </q-select>
               </div>
+            </template>
 
               <div class="col-4 flex justify-end items-center q-mt-sm">
                 <label for="">Foto:</label>
@@ -487,9 +489,9 @@ let cont = false;
         </div>
       </q-card-section>
 
-      <q-card-actions class="q-pb-md" :class="[ Screen.width < 600 ? 'justify-center q-ml-xl' : 'justify-between']">
+      <q-card-actions class="q-pb-md" :class="[ $q.screen.width < 600 ? 'justify-center q-ml-xl' : 'justify-between']">
 
-        <q-btn v-if="Screen.width > 600"
+        <q-btn v-if="$q.screen.width > 600"
           type="submit" icon="arrow_back" @click="$router.push('/usuarios')"
           outline rounded class="q-mr-lg"
           :color="!$q.dark.isActive ? 'blue-grey-10' : 'blue-grey-2'">

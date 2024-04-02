@@ -2,7 +2,7 @@ import { ref, onMounted, watch } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
 import { api } from "boot/axios";
 
-const loading  = ref( false );  
+const loading  = ref( false );
 const formCliente = ref({
   nombres: '',
   tipo_documento: '',
@@ -18,7 +18,7 @@ const actualizarLista     = ref(false);
 
 export const useCliente = () => {
 
-    const { mostrarNotify }   = useHelpers();
+    const { claim, mostrarNotify } = useHelpers();
 
     const limpiarFormulario = () => {
       formCliente.value.nombres = ''
@@ -46,16 +46,18 @@ export const useCliente = () => {
             formCliente.value.numero_documento = str2
           }
         }
-      });      
+      });
     })
 
     const onSubmit = async( edit ) => {
       try {
         loading.value = true;
-        if ( !edit ) 
-          await api.post('/customers/create', formCliente.value)
+        let headers = { company_id: claim.company.id }
+
+        if ( !edit )
+          await api.post('/customers/create', formCliente.value, { headers })
         else
-          await api.patch('/customers/' + formCliente.value.id, formCliente.value)
+          await api.patch('/customers/' + formCliente.value.id, formCliente.value, { headers })
 
         mostrarNotify( 'positive', `Cliente ${ edit ? 'editado' : 'agregado' } exitosamente`);
 
@@ -79,7 +81,7 @@ export const useCliente = () => {
       modalAgregarCliente,
       modalEditarCliente,
       validateNumDocument: [
-        (val) => val.length >= ((formCliente.value.tipo_documento === '04') ? 13 : 10) || 
+        (val) => val.length >= ((formCliente.value.tipo_documento === '04') ? 13 : 10) ||
           `Debes completar ${ ((formCliente.value.tipo_documento === '04') ? 13 : 10) } digitos`,
       ],
       validateNumCelular: [

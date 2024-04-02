@@ -13,15 +13,16 @@ const formProforma = ref({
 
 const emit  = defineEmits(['hideModal']);
 
-const { api, mostrarNotify } = useHelpers()
+const { api, claim, mostrarNotify } = useHelpers()
 
 const onSubmit = async () => {
   try {
     props.clausulas.unshift({...formProforma.value})
+    let headers = { company_id: claim.company.id  }
     await api.post('/proforma/clausula', {
       clausulas: props.clausulas,
-      aceptacion_proforma: props.aceptacion      
-    });    
+      aceptacion_proforma: props.aceptacion
+    },{ headers });
     mostrarNotify('positive', 'Clausula agregada exitosamente');
     emit('hideModal')
   } catch (error) {
@@ -49,14 +50,14 @@ const onSubmit = async () => {
 
           <div class="col-xs-12">
             <label class="text-center">Nombre:</label>
-            <q-input v-model.trim="formProforma.nombre" 
+            <q-input v-model.trim="formProforma.nombre"
               @keyup="formProforma.nombre = capitalize( formProforma.nombre )"
               dense filled required />
           </div>
 
           <div class="col-xs-12">
             <label class="text-center">Descripcion:</label>
-            <q-input type="textarea" rows="3" 
+            <q-input type="textarea" rows="3"
               @keyup="formProforma.descripcion = capitalize( formProforma.descripcion )"
               v-model.trim="formProforma.descripcion" dense filled required />
           </div>
@@ -72,4 +73,3 @@ const onSubmit = async () => {
   </q-card>
 </template>
 
-  

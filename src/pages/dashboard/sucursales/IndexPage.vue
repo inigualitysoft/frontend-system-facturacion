@@ -2,8 +2,8 @@
   import { ref, watch } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
   import { useSucursal } from "./composables/useSucursal";
-  import useRolPermisos from "src/composables/useRolPermisos.js"; 
-  
+  import useRolPermisos from "src/composables/useRolPermisos.js";
+
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { align: 'center', label: 'Sucursal', field: 'nombre', name: 'nombre' },
@@ -62,7 +62,7 @@
   const pagination = ref({
     rowsPerPage: 10
   })
-    
+
 </script>
 
 <template>
@@ -70,7 +70,7 @@
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-          <q-table title-class="text-grey-7 text-h6"          
+          <q-table title-class="text-grey-7 text-h6"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
             :filter="filter" :pagination.sync="pagination" >
@@ -95,7 +95,7 @@
               <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR'"
               style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
                 <label class="q-mr-sm row items-center">
-                  <span>Empresa: </span> 
+                  <span>Empresa: </span>
                 </label>
                 <q-select outlined dense v-model="selectCompany"
                   @update:model-value="getSucursales"
@@ -106,7 +106,7 @@
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="!$q.screen.xs && validarPermisos('crear.sucursal')" 
+              <q-btn v-if="!$q.screen.xs && validarPermisos('crear.sucursal')"
                 @click="$router.push({ name: 'Agregar Sucursal' })"
                 outline color="primary" label="Agregar Sucursal" class="q-mr-xs"/>
 
@@ -136,7 +136,7 @@
                 </q-tooltip>
               </q-btn>
 
-            </template>            
+            </template>
 
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
@@ -151,7 +151,7 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                
+
                 <template v-if="props.row.isActive">
                   <q-btn v-if="validarPermisos('editar.sucursal')"
                     round color="blue-grey"
@@ -184,24 +184,21 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>    
+          </q-table>
         </q-card>
       </div>
     </div>
   </div>
-  
+
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs && validarPermisos('crear.sucursal')">
-    <q-btn round color="secondary" size="lg" icon="add" 
+    <q-btn round color="secondary" size="lg" icon="add"
     @click="$router.push({ name: 'Agregar Sucursal' })" />
   </q-page-sticky>
-  
+
 </template>
-  

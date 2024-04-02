@@ -10,14 +10,15 @@ const detalle = ref('');
 
 const emit  = defineEmits(['hideModal']);
 
-const { api, mostrarNotify } = useHelpers()
+const { api, claim, mostrarNotify } = useHelpers()
 
 const onSubmit = async () => {
   try {
+    let headers = { company_id: claim.company.id  }
     await api.post('/proforma/clausula', {
       clausulas: props.clausulas,
       aceptacion_proforma: detalle.value
-    });   
+    }, { headers });
 
     mostrarNotify('positive', 'Clausula agregada exitosamente');
     emit('hideModal')
@@ -44,7 +45,7 @@ const onSubmit = async () => {
 
           <div class="col-xs-12">
             <label class="text-center">Detalle:</label>
-            <q-input type="textarea" rows="4" v-model.trim="detalle" 
+            <q-input type="textarea" rows="4" v-model.trim="detalle"
               @keyup="detalle = capitalize( detalle )"
               dense filled required />
           </div>
@@ -60,4 +61,3 @@ const onSubmit = async () => {
   </q-card>
 </template>
 
-  

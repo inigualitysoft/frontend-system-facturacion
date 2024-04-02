@@ -6,9 +6,9 @@
   const props = defineProps(['edit']);
   const route = useRoute();
 
-  const { 
+  const {
     api,
-    formEmail, 
+    formEmail,
     loadingTesting,
     onSubmit,
     mostrarNotify,
@@ -21,33 +21,36 @@
 
   const getConfigEmail = async () => {
     const { data } = await api.get(`/email/${ route.params.email_id }`);
-    formEmail.value = { 
+    formEmail.value = {
       ...data,
-      empresa: data.company_id.id 
+      empresa: data.company_id.id
     }
   }
 
   const testingEmail = async () => {
     try {
       loadingTesting.value = true;
-      const { data } = await api.post('/email/testing', { 
+      const { data } = await api.post('/email/testing', {
         ...formEmail.value,
         puerto: parseInt(formEmail.value.puerto)
       });
       mostrarNotify('positive', data)
 
-      loadingTesting.value = false;      
+      loadingTesting.value = false;
       prompt.value = false;
     } catch (error) {
-      console.log( error );
       let msgError = ''
       loadingTesting.value = false;
 
-      if (error.response.data.response) 
-        msgError = error.response.data.response
-      else
-        msgError = `${error.response.data.code} - ${error.response.data.command} `
-      
+      if (error.response) {
+        if (error.response.data.message)
+          msgError = error.response.data.message
+        else
+          msgError = `${error.response.data.code} - ${error.response.data.command} `
+      }else{
+        msgError = `Hubo un error al enviar el email, por favor verique bien sus datos`
+      }
+
       mostrarNotify('negative', msgError)
       prompt.value = false;
     }
@@ -64,42 +67,42 @@
 <template>
     <q-form @submit="onSubmit()">
       <div class="row">
-    
-        <div class="col-xs-11 col-md-2 flex items-center" 
+
+        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
           :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-lg' : 'justify-end']">
           <label for="">Host/servidor:</label>
         </div>
-        <div class="col-xs-11 col-md-3 q-ml-md" 
+        <div class="col-xs-11 col-md-3 q-ml-md"
           :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
           <q-input v-model.trim="formEmail.host" input-class="resaltarTextoInput" dense outlined required />
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg" 
+        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
           :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
           <label for="">Puerto:</label>
         </div>
-        <div class="col-xs-11 col-md-3 q-ml-md" 
+        <div class="col-xs-11 col-md-3 q-ml-md"
           :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
           <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
-            v-model.trim="formEmail.puerto" 
+            v-model.trim="formEmail.puerto"
             input-class="resaltarTextoInput" @keyup="allowOnlyNumber"
             dense outlined required />
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg" 
+        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
           :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
           <label for="">Usuario/Correo:</label>
         </div>
-        <div class="col-xs-11 col-md-3 q-ml-md" 
+        <div class="col-xs-11 col-md-3 q-ml-md"
           :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
           <q-input v-model.trim="formEmail.usuario" input-class="resaltarTextoInput" dense outlined required />
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg" 
+        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
           :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
           <label for="">Contraseña:</label>
         </div>
-        <div class="col-xs-11 col-md-3 q-ml-md" 
+        <div class="col-xs-11 col-md-3 q-ml-md"
           :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
 
           <q-input input-class="resaltarTextoInput"
@@ -115,11 +118,11 @@
           </q-input>
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg" 
+        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
           :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
           <label for="">Empresa:</label>
         </div>
-        <div class="col-xs-11 col-md-3 q-ml-md" 
+        <div class="col-xs-11 col-md-3 q-ml-md"
           :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
 
           <q-select outlined dense v-model="formEmail.empresa" readonly
@@ -127,18 +130,18 @@
           </q-select>
         </div>
 
-        <div class="col-xs-11 col-md-11 q-ml-md text-center q-pb-xl q-pt-lg" 
+        <div class="col-xs-11 col-md-11 q-ml-md text-center q-pb-xl q-pt-lg"
           :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
 
           <q-btn @click="prompt = !prompt" label="Probar Configuración"
-          :class="[ $q.screen.width > 600 || 'q-mb-md']" 
-          icon-right="send" outline rounded class="q-mr-lg" 
-            style="color: #696cff;" 
+          :class="[ $q.screen.width > 600 || 'q-mb-md']"
+          icon-right="send" outline rounded class="q-mr-lg"
+            style="color: #696cff;"
             :style="!$q.platform.is.mobile || 'font-size: 12px'" />
 
           <q-btn type="submit" label="Guardar"
           icon-right="save" outline rounded class="q-mr-lg" style="color: #696cff" />
-              
+
         </div>
 
       </div>
@@ -151,10 +154,10 @@
         </q-card-section>
           <q-form @submit="testingEmail">
             <q-card-section class="q-pt-none">
-              <q-input type="email" dense v-model="formEmail.email_client" 
+              <q-input type="email" dense v-model="formEmail.email_client"
                 autofocus required />
             </q-card-section>
-      
+
             <q-card-actions align="right" class="text-primary">
               <q-btn flat label="Cancelar" v-close-popup />
               <q-btn type="submit" :loading="loadingTesting" flat label="Enviar" />
@@ -164,7 +167,7 @@
     </q-dialog>
 </template>
 
-  
+
 <style>
 .resaltarTextoInput{
   font-size: 18px;

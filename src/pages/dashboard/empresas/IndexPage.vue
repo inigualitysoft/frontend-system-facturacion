@@ -2,30 +2,31 @@
   import { ref, watch } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
   import { useEmpresa } from "./composables/useEmpresa";
-  import useRolPermisos from "src/composables/useRolPermisos.js"; 
-  
+  import useRolPermisos from "src/composables/useRolPermisos.js";
+
   const columns: any = [
     { name: 'acciones', label: 'Acciones', align: 'center' },
     { label: "R.U.C", field: "ruc", align: "left", name: 'b' },
-    { label: "Nombre Comercial", field: "nombre_comercial", align: "left", name: 'c' },   
-    { label: "Razón Social", field: "razon_social", align: "left", name: 'd' } ,   
-    { label: "Telefono", field: "telefono", align: "center", name: 'e' },   
-    { label: "Email", field: "email", name: "email", align: "center" },   
-    { label: "Obligado Contabilidad", name: "obligadoContabilidad", align: "center" },  
-    { label: "Estado", name: "estado", align: "center" }  
+    { label: "Nombre Comercial", field: "nombre_comercial", align: "left", name: 'c' },
+    { label: "Razón Social", field: "razon_social", align: "left", name: 'd' } ,
+    { label: "Telefono", field: "telefono", align: "center", name: 'e' },
+    { label: "Email", field: "email", name: "email", align: "center" },
+    { label: "Obligado Contabilidad", name: "obligadoContabilidad", align: "center" },
+    { label: "Estado", name: "estado", align: "center" }
   ];
 
   let { api } = useEmpresa();
   const { validarPermisos } = useRolPermisos();
-  
+
   const filter = ref('')
   const rows = ref([]);
   const loading = ref( false );
 
-  const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
   const getCompanies = async () => {
-    const { data } = await api.get(`/companies`);
+    let headers = { company_id: claim.company.id };
+    const { data } = await api.get('/companies', { headers });
     rows.value = data;
   }
 
@@ -41,7 +42,7 @@
 
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getCompanies() })
   const eliminarCompany = async (company_id: string ) => {
-    confirmDelete('Estas seguro de eliminar esta empresa?', `/companies/${ company_id }`);    
+    confirmDelete('Estas seguro de eliminar esta empresa?', `/companies/${ company_id }`);
   }
 
   getCompanies();
@@ -50,7 +51,7 @@
   const pagination = ref({
     rowsPerPage: 10
   })
-    
+
 </script>
 
 <template>
@@ -75,7 +76,7 @@
 
             <template v-slot:top-right="props">
               <q-btn v-if="!$q.screen.xs && validarPermisos('crear.empresa')"
-                @click="$router.push({ name: 'Agregar Empresa' })" 
+                @click="$router.push({ name: 'Agregar Empresa' })"
                 outline color="primary" label="Agregar Empresa" class="q-mr-xs"/>
 
               <q-input :style="$q.screen.width > 700 || 'width: 70%'"
@@ -125,7 +126,7 @@
 
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
-                
+
                 <template v-if="props.row.isActive">
                   <q-btn v-if="validarPermisos('editar.empresa')"
                     round color="blue-grey"
@@ -155,23 +156,20 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>            
+          </q-table>
         </q-card>
       </div>
     </div>
   </div>
-  
+
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs && validarPermisos('crear.empresa')">
     <q-btn round color="secondary" size="lg" icon="add" @click="$router.push({ name: 'Agregar Empresa' })"  />
   </q-page-sticky>
 
 </template>
-  

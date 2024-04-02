@@ -1,8 +1,8 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import { ref, watch, onMounted } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
-  import useRolPermisos from "src/composables/useRolPermisos.js"; 
-  
+  import useRolPermisos from "src/composables/useRolPermisos.js";
+
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'fullName', align: 'center', label: 'Nombre', field: 'fullName', sortable: true },
@@ -12,18 +12,23 @@
     { name: 'rol_name', align: 'center', label: 'Rol', field: 'rol_name' },
     { name: 'estado', label: 'Estado', align: 'center', field: 'estado' },
   ]
-  
+
   const filter = ref('')
   const rows = ref([]);
+  const listCompanies = ref([]);
+  const selectEmpresa = ref('')
 
   const loading = ref( false );
-  const { api, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { api, claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
   const { validarPermisos } = useRolPermisos();
 
   const getUsers = async () => {
     loading.value = true;
     try {
-      const { data } = await api.get('/auth/users');
+
+      let headers = { company_id: selectEmpresa.value };
+
+      const { data } = await api.get('/auth/users', { headers });
       data.forEach(user => {
         user.rol_name = user.roles[0]
         user.estado = user.isActive ? 'Activo' : 'Inactivo'
@@ -35,6 +40,17 @@
     loading.value = false;
   }
 
+  const getCompanies = async () => {
+    const { data } = await api.get(`/companies`);
+    data.forEach(( company ) => {
+      listCompanies.value.push({
+        label:  company.nombre_comercial,
+        value:  company.id
+      })
+    });
+    selectEmpresa.value = claim.company.id
+  }
+
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getUsers() });
   const eliminarUsuario = async ( user_id ) => {
     try {
@@ -44,13 +60,17 @@
     }
   }
 
-  getUsers();
+  onMounted(async () => {
+    await getCompanies();
+    await getUsers();
+  })
+
 
   const mode = ref("list");
   const pagination = ref({
     rowsPerPage: 10
   })
-    
+
 </script>
 
 <template>
@@ -58,7 +78,7 @@
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-            <q-table title-class="text-grey-7 text-h6" title="Listado de Usuarios"
+            <q-table title-class="text-grey-7 text-h6"
               :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
               :columns="columns" row-key="name" :grid="mode==='grid'"
               :filter="filter" :pagination.sync="pagination" >
@@ -72,9 +92,30 @@
                   </q-th>
                 </q-tr>
               </template>
+
+              <template v-slot:top-left="props">
+                <div v-if="claim.roles[0] !== 'SUPER-ADMINISTRADOR' && claim.roles[0] !== 'ADMINISTRADOR'"
+                  class="text-center row justify-center" style="width: 100%;">
+                  <label class="q-mb-sm text-grey-7 text-h6">
+                    Listado de Usuarios
+                  </label>
+                </div>
+                <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
+                style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
+                  <label class="q-mr-sm row items-center">
+                    <span>Empresa: </span>
+                  </label>
+                  <q-select outlined dense v-model="selectEmpresa"
+                    @update:model-value="getUsers()"
+                    emit-value map-options
+                  :options="listCompanies">
+                  </q-select>
+                </div>
+              </template>
+
               <template v-slot:top-right="props">
                 <q-btn v-if="!$q.screen.xs && validarPermisos('crear.usuario')"
-                  @click="$router.push({ name: 'Agregar Usuario' })" 
+                  @click="$router.push({ name: 'Agregar Usuario' })"
                   outline color="primary" label="Agregar Usuario" class="q-mr-xs" />
 
                 <q-input :style="$q.screen.width > 700 || 'width: 70%'"
@@ -100,7 +141,7 @@
                 </q-btn>
 
               </template>
-              
+
               <template v-slot:body-cell-estado="props">
                 <q-td :props="props">
                   <template v-if="props.row.isActive">
@@ -111,7 +152,7 @@
                   </template>
                 </q-td>
               </template>
-  
+
               <template v-slot:body-cell-acciones="props">
                 <q-td :props="props">
                   <q-btn v-if="validarPermisos('editar.usuario')"
@@ -123,29 +164,26 @@
                     v-if="props.row.estado == 'Activo' && validarPermisos('eliminar.usuario')"
                     icon="delete"
                     @click="eliminarUsuario(props.row.id)"
-                    size="11px" />                    
+                    size="11px" />
                 </q-td>
               </template>
 
               <template v-slot:no-data="{ icon }">
                 <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                  <q-icon size="2em" name="sentiment_dissatisfied" />
                   <span class="text-subtitle1">
                     No se encontró ningun Resultado
                   </span>
-                  <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
                 </div>
               </template>
-            </q-table>       
+            </q-table>
           </q-card>
       </div>
     </div>
   </div>
-  
+
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs && validarPermisos('crear.usuario')">
-    <q-btn round color="secondary" size="lg" icon="add" 
+    <q-btn round color="secondary" size="lg" icon="add"
       @click="$router.push({ name: 'Agregar Usuario' })" />
   </q-page-sticky>
 </template>
-  

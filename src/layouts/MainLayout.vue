@@ -9,7 +9,7 @@
             :class="[!$q.dark.isActive ? 'text-black' : '']">
             <div>
               <span class="text-weight-regular">Bienvenido: </span>
-              <span class="text-weight-light">{{ fullName }}</span>
+              <span class="text-weight-light">{{ fullName.toUpperCase() }}</span>
             </div>
             <div>
               <span class="text-weight-regular">Rol: </span>
@@ -27,17 +27,20 @@
         <div class="q-mx-sm">
           <q-btn class="q-mr-md q-py-xs q-px-sm custom-border" flat
             color="grey" icon="img:https://img.icons8.com/3d-fluency/94/bell.png" />
-            
+
           <q-avatar class="cursor-pointer">
             <img :src="ruta_perfil_img">
             <q-menu>
               <q-list style="min-width: 200px">
                 <q-item clickable v-close-popup>
-                  <q-item-section>John Doe</q-item-section>
+                  <q-item-section>{{ claim.usuario }}</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item clickable v-close-popup>
-                  <q-item-section>Mi Perfil</q-item-section>
+                  <q-item-section
+                    @click="$router.push({ name:'editar.usuario.profile', params: { term: claim.id } })">
+                    Mi Perfil
+                  </q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item @click="cerrarSesion" clickable v-close-popup>
@@ -67,7 +70,7 @@
           />
         </q-toolbar>
 
-        <q-scroll-area style="height:100%;">
+        <q-scroll-area style="height:100%;position: relative;">
           <q-list padding class="q-mt-sm">
 
             <q-item class="navigation-item" active-class="tab-active" to="/" exact clickable v-ripple>
@@ -89,27 +92,6 @@
               <q-expansion-item
                 expand-separator icon="img:https://img.icons8.com/3d-fluency/94/gear--v1.png" label="Ajustes">
 
-                <q-expansion-item v-if="validarPermisos('index.usuario')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/conference.png" class="item-options"
-                  active-class="tab-active" :to="{ name: 'Ver Usuarios' }"
-                  dense-toggle label="Gestión Personal" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item v-if="validarPermisos('index.rol')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/services--v2.png" class="item-options"
-                  active-class="tab-active" :to="{ name: 'Rol-Permiso' }"
-                  dense-toggle label="Roles y Permisos" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item v-if="validarPermisos('index.correo')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/gmail.png" class="item-options"
-                  active-class="tab-active"
-                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
-                      ? { name: 'emails' }
-                      : { name: 'email.edit', params: { email_id: claim.company.id } }"
-                  dense-toggle label="Servidor de Correo" :header-inset-level="0">
-                </q-expansion-item>
-
                 <q-expansion-item v-if="validarPermisos('index.empresa')"
                   hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/client-company.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Ver Empresas' }"
@@ -122,6 +104,28 @@
                   dense-toggle label="Sucursales" :header-inset-level="0">
                 </q-expansion-item>
 
+                <q-expansion-item v-if="validarPermisos('index.rol')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/services--v2.png" class="item-options"
+                  active-class="tab-active" :to="{ name: 'Rol-Permiso' }"
+                  dense-toggle label="Roles y Permisos" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item v-if="validarPermisos('index.usuario')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/conference.png" class="item-options"
+                  active-class="tab-active" :to="{ name: 'Ver Usuarios' }"
+                  dense-toggle label="Gestión Personal" :header-inset-level="0">
+                </q-expansion-item>
+
+
+                <q-expansion-item v-if="validarPermisos('index.correo')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/gmail.png" class="item-options"
+                  active-class="tab-active"
+                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
+                      ? { name: 'emails' }
+                      : { name: 'email.edit', params: { email_id: claim.company.id } }"
+                  dense-toggle label="Servidor de Correo" :header-inset-level="0">
+                </q-expansion-item>
+
                 <q-expansion-item hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/documents.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Config Proforma' }"
                   dense-toggle label="Proforma" :header-inset-level="0">
@@ -131,6 +135,17 @@
             </q-list>
 
           </q-list>
+
+          <div class="div-show-empresa-name">
+            <h5 class="text-center text-weight-medium q-mb-none"
+              style="font-size: 18px;">
+              Empresa:
+            </h5>
+            <h5 class="text-center text-weight-medium q-mt-none"
+              style="font-size: 16px;color: #a8a4a4;line-height: 20px;">
+              {{ claim.company.razon_social }}
+            </h5>
+          </div>
         </q-scroll-area>
 
       </div>
@@ -166,22 +181,16 @@
 
   const essentialLinks = [
     {
-      title: 'Proveedores',
-      icon: 'img:https://img.icons8.com/3d-fluency/96/group--v2.png',
-      link: '/proveedores',
-      permisoRequerido: 'index.proveedores'
-    },
-    {
       title: 'Clientes',
       icon: 'img:https://img.icons8.com/color/96/supplier.png',
       link: '/customer',
       permisoRequerido: 'index.clientes'
     },
     {
-      title: 'Productos y Servicios',
-      icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',
-      link: '/productos',
-      permisoRequerido: 'index.productos'
+      title: 'Proveedores',
+      icon: 'img:https://img.icons8.com/3d-fluency/96/group--v2.png',
+      link: '/proveedores',
+      permisoRequerido: 'index.proveedores'
     },
     {
       title: 'Compras',
@@ -195,6 +204,12 @@
       link: '/ventas',
       permisoRequerido: 'index.ventas'
     },
+    {
+      title: 'Productos y Servicios',
+      icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',
+      link: '/productos',
+      permisoRequerido: 'index.productos'
+    }
   ]
 
   const $q = useQuasar();
@@ -265,7 +280,7 @@ body.body--dark {
 
 /* NAV Y BARRA LATERAL */
 
-/* .q-dark { 
+/* .q-dark {
   /* background: #2b2c40; */
   /* DEGRADADO TONOS OSCUROS, MINIMALISTA YA AGRADABLE A LA VISTA*/
   /* background: linear-gradient(to top, #26403c58, transparent); */
@@ -279,7 +294,7 @@ body.body--dark {
 .tab-active {
   background-color: #549fb0 !important;
   color: #ffffff !important;
-  
+
 }
 
 .navigation-item {
@@ -309,5 +324,11 @@ body.body--dark {
 }
 .item-options{
   margin-left: 6px;
+}
+
+.div-show-empresa-name{
+  position: absolute;
+  bottom: 25px;
+  width: 100%;
 }
 </style>

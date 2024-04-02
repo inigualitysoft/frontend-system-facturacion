@@ -65,7 +65,7 @@
   }
 
   function espera(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   const getSucursales = async() => {
@@ -76,6 +76,9 @@
     data.forEach(( x ) => {
       sucursales.value.push({ label: x.nombre, value: x.id })
     })
+
+    if(claim.roles[0] !== 'SUPER-ADMINISTRADOR' || claim.roles[0] !== 'ADMINISTRADOR')
+      sucursal_selected.value = claim.sucursales[0]
   }
 
   const uploadFile = async () => {
@@ -95,8 +98,9 @@
         })
 
         try {
-          await espera(700)
-          let headers = { headers: { sucursal_id: sucursal_selected.value } };
+          await espera(70)
+
+          let headers = { sucursal_id: sucursal_selected.value };
 
           await api.post('/products', {
             aplicaIva: element[4] == 'SI' ? true : false,
@@ -105,9 +109,8 @@
             precio_compra: element[2],
             pvp: element[3],
             tipo: element[6],
-            stock: element[7],
             descuento: element[5]
-          }, headers)
+          }, { headers })
 
           let product = products.value.find( product => product.index == index)
           product.estado = 'success'
@@ -160,7 +163,8 @@
             </template>
           </q-file>
         </div>
-        <div class="col-xs-11 col-sm-9 text-center q-mt-md">
+        <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
+          class="col-xs-11 col-sm-9 text-center q-mt-md">
           <label>Elige una sucursal:</label>
           <q-select outlined dense v-model="sucursal_selected"
             :error="!validaciones.sucursal.isValid"

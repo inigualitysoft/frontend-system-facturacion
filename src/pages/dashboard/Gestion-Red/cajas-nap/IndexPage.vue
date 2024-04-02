@@ -3,7 +3,7 @@
   import { api } from "boot/axios";
   import useHelpers from "../../../../composables/useHelpers";
   import { useNap } from "./composables/useNap";
-  
+
   let puertosUsados = []
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -30,13 +30,13 @@
       let headers = { headers: { router_id: selectedRouter.value } };
 
       const resp = await api.get(`/customers/get-ips/${ selectedRouter.value }`);
-      resp.data.forEach( x => { 
-        if ( x.puerto_id ) puertosUsados.push( x.puerto_id.id ) 
+      resp.data.forEach( x => {
+        if ( x.puerto_id ) puertosUsados.push( x.puerto_id.id )
       })
 
       const { data } = await api.get('/caja-nap', headers);
 
-      data.forEach((x) => { 
+      data.forEach((x) => {
         x.puertos.sort((x, y) => x.puerto - y.puerto);
 
         x.puertos.map(p => {
@@ -76,7 +76,7 @@
   const pagination = ref({
     rowsPerPage: 10
   })
-    
+
 </script>
 
 <template>
@@ -84,7 +84,7 @@
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-          <q-table title-class="text-grey-7 text-h6"          
+          <q-table title-class="text-grey-7 text-h6"
             title="Servicios de Internet"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
@@ -104,7 +104,7 @@
               <div v-if="listRouters.length > 1"
               style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
                 <label class="q-mr-sm row items-center">
-                  <span>Router: </span> 
+                  <span>Router: </span>
                 </label>
                 <q-select outlined dense v-model="selectedRouter"
                   @update:model-value="getCajasNap"
@@ -115,7 +115,7 @@
               <div v-else
                 class="text-center row justify-center" style="width: 100%;">
                 <label class="q-mb-sm text-grey-7 text-h6">
-                  Servicios de Internet 
+                  Servicios de Internet
                 </label>
               </div>
             </template>
@@ -150,22 +150,22 @@
                 </q-tooltip>
               </q-btn>
 
-            </template>            
+            </template>
 
             <template v-slot:body-cell-xd="props">
               <q-td :props="props">
                 <template v-if="true">
-                  <div class="row q-col-gutter-y-xs" 
+                  <div class="row q-col-gutter-y-xs"
                    style="min-width: 220px;">
                     <div v-for="{ puerto, isActive } in props.row.puertos" class="col-2">
                       <div class="">
-                        <q-badge filled 
-                          :color="isActive ? 'secondary' : 'red-9'" 
-                          :label="puerto" 
+                        <q-badge filled
+                          :color="isActive ? 'secondary' : 'red-9'"
+                          :label="puerto"
                         style="width: 30px; height: 30px;justify-content: center;" />
                       </div>
                     </div>
-                  </div>  
+                  </div>
                 </template>
               </q-td>
             </template>
@@ -213,24 +213,21 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>    
+          </q-table>
         </q-card>
       </div>
     </div>
   </div>
-  
+
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs">
-    <q-btn round color="secondary" size="lg" icon="add" 
+    <q-btn round color="secondary" size="lg" icon="add"
       @click="$router.push({ name: 'cNap.add' })" />
   </q-page-sticky>
-  
+
 </template>
-  

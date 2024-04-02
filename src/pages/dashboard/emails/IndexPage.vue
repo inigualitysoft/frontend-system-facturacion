@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import useHelpers from "../../../composables/useHelpers";
-import useRolPermisos from "src/composables/useRolPermisos.js"; 
+import useRolPermisos from "src/composables/useRolPermisos.js";
 
   const columns: any = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -11,7 +11,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     { name: 'usuario', label: 'Usuario', align: 'center', field: 'usuario' },
     { name: 'password', label: 'Contraseña', align: 'center', field: 'password' },
   ]
-  
+
   const { api } = useHelpers();
   const { validarPermisos } = useRolPermisos();
 
@@ -127,7 +127,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                   icon="edit" class="q-mr-sm" size="12px" />
               </q-td>
             </template>
-            
+
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
                 <q-badge outline class="q-py-xs q-px-md"
@@ -140,18 +140,16 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>  
+          </q-table>
         </q-card>
       </div>
     </div>
   </div>
-  
+
 </template>
-  
+

@@ -1,6 +1,6 @@
-# sis-farmacia (sis-farmacia)
+# sis-rnc (sis-rnc)
 
-sistema pos-ventas para farmacias
+sistema de inventario y facturacion
 
 ## Install the dependencies
 ```bash

@@ -21,7 +21,7 @@ const modalAgregarProveedor = ref(false);
 const modalEditarProveedor  = ref(false);
 const listProvincias        = ref<string[] | any>([]);
 const listCantones          = ref<string[] | any>([]);
-const loading               = ref( false );   
+const loading               = ref( false );
 const actualizarLista       = ref( false );
 
 const formProveedor = ref<Proveedor>({
@@ -36,8 +36,8 @@ const formProveedor = ref<Proveedor>({
 })
 
 export const useProveedor = () => {
-    
-    const { api, mostrarNotify } = useHelpers();
+
+    const { api, claim, mostrarNotify } = useHelpers();
 
     const limpiarFormulario = () => {
       formProveedor.value.razon_social = ''
@@ -57,21 +57,21 @@ export const useProveedor = () => {
 
     onMounted(() => {
       let list = Object.entries(provincias)
-      list.forEach( (data: any) => {       
-          if ( data[1].provincia !== undefined ) 
+      list.forEach( (data: any) => {
+          if ( data[1].provincia !== undefined )
             listProvincias.value.push( data[1].provincia )
       })
 
       watch(formProveedor.value, (currentValue, _) => {
 
         formProveedor.value.razon_social = currentValue.razon_social.toUpperCase();
-  
+
         if ( currentValue.provincia !== '' ) {
           let list: any = Object.entries(provincias)
           const provincia = list.find( (x: any) => x[1].provincia === currentValue.provincia );
-  
+
           listCantones.value = []
-  
+
           let objectListCantones: any = Object.entries( provincia[1].cantones )
           objectListCantones.forEach( (y: any) => { listCantones.value.push( y[1].canton ) });
         }
@@ -90,11 +90,12 @@ export const useProveedor = () => {
     const onSubmit = async ( edit: boolean ) => {
       try {
         loading.value = true;
+        let headers = { company_id: claim.company.id }
 
-        if ( !edit ) 
-          await api.post('/providers', formProveedor.value)
+        if ( !edit )
+          await api.post('/providers', formProveedor.value, { headers })
         else
-          await api.patch('/providers/' + formProveedor.value.id, formProveedor.value)
+          await api.patch('/providers/' + formProveedor.value.id, formProveedor.value, { headers })
 
         actualizarLista.value = true
         modalAgregarProveedor.value = false;
@@ -120,7 +121,7 @@ export const useProveedor = () => {
       modalAgregarProveedor,
       modalEditarProveedor,
       validateNumDocument: [
-        (val: any) => val.length >= ((formProveedor.value.tipo_documento === 'RUC') ? 13 : 10) || 
+        (val: any) => val.length >= ((formProveedor.value.tipo_documento === 'RUC') ? 13 : 10) ||
           `Debes completar ${ ((formProveedor.value.tipo_documento === 'RUC') ? 13 : 10) } digitos`,
       ],
       validateNumCelular: [

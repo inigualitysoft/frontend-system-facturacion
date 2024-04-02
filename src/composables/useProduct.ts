@@ -27,7 +27,7 @@ export const useProduct = () => {
 
   const agregarAndValidarStock = ( data: any, modulo: string ) => {
     //VERIFICAR SI YA SE AGREGO ESTE ARTICULO
-    const resultado = rows.value.some( (row: any) => row.codigoBarra == data.codigoBarra )
+    const resultado = rows.value.some( (row: any) => row.id == data.id )
     if ( !resultado ){
       if ( modulo !== 'compras' && data.stock <= 0 && data.tipo != 'Servicio')
         return mostrarNotify('negative', `No hay stock del articulo ${ data.nombre }`);
@@ -38,7 +38,7 @@ export const useProduct = () => {
       else cantidad = 0;
 
       data.cantidad  = cantidad;
-      data.v_total   = modulo == 'proforma' ? data.v_total : 0;
+      data.v_total   = modulo == 'proforma' ? parseFloat(data.pvp) : 0;
       data.descuento = (modulo == 'venta' || modulo == 'proforma') ? data.descuento : 0;
 
       rows.value.unshift( data );
@@ -56,7 +56,8 @@ export const useProduct = () => {
     loadingState.value = true
     try {
 
-      let { data } = await api.get(`/products/${ filterByCodBarra.value }`);
+      let headers = { company_id: claim.company.id };
+      let { data } = await api.get(`/products/${ filterByCodBarra.value }`, { headers });
 
       data = data.filter( (x: any) => {
         if (modulo == 'compras' && x.tipo == 'Producto') return x
@@ -124,18 +125,31 @@ export const useProduct = () => {
 
     total = ( subtotal + iva ) - descuento;
     return {
-      subtotal:   parseFloat((Math.floor( subtotal * 100 ) / 100).toString()),
-      iva:        parseFloat((Math.floor( iva * 100 ) / 100).toString()),
-      descuento:  parseFloat((Math.floor( descuento * 100) / 100).toString()),
-      total:      parseFloat((Math.floor( total * 100) / 100).toString())
+      subtotal:   formatearNumero(subtotal),
+      iva:        formatearNumero(iva),
+      descuento:  formatearNumero(descuento),
+      total:      formatearNumero(total)
     }
   })
 
   const getSubtotalByProduct = ( row: any, modulo: string = 'compras' ) => {
     if ( modulo == 'compras' )
-      row.v_total = ( parseFloat(row.cantidad) * parseFloat(( Math.floor( row.precio_compra * 100) / 100).toString()))
+      row.v_total = ( parseInt(row.cantidad) * parseFloat(( Math.floor( row.precio_compra * 100) / 100).toString()))
     else
-      row.v_total = ( parseFloat(row.cantidad) * parseFloat(( Math.floor( row.pvp * 100) / 100).toString()))
+      row.v_total = formatearNumero(parseInt(row.cantidad) * parseFloat(row.pvp))
+  }
+
+  const formatearNumero = (numero: any) => {
+    let partes = numero.toString().split('.');
+    let numeroFormateado = parseFloat(partes[0]);
+
+    if (partes.length > 1) {
+        numeroFormateado += parseFloat('.' + partes[1].substring(0, 2));
+    } else {
+        numeroFormateado += parseFloat('.00');
+    }
+
+    return parseFloat(numeroFormateado.toFixed(2));
   }
 
   getValorIva()
@@ -144,6 +158,7 @@ export const useProduct = () => {
     agregarAndValidarStock,
     columns,
     claim,
+    formatearNumero,
     filterArticulo,
     filterByCodBarra,
     loadingState,

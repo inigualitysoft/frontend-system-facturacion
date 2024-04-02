@@ -9,7 +9,7 @@ declare module '@vue/runtime-core' {
   }
 }
 
-const api = axios.create({ 
+const api = axios.create({
   baseURL: `${import.meta.env.VITE_BASE_URL}/api`,
   headers: {'Content-Type': 'application/json'}
 });
@@ -17,23 +17,33 @@ const api = axios.create({
 api.interceptors.request.use(async function(config){
 	let token = await JSON.parse(sessionStorage.getItem('auth/user') as string);
   let claim: any = null;
-  
+
   claim = (token != null && token.token != '' ) ? JWT.read( token.token ) : null;
-  token =  token != null ? token.token : '';  
+  token =  token != null ? token.token : '';
 
 	config.headers.Authorization = token ? `${token}` : null;
 	config.headers.rol_name      = claim != null ? `${ claim.claim.roles[0] }` : null;
 
-  if ( claim != null && claim.claim.roles[0] != 'SUPER-ADMINISTRADOR' && 
+  // console.log(claim.claim);
+
+  if ( claim != null && claim.claim.roles[0] != 'SUPER-ADMINISTRADOR' &&
   claim.claim.roles[0] != 'ADMINISTRADOR')
-      config.headers.sucursal_id = (claim != null && claim.claim.sucursales.length != 0 ) 
-                                    ? `${ claim.claim.sucursales[0] }` 
+      config.headers.sucursal_id = (claim != null && claim.claim.sucursales.length != 0 )
+                                    ? `${ claim.claim.sucursales[0] }`
                                     : null;
-                                
-  if ( claim != null ){
-    if(!config.headers.NotSetHeaderCompany )
-      config.headers.company_id = claim != null ? `${ claim.claim.company.id }` : null;    
-  } 
+
+  if ( claim != null && claim.claim.roles[0] != 'SUPER-ADMINISTRADOR' &&
+  claim.claim.roles[0] != 'ADMINISTRADOR')
+      config.headers.company_id = (claim != null && claim.claim.company )
+                                    ? `${ claim.claim.company.id }`
+                                    : null;
+  // else
+  //   config.headers.company_id = claim.claim.company.id
+  // console.log(config.headers.NotSetHeaderCompany);
+  // if ( claim != null ){
+  //   if(!config.headers.NotSetHeaderCompany )
+  //     config.headers.company_id = claim != null ? `${ claim.claim.company.id }` : null;
+  // }
 
 	return config;
 });

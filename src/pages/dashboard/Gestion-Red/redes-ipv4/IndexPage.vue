@@ -4,7 +4,7 @@
   import useHelpers from "../../../../composables/useHelpers";
   import { useRedIpv4 } from "./composables/useRedIpv4";
   import { useCliente } from "../../clientes/composables/useCliente.js";
-  
+
   const { obtenerListaSubred, groupedIpsByRed } = useCliente();
 
   const columns = [
@@ -75,7 +75,7 @@
 
       const { data } = await api.get('/red-ipv4', headers);
 
-      data.forEach((x) => { 
+      data.forEach((x) => {
         x.router_name = x.router_id.nombre;
         x.cidr = x.cidr.split(' ')[0];
 
@@ -128,7 +128,7 @@
   const pagination = ref({
     rowsPerPage: 10
   })
-    
+
 </script>
 
 <template>
@@ -136,7 +136,7 @@
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-          <q-table title-class="text-grey-7 text-h6"          
+          <q-table title-class="text-grey-7 text-h6"
             title="Redes IPv4"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
@@ -156,7 +156,7 @@
               <div v-if="listRouter.length > 1"
               style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
                 <label class="q-mr-sm row items-center">
-                  <span>Router: </span> 
+                  <span>Router: </span>
                 </label>
                 <q-select outlined dense v-model="selectedRouter"
                   @update:model-value="getRedesIpv4"
@@ -202,27 +202,27 @@
                 </q-tooltip>
               </q-btn>
 
-            </template>            
+            </template>
 
             <template v-slot:body-cell-uso_ips="props">
               <q-td :props="props">
                 <template v-if="true">
                   <div :style="$q.screen.xs ? 'min-width: 180px;' : 'min-width: 140px;'">
-                    <q-linear-progress stripe rounded size="25px" 
+                    <q-linear-progress stripe rounded size="25px"
                       :value="props.row.porcentaje" color="cyan-9">
                       <div class="absolute-full flex justify-around">
 
-                        <q-badge color="transparent" class="text-weight-bold" 
-                        :text-color="$q.dark.isActive ? 'grey-3' : 'grey-9'" 
+                        <q-badge color="transparent" class="text-weight-bold"
+                        :text-color="$q.dark.isActive ? 'grey-3' : 'grey-9'"
                         :label="(props.row.porcentaje * 100).toFixed(2) + '%'" />
 
-                        <q-badge color="transparent" class="text-weight-bolder" 
-                        :text-color="$q.dark.isActive ? 'grey-3' : 'grey-9'" 
+                        <q-badge color="transparent" class="text-weight-bolder"
+                        :text-color="$q.dark.isActive ? 'grey-3' : 'grey-9'"
                           :label="`(${ props.row.totalIpsUsadas } de ${ props.row.totalIps })`" />
 
                       </div>
                     </q-linear-progress>
-                  </div>  
+                  </div>
                 </template>
               </q-td>
             </template>
@@ -270,23 +270,21 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>    
+          </q-table>
         </q-card>
       </div>
     </div>
   </div>
-  
+
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs">
-    <q-btn round color="secondary" size="lg" icon="add" 
+    <q-btn round color="secondary" size="lg" icon="add"
       @click="$router.push({ name: 'redesIpv4.add' })" />
   </q-page-sticky>
-  
+
 </template>

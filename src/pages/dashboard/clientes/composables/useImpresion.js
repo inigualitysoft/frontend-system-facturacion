@@ -269,7 +269,12 @@ export const useImpresion = () => {
             </tr>
             <tr>
               <td>
-                <pre>Forma de Pago: ${ data.forma_pago }</pre>
+                <pre>      Forma de Pago:</pre>
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <pre>  ${ data.forma_pago }</pre>
               </td>
             </tr>
             <tr>

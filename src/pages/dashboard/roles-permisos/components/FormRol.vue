@@ -5,12 +5,12 @@ import { useRol } from '../composables/useRol';
 
 const props = defineProps(['edit']);
 
-const { 
-  formRol, 
-  loading, 
+const {
+  formRol,
+  loading,
   expanded,
   permisosSelected,
-  onSubmit 
+  onSubmit
 } = useRol();
 
 </script>
@@ -20,7 +20,9 @@ const {
     <div class="row q-pt-lg q-gutter-lg justify-center">
       <div class="col-xs-12 col-md-10">
         <label>Nombre del Rol:</label>
-        <q-input v-model.trim="formRol.nombre" 
+        <q-input v-model.trim="formRol.nombre"
+          :disable="props.edit && (formRol.nombre == 'SUPER-ADMINISTRADOR'
+                                    || formRol.nombre == 'ADMINISTRADOR')"
           input-style="text-align: center"
           dense outlined required />
       </div>
@@ -56,7 +58,7 @@ const {
           v-model:expanded="expanded"
           v-model:ticked="permisosSelected" />
       </div>
-      
+
       <div class="col-xs-9 col-md-12 flex justify-center q-mt-none">
         <q-btn :label=" !edit ? 'Guardar' : 'Editar'" :loading="loading"
           class="q-px-xl q-mt-md q-mb-md" type="submit" style="color: #696cff" outline rounded />

@@ -1,16 +1,15 @@
 <script setup lang="ts">
   import { useSucursal } from '../composables/useSucursal';
-
   const props = defineProps<{ edit: boolean }>();
 
-  const { 
+  const {
     claim,
     cargarCompanies,
-    formSucursal, 
-    loading, 
-    allowOnlyNumber,
+    formSucursal,
+    loading,
     listCompanies,
-    onSubmit 
+    allowOnlyNumber,
+    onSubmit
   } = useSucursal();
 
   cargarCompanies();
@@ -18,25 +17,27 @@
 
 <template>
   <q-form @submit="onSubmit( props.edit )" class="q-mt-md">
-    <div class="row q-col-gutter-md q-px-lg" 
+    <div class="row q-col-gutter-md q-px-lg"
     :class="$q.screen.width < 1022 || 'q-col-gutter-y-lg'">
 
       <div class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               Nombre del establecimiento:
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input v-model.trim="formSucursal.nombre" input-class="resaltarTextoInput" dense filled required />
+            <q-input v-model.trim="formSucursal.nombre"
+              input-style="text-transform: uppercase;"
+              input-class="resaltarTextoInput" dense filled required />
           </div>
         </div>
       </div>
       <div class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'justify-end']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               Dirección:
@@ -49,7 +50,7 @@
       </div>
       <div class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               Numero de Establecimiento:
@@ -64,7 +65,7 @@
       </div>
       <div class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'justify-end']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               N° punto de emisión:
@@ -79,7 +80,7 @@
       </div>
       <div class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'justify-end']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               N° secuencial Factura:
@@ -87,7 +88,7 @@
           </div>
           <div class="col-xs-12 col-md-7">
             <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
-              v-model.trim="formSucursal.secuencia_factura_produccion" 
+              v-model.trim="formSucursal.secuencia_factura_produccion"
               input-class="resaltarTextoInput"
               :maxlength="9" @keyup="allowOnlyNumber"
               dense filled required />
@@ -96,7 +97,7 @@
       </div>
       <div class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               N° secuencial Factura Pruebas:
@@ -105,23 +106,6 @@
           <div class="col-xs-12 col-md-7">
             <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
               v-model.trim="formSucursal.secuencia_factura_pruebas"
-              input-class="resaltarTextoInput" 
-              :maxlength="9" @keyup="allowOnlyNumber"
-              dense filled required />
-          </div>
-        </div>
-      </div>
-      <div class="col-xs-12 col-md-6">
-        <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
-            :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
-            <label :class="$q.screen.width < 1022 || 'q-pr-md'">
-              N° secuencial Nota de Crédito:
-            </label>
-          </div>
-          <div class="col-xs-12 col-md-7">
-            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
-              v-model.trim="formSucursal.secuencia_nota_credito_produccion" 
               input-class="resaltarTextoInput"
               :maxlength="9" @keyup="allowOnlyNumber"
               dense filled required />
@@ -130,7 +114,24 @@
       </div>
       <div class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
+            :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
+            <label :class="$q.screen.width < 1022 || 'q-pr-md'">
+              N° secuencial Nota de Crédito:
+            </label>
+          </div>
+          <div class="col-xs-12 col-md-7">
+            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+              v-model.trim="formSucursal.secuencia_nota_credito_produccion"
+              input-class="resaltarTextoInput"
+              :maxlength="9" @keyup="allowOnlyNumber"
+              dense filled required />
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-12 col-md-6">
+        <div class="row">
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               Secuencial nota de crédito Pruebas:
@@ -139,7 +140,7 @@
           <div class="col-xs-12 col-md-7">
             <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
             input-class="resaltarTextoInput"
-            v-model.trim="formSucursal.secuencia_nota_credito_pruebas" 
+            v-model.trim="formSucursal.secuencia_nota_credito_pruebas"
             :maxlength="9" @keyup="allowOnlyNumber"
             dense filled required />
           </div>
@@ -147,37 +148,37 @@
       </div>
       <div class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'justify-end']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               Ambiente:
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-select dense v-model.trim="formSucursal.ambiente" filled 
+            <q-select dense v-model.trim="formSucursal.ambiente" filled
               :options="['PRODUCCION', 'PRUEBA']" />
           </div>
         </div>
       </div>
       <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR'" class="col-xs-12 col-md-6">
         <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end" 
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
             :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'justify-end']">
             <label :class="$q.screen.width < 1022 || 'q-pr-md'">
               Empresa:
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-select dense v-model.trim="formSucursal.company_id" filled 
+            <q-select dense v-model.trim="formSucursal.company_id" filled
             :options="listCompanies" emit-value map-options />
           </div>
         </div>
       </div>
-      <div class="col-xs-12 col-md-12 flex q-py-lg" 
+      <div class="col-xs-12 col-md-12 flex q-py-lg"
       :class="[ $q.screen.width < 600 ? 'justify-center q-ml-xl q-pt-none q-mb-md' : 'justify-between']">
         <q-btn v-if="$q.screen.width > 600"
           icon="arrow_back" @click="$router.push('/sucursales')"
-          outline rounded class="q-ml-md" 
+          outline rounded class="q-ml-md"
           :color="!$q.dark.isActive ? 'blue-grey-10' : 'blue-grey-2'">
           &nbsp; Regresar
         </q-btn>

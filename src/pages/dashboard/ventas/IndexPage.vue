@@ -314,59 +314,79 @@
 
 <template>
   <div class="q-mx-lg q-pt-md">
-
     <div class="row q-col-gutter-lg">
-      <div class="col-12">
 
-        <div class="q-my-md"
-          style="display: flex;" :class="[ $q.screen.xs ? 'q-mb-md' : 'q-ml-lg' ]">
-          <label class="q-mr-sm row q-pt-sm">
-            <span>Filtrar por fecha: </span>
-          </label>
+      <div style="display: flex;">
+        <div style="display: flex;"
+          :class="[ $q.screen.xs ?
+                  'q-mb-md q-mt-none q-pt-xs' : 'q-ml-lg q-pl-none q-my-md' ]">
+          <div class="row"
+            :class="[ $q.screen.xs ? 'flex-center' : '' ]">
+            <div class="col-xs-12 col-sm-3">
+              <label class="q-mr-sm row q-pt-sm justify-center">
+                <span :class="[ $q.screen.xs ? 'text-weight-bold' : '' ]">
+                  Filtrar por fecha:
+                </span>
+              </label>
+            </div>
 
-          <q-input outlined dense v-model="dateOne" mask="date" >
-            <template v-slot:append>
+            <div class="col-xs-10 col-sm-4">
+              <q-input outlined dense v-model="dateOne" mask="date" >
+                <template v-slot:append>
 
-              <q-icon v-if="dateOne !== ''" name="close" @click="dateOne = '', getVentas()" class="cursor-pointer" />
+                  <q-icon v-if="dateOne !== ''" name="close" @click="dateOne = '', getVentas()" class="cursor-pointer" />
 
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="dateOne" @update:model-value="getVentas">
-                    <div class="row items-center justify-end">
-                      <q-btn v-close-popup label="Close" color="primary" flat />
-                    </div>
-                  </q-date>
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
+                  <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                      <q-date v-model="dateOne" @update:model-value="getVentas">
+                        <div class="row items-center justify-end">
+                          <q-btn v-close-popup label="Close" color="primary" flat />
+                        </div>
+                      </q-date>
+                    </q-popup-proxy>
+                  </q-icon>
+                </template>
+              </q-input>
+            </div>
 
-          <label class="q-mx-md q-pt-sm">Hasta</label>
+            <div class="col-xs-12 col-sm-1 flex flex-center">
+              <label
+                class="q-mx-md"
+                :class="[ $q.screen.xs ? 'text-weight-medium' : '' ]">
+                Hasta
+              </label>
+            </div>
 
-          <q-input outlined dense v-model="dateTwo" mask="date">
-            <template v-slot:append>
+            <div class="col-xs-10 col-sm-4">
+              <q-input outlined dense v-model="dateTwo" mask="date">
+                <template v-slot:append>
 
-              <q-icon v-if="dateTwo !== ''" name="close" @click="dateTwo = '', getVentas()" class="cursor-pointer" />
+                  <q-icon v-if="dateTwo !== ''" name="close" @click="dateTwo = '', getVentas()" class="cursor-pointer" />
 
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="dateTwo" @update:model-value="getVentas">
-                    <div class="row items-center justify-end">
-                      <q-btn @click="getVentas"
-                        v-close-popup label="Close" color="primary" flat />
-                    </div>
-                  </q-date>
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
-
+                  <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                      <q-date v-model="dateTwo" @update:model-value="getVentas">
+                        <div class="row items-center justify-end">
+                          <q-btn @click="getVentas"
+                            v-close-popup label="Close" color="primary" flat />
+                        </div>
+                      </q-date>
+                    </q-popup-proxy>
+                  </q-icon>
+                </template>
+              </q-input>
+            </div>
+          </div>
+        </div>
+        <div v-if="$q.screen.width >= 935"
+          class="flex flex-center">
           <q-btn @click="downloadComprobantes"
             class="q-ml-lg q-px-sm" dense outline color="primary" icon-right="picture_as_pdf"
               style="margin-top: 2px;" label="descargar facturas" />
-
         </div>
+      </div>
 
+      <div class="col-12 q-pt-none">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6" :rows="rows"
             :loading="loading" :hide-header="mode === 'grid'"
@@ -508,12 +528,12 @@
                     || props.row.estadoSRI.trim() == 'ERROR ENVIO AUTORIZACION - ANULACION'
                     || props.row.estadoSRI.trim() == 'RECIBIDA'
                     || props.row.estadoSRI.trim() == 'ANULACION - RECIBIDA'"
-                    round color="blue-grey" icon="fa-solid fa-retweet"
+                    round color="deep-orange-8" icon="fa-solid fa-retweet"
                     :loading="props.row.loading"
                     @click="reEmitirFactura( props.row )"
                     size="10px" class="q-mr-sm">
                   <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
-                    Emitir Factura Electrónica
+                    Reenviar Factura Electrónica
                   </q-tooltip>
                 </q-btn>
 
@@ -553,16 +573,15 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
           </q-table>
         </q-card>
       </div>
+
     </div>
   </div>
 

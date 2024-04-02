@@ -3,7 +3,7 @@
   import { Dialog } from "quasar";
   import useHelpers from "../../../../composables/useHelpers";
   import ModalImportarClientes from "./components/ModalImportarClientes.vue";
-  
+
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { align: 'center', label: 'Nombre Router', field: 'nombre', name: 'nombre' },
@@ -80,15 +80,15 @@
       rows.value[index].loading = true
 
       const response = await api.post(`/mikrotik/download-clients-excel/${ router_id }`, { }, {responseType: 'arraybuffer'});
-  
+
       const blob = new Blob([response.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const link = document.createElement('a');
       link.href = window.URL.createObjectURL(blob);
       link.download = 'ejemplo.xlsx';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);    
-      
+      document.body.removeChild(link);
+
       rows.value[index].loading = false
     } catch (error) {
       console.log( error );
@@ -102,7 +102,7 @@
   const pagination = ref({
     rowsPerPage: 10
   })
-    
+
 </script>
 
 <template>
@@ -110,7 +110,7 @@
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-          <q-table title-class="text-grey-7 text-h6"          
+          <q-table title-class="text-grey-7 text-h6"
             title="Listado de Routers"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
@@ -155,7 +155,7 @@
                 </q-tooltip>
               </q-btn>
 
-            </template>            
+            </template>
 
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
@@ -172,21 +172,21 @@
               <q-td :props="props">
 
                 <template v-if="props.row.isActive">
-                  <q-btn round color="blue-grey" 
+                  <q-btn round color="blue-grey"
                     @click="$router.push({ name: 'router.edit', params: { router_id: props.row.id } })"
                     icon="edit" class="q-mr-sm" size="10px" />
 
                   <q-btn @click="confirmarRepararRouter( props.row.id )"
-                    round color="blue-grey" 
+                    round color="blue-grey"
                     icon="fa-solid fa-gears" class="q-mr-sm" size="10px">
                     <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
                       Reparar router
                     </q-tooltip>
                   </q-btn>
-                  
+
                   <q-btn @click="downloadExcel( props.row.id, props.rowIndex )"
                     :loading="props.row.loading"
-                    round color="blue-grey" 
+                    round color="blue-grey"
                     icon="fa-solid fa-file-excel" class="q-mr-sm" size="10px">
                     <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
                       Descargar plantilla clientes
@@ -195,7 +195,7 @@
 
                   <q-btn @click="showModalImportClients = true, router_selected = props.row.id"
                     :loading="props.row.loading"
-                    round color="blue-grey" 
+                    round color="blue-grey"
                     icon="upload" class="q-mr-sm" size="10px">
                     <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
                       Importar Clientes
@@ -227,14 +227,12 @@
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
-          </q-table>    
+          </q-table>
         </q-card>
       </div>
     </div>
@@ -243,12 +241,11 @@
   <q-dialog v-model="showModalImportClients">
     <ModalImportarClientes :router_selected="router_selected" />
   </q-dialog>
-  
+
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
       v-if="$q.screen.xs && claim.roles[0] == 'SUPER-ADMINISTRADOR'">
-    <q-btn round color="secondary" size="lg" icon="add" 
+    <q-btn round color="secondary" size="lg" icon="add"
       @click="$router.push({ name: 'router.add' })" />
   </q-page-sticky>
-  
+
 </template>
-  

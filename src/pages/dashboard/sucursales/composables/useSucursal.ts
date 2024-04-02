@@ -1,5 +1,5 @@
 import { api } from "boot/axios";
-import { ref, onMounted, watch } from "vue"
+import { ref } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
 
 export interface Sucursal {
@@ -12,13 +12,14 @@ export interface Sucursal {
   secuencia_factura_pruebas?:         string;
   secuencia_nota_credito_produccion:  string;
   secuencia_nota_credito_pruebas?:    string;
+  company_id:                         string;
   ambiente?:                          string;
   created_at?:                        string;
   updated_at?:                        string;
   isActive?:                          boolean;
 }
 
-const loading  = ref( false );  
+const loading  = ref( false );
 const listCompanies = ref<{ label: string; value: string; }[]>([]);
 const formSucursal = ref<Sucursal>({
   nombre: '',
@@ -29,25 +30,27 @@ const formSucursal = ref<Sucursal>({
   secuencia_factura_pruebas: '',
   secuencia_nota_credito_produccion: '',
   secuencia_nota_credito_pruebas: '',
-  ambiente: 'PRUEBA'
+  ambiente: 'PRUEBA',
+  company_id: ''
 })
-
-const cargarCompanies = async () => {
-  listCompanies.value = [];
-  
-  const { data } = await api.get('/companies/true');
-
-  data.forEach((companie: any) => {
-    listCompanies.value.push({
-      label:  companie.nombre_comercial,
-      value:  companie.id
-    })
-  });
-}
 
 export const useSucursal = () => {
 
-    const { mostrarNotify, claim, router, route } = useHelpers();
+  const { mostrarNotify, claim, router, route } = useHelpers();
+
+    const cargarCompanies = async () => {
+      listCompanies.value = [];
+
+      const { data } = await api.get('/companies/true');
+
+      data.forEach((companie: any) => {
+        listCompanies.value.push({
+          label:  companie.nombre_comercial,
+          value:  companie.id
+        })
+      });
+      formSucursal.value.company_id = claim.company.id
+    }
 
     const limpiarFormulario = () => {
       formSucursal.value.nombre = ''
@@ -67,32 +70,29 @@ export const useSucursal = () => {
       formSucursal.value.secuencia_nota_credito_produccion  = formSucursal.value.secuencia_nota_credito_produccion.toString().replace(/\D/g, '');
 		}
 
-    onMounted(() => {
-      watch(formSucursal.value, (currentValue, oldValue) => {
-        formSucursal.value.nombre = currentValue.nombre.toUpperCase();  
-      });    
-    })
-
     const onSubmit = async( edit: boolean ) => {
 
       if (parseInt(formSucursal.value.establecimiento) <= 0 ||
-        parseInt(formSucursal.value.punto_emision) <= 0 || 
-        parseInt(formSucursal.value.secuencia_factura_produccion) <= 0) 
+        parseInt(formSucursal.value.punto_emision) <= 0 ||
+        parseInt(formSucursal.value.secuencia_factura_produccion) <= 0)
         return mostrarNotify( 'warning', `Los valores deben ser mayor o igual a 1`);
 
       try {
         loading.value = true;
         if ( !edit ){
-          let headers: any;
-            await api.post('/sucursal', formSucursal.value, headers)
+          await api.post('/sucursal', {
+            ...formSucursal.value,
+            nombre: formSucursal.value.nombre.toUpperCase()
+          })
         }else{
           formSucursal.value.establecimiento = formSucursal.value.establecimiento.toString();
           formSucursal.value.punto_emision = formSucursal.value.punto_emision.toString();
           formSucursal.value.secuencia_factura_produccion = formSucursal.value.secuencia_factura_produccion.toString();
           formSucursal.value.secuencia_nota_credito_produccion = formSucursal.value.secuencia_nota_credito_produccion.toString();
+          formSucursal.value.nombre = formSucursal.value.nombre.toUpperCase()
           await api.patch('/sucursal/' + formSucursal.value.id, formSucursal.value)
         }
-        
+
         mostrarNotify( 'positive', `Sucursal ${ edit ? 'editado' : 'agregado' } exitosamente`);
         loading.value = false;
 

@@ -39,6 +39,9 @@
     data.forEach(( x ) => {
       sucursales.value.push({ label: x.nombre, value: x.id })
     })
+
+    if(claim.roles[0] !== 'SUPER-ADMINISTRADOR' || claim.roles[0] !== 'ADMINISTRADOR')
+      sucursal_selected.value = claim.sucursales[0]
   }
 
   function procesarDatosExcel(data) {
@@ -87,24 +90,24 @@
 
       if(rows.value[index].length > 0){
         const element = rows.value[index];
-  
-        clientes.value.unshift({ 
-          nombre: element[0], 
-          estado: 'cargando', 
+
+        clientes.value.unshift({
+          nombre: element[0],
+          estado: 'cargando',
           message: '',
-          index 
+          index
         })
-  
+
         try {
-  
-          await espera(700)
-          let headers = { headers: { sucursal_id: sucursal_selected.value } };
-  
+
+          await espera(50)
+          let headers = { company_id: claim.company.id };
+
           let codigo;
           if ( element[1].toLowerCase() == 'ruc' ) codigo = '04'
-          if ( element[1].toLowerCase() == 'cedula' ) codigo = '05'        
-          if ( element[1].toLowerCase() == 'pasaporte' ) codigo = '06'        
-  
+          if ( element[1].toLowerCase() == 'cedula' ) codigo = '05'
+          if ( element[1].toLowerCase() == 'pasaporte' ) codigo = '06'
+
           await api.post('/customers/create', {
             nombres:          element[0],
             tipo_documento:   codigo,
@@ -112,11 +115,11 @@
             email:            element[3],
             celular:          element[4].toString(),
             direccion:        element[5]
-          }, headers)
-  
+          }, { headers })
+
           let cliente = clientes.value.find( cliente => cliente.index == index)
           cliente.estado = 'success';
-          
+
         } catch (error) {
           let cliente = clientes.value.find( cliente => cliente.index == index)
           cliente.estado = 'error'
@@ -127,8 +130,8 @@
       if ( (index + 1) == rows.value.length ){
         emit('actualizarDatos')
         loading.value = false;
-      } 
-      
+      }
+
     }
   }
 
@@ -157,8 +160,8 @@
             v-model="filesSelected" outlined multiple append>
             <template v-slot:append>
               <q-icon name="fa-solid fa-file-excel">
-              </q-icon>   
-            </template>       
+              </q-icon>
+            </template>
             <template v-slot:error>
               <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                 {{ validaciones.file.message }}
@@ -166,7 +169,8 @@
             </template>
           </q-file>
         </div>
-        <div class="col-xs-11 col-sm-9 text-center q-mt-md">
+        <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
+          class="col-xs-11 col-sm-9 text-center q-mt-md">
           <label>Elige una sucursal:</label>
           <q-select outlined dense v-model="sucursal_selected"
             :error="!validaciones.sucursal.isValid"
@@ -179,7 +183,7 @@
             </template>
           </q-select>
         </div>
-      </div>  
+      </div>
 
       <div v-if="clientes.length > 0" class="col-12 q-mt-md">
         <q-list bordered id="scrollList">
@@ -198,7 +202,7 @@
             </q-item-section>
           </q-item>
         </q-list>
-      </div> 
+      </div>
 
       <div class="col-xs-9 col-md-12 flex justify-center q-ml-none">
         <q-btn label="Subir clientes" :loading="loading"
@@ -236,4 +240,3 @@
 }
 </style>
 
-  

@@ -4,7 +4,7 @@ export const useAuthUserStore = defineStore('auth/user', {
   state: (): { token: string, permisos: string[], modeDark: boolean } => ({
     token: '',
     permisos: [],
-    modeDark: true
+    modeDark: false
   }),
   persist: {
     storage: sessionStorage,

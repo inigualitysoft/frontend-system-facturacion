@@ -12,7 +12,8 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     claim,
     modalAgregarProducto,
     modalEditarProducto,
-    formProduct
+    formProduct,
+    selectSucursal: selectSucursalForm
   } = useProduct();
 
   const columns = [
@@ -20,6 +21,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     { name: 'codigoBarra', label: 'Codigo de Barra', align: 'center', field: 'codigoBarra' },
     { name: 'producto', label: 'Producto', align: 'center', field: 'nombre' },
     { name: 'stock', label: 'Stock', align: 'center', field: 'stock' },
+    { name: 'descuento', label: 'Descuento', align: 'center', field: 'descuento' },
     { name: 'aplicaIva', label: 'Aplica Iva', align: 'center', field: 'aplicaIva' },
     { name: 'estado', label: 'Estado', align: 'center', field: 'isActive' }
   ]
@@ -48,33 +50,33 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     sortBy: 'desc',
     descending: false,
     page: 1,
-    rowsPerPage: 5,
-    rowsNumber: 5
+    rowsPerPage: 10,
+    rowsNumber: 15
   })
 
   const activarDesactivarProduct = async (product_id, estado) => {
     try {
       const { data: { msg } } = await api.patch(`/products/${ product_id }/${ estado }`)
       mostrarNotify('positive', msg );
-      getArticulos(1, pagination.value.rowsPerPage, null)
+      getArticulos(1, pagination.value.rowsPerPage)
     } catch (error) {
       console.log(error);
     }
   }
 
   watch( isDeleted, ( newValue, _ ) => {
-    if ( newValue ) getArticulos(1, pagination.value.rowsPerPage, null)
+    if ( newValue ) getArticulos(1, pagination.value.rowsPerPage)
   })
 
   watch(tipoBusqueda, (currentValue, _) => {
     // formFiltrarArticulo.value.tipoBusqueda = currentValue;
 
-    getArticulos(1, pagination.value.rowsPerPage, null);
+    getArticulos(1, pagination.value.rowsPerPage);
   });
 
   watch(actualizarTabla, (currentValue, _) => {
     if ( currentValue ){
-      getArticulos(1, pagination.value.rowsPerPage, null)
+      getArticulos(1, pagination.value.rowsPerPage)
       actualizarTabla.value = false
     }
   });
@@ -90,11 +92,11 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
   const getSucursales = async () => {
     loading.value = true;
     try {
-      const { data } = await api.get('/sucursal');
-      data.forEach(( companie ) => {
+      const { data } = await api.get(`/sucursal/find/${ claim.company.id }/company`);
+      data.forEach(( sucursal ) => {
         listSucursales.value.push({
-          label:  companie.nombre,
-          value:  companie.id
+          label:  sucursal.nombre,
+          value:  sucursal.id
         })
       });
       if ( listSucursales.value.length !== 0 ) selectSucursal.value = listSucursales.value[0].value
@@ -104,18 +106,17 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     loading.value = false;
   }
 
-  const getArticulos = async (page = 1, rowsPerPage = 5, filtro = null) => {
+  const getArticulos = async (page = 1, rowsPerPage = 10) => {
 
     if ( listSucursales.value.length == 0 ) await getSucursales();
 
-    let headers = { headers: { sucursal_id: selectSucursal.value } };
+    let headers = { sucursal_id: selectSucursal.value };
 
     try {
       const { data } = await api.get('/products', {
-        params: { page, limit: rowsPerPage, busqueda: 0 },
-        headers: headers.headers
+        params: { page, limit: rowsPerPage, busqueda: filter.value },
+        headers: headers
       })
-
       pagination.value.rowsNumber = data.meta.totalItems;
       rows.value = data.items;
     } catch (error) {
@@ -146,8 +147,6 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
   }
 
   async function onRequest ( props ) {
-
-    // formFiltrarArticulo.value.busqueda = filter.value
 
     const { page, rowsPerPage, sortBy, descending } = props.pagination;
 
@@ -185,7 +184,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
               :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
               :columns="columns" row-key="name" :grid="mode==='grid'"
               :filter="filter" v-model:pagination="pagination"
-              :rows-per-page-options="[3, 7, 15, 0]" ref="tableRef"
+              :rows-per-page-options="[10, 15, 20, 0]" ref="tableRef"
               binary-state-sort @request="onRequest">
 
               <template v-slot:header="props">
@@ -212,7 +211,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                     <span>Sucursal: </span>
                   </label>
                   <q-select outlined dense v-model="selectSucursal"
-                    @update:model-value="getArticulos()"
+                    @update:model-value="getArticulos(1, pagination.rowsPerPage)"
                     emit-value map-options
                   :options="listSucursales">
                   </q-select>
@@ -225,7 +224,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                   outline color="primary" label="Agregar Producto" class="q-mr-xs"/>
 
                 <q-btn-dropdown outline class="q-mr-sm q-ml-xs"
-                  color="primary" icon="fa-solid fa-file-excel">
+                  color="teal-6" icon="fa-solid fa-file-excel">
                   <q-list>
                     <q-item clickable v-close-popup
                       @click="showModalUploadFile = true">
@@ -252,7 +251,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                 </q-btn-dropdown>
 
                 <q-input :style="$q.screen.width > 700 || 'width: 70%'"
-                  outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
+                  outlined dense debounce="900" v-model="filter" placeholder="Buscar...">
                   <template v-slot:append>
                     <q-icon name="search"/>
                   </template>
@@ -285,9 +284,8 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                 <template v-if="props.row.isActive">
                   <q-btn v-if="validarPermisos('editar.productos')"
                     round color="blue-grey"
-                    @click="formProduct = { ...props.row }, modalEditarProducto = true"
+                    @click="formProduct = { ...props.row,  }, selectSucursalForm = props.row.sucursal_id.id, modalEditarProducto = true"
                     icon="edit" class="q-mr-sm" size="10px" />
-
                   <q-btn round color="blue-grey"
                     v-if="validarPermisos('inactivar.productos')"
                     icon="close"
@@ -314,6 +312,9 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
             <template v-slot:body-cell-producto="props">
               <q-td :props="props"> {{ props.row.nombre }} </q-td>
             </template>
+            <template v-slot:body-cell-descuento="props">
+              <q-td :props="props"> {{ props.row.descuento }}% </q-td>
+            </template>
             <template v-slot:body-cell-aplicaIva="props">
               <q-td :props="props"> {{ props.row.aplicaIva ? 'SI' : 'NO' }} </q-td>
             </template>
@@ -330,11 +331,9 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
             <template v-slot:no-data="{ icon }">
               <div class="full-width row flex-center text-lime-10 q-gutter-sm">
-                <q-icon size="2em" name="sentiment_dissatisfied" />
                 <span class="text-subtitle1">
                   No se encontró ningun Resultado
                 </span>
-                <q-icon size="2em" :name="filter ? 'filter_b_and_w' : icon" />
               </div>
             </template>
           </q-table>

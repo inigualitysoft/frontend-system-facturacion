@@ -3,25 +3,25 @@
   import AddRol from './AddRol.vue'
   import EditRol from './EditRol.vue'
   import { useRol } from "./composables/useRol.js";
-  import useRolPermisos from "src/composables/useRolPermisos.js"; 
+  import useRolPermisos from "src/composables/useRolPermisos.js";
 
   let  columns = [
     { name: "id", align: "center", label: "#", field: "change_id", sortable: true },
     { name: "rol", align: "center", label: "Rol", field: "nombre", sortable: true },
     { name: "acciones", align: "center", label: "Acciones" }
   ];
-  
-  const { 
+
+  const {
     api,
     mostrarNotify,
     confirmDelete,
     isDeleted,
-    actualizarLista, 
-    loading, 
-    modalAgregarRol, 
-    modalEditarRol, 
+    actualizarLista,
+    loading,
+    modalAgregarRol,
+    modalEditarRol,
     permisosSelected,
-    formRol 
+    formRol
   } = useRol();
   const { validarPermisos } = useRolPermisos();
 
@@ -33,7 +33,7 @@
   })
 
   watch(actualizarLista, (currentValue, _) => {
-    if ( currentValue ) getRoles(); 
+    if ( currentValue ) getRoles();
   });
   const getRoles = async () => {
     loading.value = true;
@@ -55,7 +55,7 @@
     formRol.value.permisos  = [];
     formRol.value.nombre = rol.nombre;
     modalEditarRol.value = true;
-  } 
+  }
 
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getRoles() });
   const eliminarRol = async ( rol_id ) => {
@@ -67,7 +67,7 @@
   }
 
   getRoles();
-    
+
 </script>
 <template>
     <div class="q-ma-lg q-pt-md">
@@ -77,7 +77,7 @@
             <q-table title-class="text-grey-7 text-h6"
               title="Listado de Roles" :loading="loading"
               :rows="rows" :hide-header="mode === 'grid'"
-              :columns="columns" row-key="name" :grid="mode==='grid'" 
+              :columns="columns" row-key="name" :grid="mode==='grid'"
               :filter="filter" :pagination.sync="pagination">
 
               <template v-slot:loading>
@@ -98,17 +98,17 @@
               <template v-slot:top-right="props">
 
                 <q-btn v-if="!$q.screen.xs && validarPermisos('crear.rol')"
-                  @click="modalAgregarRol = !modalAgregarRol" 
-                  outline color="primary" label="Agregar Rol" 
+                  @click="modalAgregarRol = !modalAgregarRol"
+                  outline color="primary" label="Agregar Rol"
                   :class="$q.screen.width < 700 ? 'q-mb-md q-mt-sm q-mr-xl' : 'q-mr-xs'" />
-  
+
                 <q-input :style="$q.screen.width < 700 ? 'width: 70%' : ''"
-                  outlined dense debounce="300" v-model="filter" placeholder="Search">
+                  outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                   <template v-slot:append>
                     <q-icon name="search"/>
                   </template>
                 </q-input>
-  
+
                 <q-btn flat round dense
                   :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
                   @click="props.toggleFullscreen"
@@ -117,7 +117,7 @@
                     {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                   </q-tooltip>
                 </q-btn>
-  
+
                 <q-btn flat round dense
                   :icon="mode === 'grid' ? 'list' : 'grid_on'"
                   @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
@@ -126,7 +126,7 @@
                     {{ mode === 'grid' ? 'List' : 'Grid' }}
                   </q-tooltip>
                 </q-btn>
-  
+
               </template>
 
               <template v-slot:body-cell-id="props">
@@ -137,16 +137,18 @@
 
               <template v-slot:body-cell-acciones="props">
                 <q-td :props="props">
-                    <q-btn v-if="validarPermisos('editar.rol')"
-                      round color="blue-grey"
-                      @click="editRol( props.row )"
-                      icon="edit" class="q-mr-sm" size="11px" />
-                      
-                      <q-btn round color="blue-grey" class="q-ml-sm"
-                      v-if="validarPermisos('eliminar.rol')"
-                      icon="delete"
-                      @click="eliminarRol(props.row.id)"
-                      size="11px" />
+                  <q-btn v-if="validarPermisos('editar.rol')"
+                    round color="blue-grey"
+                    @click="editRol( props.row )"
+                    icon="edit" class="q-mr-sm" size="11px" />
+
+                  <q-btn round color="blue-grey" class="q-ml-sm"
+                    v-if="validarPermisos('eliminar.rol')"
+                    icon="delete"
+                    :disable="props.row.nombre == 'SUPER-ADMINISTRADOR'
+                            || props.row.nombre == 'ADMINISTRADOR'"
+                    @click="eliminarRol(props.row.id)"
+                    size="11px" />
                 </q-td>
               </template>
 
@@ -169,13 +171,13 @@
         v-if="$q.screen.xs && validarPermisos('crear.rol')">
       <q-btn round color="secondary" size="lg" icon="add" @click="modalAgregarCliente = !modalAgregarCliente" />
     </q-page-sticky>
-  
+
     <q-dialog v-model="modalAgregarRol">
       <AddRol />
     </q-dialog>
-  
+
     <q-dialog v-model="modalEditarRol">
       <EditRol />
     </q-dialog>
-  
+
   </template>

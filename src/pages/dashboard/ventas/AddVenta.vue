@@ -15,6 +15,7 @@
     valorFactura,
     agregarAndValidarStock,
     filterArticulo,
+    formatearNumero,
     getSubtotalByProduct,
     sucursal_selected,
     iva_selected,
@@ -93,7 +94,8 @@
     modalAgregarCliente.value = false;
 
     try {
-      const { data: clientes } = await api.get('/customers');
+      let headers = { company_id: claim.company.id };
+      const { data: clientes } = await api.get('/customers', { headers });
 
       listClientes.value = [];
 
@@ -475,32 +477,34 @@
             <tr class="text-right">
               <td><b>TOTAL BRUTO:</b></td>
               <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
-                ${{ valorFactura.subtotal }}
+                ${{ valorFactura.subtotal.toFixed(2) }}
               </td>
             </tr>
             <tr class="text-right">
               <td><b>DESCUENTOS:</b></td>
               <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
-                ${{ valorFactura.descuento }}
+                ${{ valorFactura.descuento.toFixed(2) }}
               </td>
             </tr>
             <tr class="text-right">
               <td><b>SUBTOTAL:</b></td>
               <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
-                ${{ valorFactura.subtotal - valorFactura.descuento }}
+                ${{
+                  formatearNumero(valorFactura.subtotal - valorFactura.descuento).toFixed(2)
+                }}
               </td>
             </tr>
             <tr class="text-right">
               <td><b>IVA({{ iva_selected }}%):</b></td>
               <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
-                ${{ valorFactura.iva }}
+                ${{ valorFactura.iva.toFixed(2) }}
               </td>
             </tr>
             <tr class="text-right">
               <td><b>TOTAL DE VENTA:</b></td>
               <td style="width: 50px;">
                 <q-badge outline class="text-subtitle1 text-weight-bold"
-                    color="secondary" :label="`$${ valorFactura.total }`" />
+                    color="secondary" :label="`$${ valorFactura.total.toFixed(2) }`" />
               </td>
             </tr>
           </table>
