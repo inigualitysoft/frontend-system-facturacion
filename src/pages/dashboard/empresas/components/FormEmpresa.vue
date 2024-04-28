@@ -54,14 +54,8 @@
             <label>Razón Social</label>
             <q-input v-model.trim="formEmpresa.razon_social"
               input-style="text-transform: uppercase;"
-              @update:model-value="validaciones.razon_social.isValid = true"
-              :error="!validaciones.razon_social.isValid"
-              dense filled>
-              <template v-slot:error>
-                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                  {{ validaciones.razon_social.message }}
-                </label>
-              </template>
+              readonly
+              dense outlined>
             </q-input>
           </div>
 
@@ -139,25 +133,39 @@
             </q-input>
           </div>
 
-          <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-xs']">
-            <label>Clave Certificado:</label>
-            <q-input :type="isPwd ? 'password' : 'text'" filled
-              v-model.trim="formEmpresa.clave_certificado" dense
-              @update:model-value="validaciones.clave_certificado.isValid = true"
-              :error="!validaciones.clave_certificado.isValid">
+          <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
+            <label>Logo de la empresa:</label>
+            <q-file dense filled bottom-slots
+              accept=".jpg, image/*" @rejected="onRejected"
+              @update:model-value="validaciones.logo.isValid = true"
+              v-model="formEmpresa.logo"
+              :error="!validaciones.logo.isValid"
+              :label="formEmpresa.logo_old == null ?
+                'Cargar Logo' : formEmpresa.logo_old">
+
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                  {{ validaciones.clave_certificado.message }}
+                  {{ validaciones.logo.message }}
                 </label>
               </template>
-              <template v-slot:append>
-                <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" color="blue-grey"
-                  class="cursor-pointer" @click="isPwd = !isPwd" />
-              </template>
+
               <template v-slot:prepend>
-                <q-icon name="key" color="blue-grey-3" />
+                <q-icon name="fa-solid fa-image" />
               </template>
-            </q-input>
+
+              <template v-slot:hint>
+                <div>
+                  Tamaño máximo 100 KB, extensión .jpg o .png y ser menor o igual a 200px por 200px."
+                </div>
+              </template>
+
+              <template v-slot:append>
+                <q-icon name="close"
+                  v-if="typeof(formEmpresa.logo) === 'object' && formEmpresa.logo !== null"
+                  @click.stop.prevent="formEmpresa.logo = null" class="cursor-pointer" />
+              </template>
+
+            </q-file>
           </div>
 
           <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
@@ -188,42 +196,35 @@
 
             </q-file>
           </div>
-          <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
-            <label>Logo de la empresa:</label>
-            <q-file dense filled bottom-slots
-              accept=".jpg, image/*" @rejected="onRejected"
-              @update:model-value="validaciones.logo.isValid = true"
-              v-model="formEmpresa.logo"
-              :error="!validaciones.logo.isValid"
-              :label="formEmpresa.logo_old == null ?
-                'Cargar Logo' : formEmpresa.logo_old">
 
+          <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-xs']">
+            <label>Clave Certificado:</label>
+            <q-input :type="isPwd ? 'password' : 'text'" filled
+              v-model.trim="formEmpresa.clave_certificado" dense
+              @update:model-value="validaciones.clave_certificado.isValid = true"
+              :error="!validaciones.clave_certificado.isValid">
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                  {{ validaciones.logo.message }}
+                  {{ validaciones.clave_certificado.message }}
                 </label>
               </template>
-
-              <template v-slot:prepend>
-                <q-icon name="fa-solid fa-image" />
-              </template>
-
-              <template v-slot:hint>
-                <div>
-                  La imagen debe tener las siguientes características:
-                </div>
-                <div>
-                  Tamaño máximo 100 KB, extensión .jpg o .png y ser menor a 200px por 200px."
-                </div>
-              </template>
-
               <template v-slot:append>
-                <q-icon name="close"
-                  v-if="typeof(formEmpresa.logo) === 'object' && formEmpresa.logo !== null"
-                  @click.stop.prevent="formEmpresa.logo = null" class="cursor-pointer" />
+                <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" color="blue-grey"
+                  class="cursor-pointer" @click="isPwd = !isPwd" />
               </template>
+              <template v-slot:prepend>
+                <q-icon name="key" color="blue-grey-3" />
+              </template>
+            </q-input>
+          </div>
 
-            </q-file>
+          <div class="col-xs-11 col-md-4" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
+            <label>Fecha Exp. Firma Electrónica:</label>
+            <q-input v-model.trim="formEmpresa.fecha_caducidad_certificado"
+              input-style="text-transform: uppercase;"
+              readonly
+              dense outlined>
+            </q-input>
           </div>
 
           <div class="col-xs-11 col-md-3" :class="[ $q.screen.width > 600 || 'q-mt-sm']">

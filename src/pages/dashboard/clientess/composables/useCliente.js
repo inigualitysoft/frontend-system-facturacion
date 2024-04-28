@@ -1,6 +1,5 @@
 import { ref, onMounted, watch } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
-import { api } from "boot/axios";
 
 const loading  = ref( false );
 const formCliente = ref({
@@ -18,7 +17,7 @@ const actualizarLista     = ref(false);
 
 export const useCliente = () => {
 
-    const { claim, mostrarNotify } = useHelpers();
+    const { api, claim, mostrarNotify } = useHelpers();
 
     const limpiarFormulario = () => {
       formCliente.value.nombres = ''
@@ -29,9 +28,39 @@ export const useCliente = () => {
       formCliente.value.direccion = ''
     }
 
+    const validaciones = ref({
+      nombres:          { message: '', isValid: true },
+      tipo_documento:   { message: '', isValid: true },
+      numero_documento: { message: '', isValid: true },
+      email:            { message: '', isValid: true },
+      celular:          { message: '', isValid: true },
+      direccion:        { message: '', isValid: true },
+    })
+
+    const validarCampos = () => {
+      let existError = false;
+      var validEmail =  /^\w+([.-_+]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/;
+      const camposRequeridos = ['nombres', 'tipo_documento', 'numero_documento', 'email', 'celular', 'direccion'];
+
+      camposRequeridos.forEach( campo => {
+        if ( formCliente.value[campo].length == 0 ) {
+          validaciones.value[campo].message = 'Debes completar este campo'
+          validaciones.value[campo].isValid = false;
+          existError = true;
+        }
+      })
+
+      if( validaciones.value['email'].isValid && !validEmail.test(formCliente.value.email) ){
+        validaciones.value.email.message = 'Ingresa un email valido'
+        validaciones.value.email.isValid = false
+        existError = true;
+      }
+
+      return existError;
+    }
+
     const allowOnlyNumber = () => {
       formCliente.value.numero_documento = formCliente.value.numero_documento.replace(/\D/g, '');
-      formCliente.value.celular          = formCliente.value.celular.replace(/\D/g, '');
 		}
 
     onMounted(() => {
@@ -50,9 +79,12 @@ export const useCliente = () => {
     })
 
     const onSubmit = async( edit ) => {
+
+      if ( validarCampos() || !validaciones.value.celular.isValid) return;
+
       try {
         loading.value = true;
-        let headers = { company_id: claim.company.id }
+        let headers = { 'company-id': claim.company.id }
 
         if ( !edit )
           await api.post('/customers/create', formCliente.value, { headers })
@@ -61,9 +93,9 @@ export const useCliente = () => {
 
         mostrarNotify( 'positive', `Cliente ${ edit ? 'editado' : 'agregado' } exitosamente`);
 
-        modalAgregarCliente.value  = false;
-        modalEditarCliente.value   = false;
-        actualizarLista.value      = true
+        modalAgregarCliente.value = false;
+        modalEditarCliente.value  = false;
+        actualizarLista.value     = true
 
         loading.value = false;
       } catch (error) {
@@ -84,6 +116,7 @@ export const useCliente = () => {
         (val) => val.length >= ((formCliente.value.tipo_documento === '04') ? 13 : 10) ||
           `Debes completar ${ ((formCliente.value.tipo_documento === '04') ? 13 : 10) } digitos`,
       ],
+      validaciones,
       validateNumCelular: [
         (val) => val.length >= 10 || 'Debes completar 10 digitos'
       ],

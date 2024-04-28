@@ -102,7 +102,7 @@ export const useProduct = () => {
 
       loading.value = true;
 
-      let headers = { headers: { sucursal_id: selectSucursal.value } };
+      let headers = { headers: { 'sucursal-id': selectSucursal.value } };
 
       if ( !edit )
         await api.post('/products', formProduct.value, headers)

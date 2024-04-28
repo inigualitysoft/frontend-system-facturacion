@@ -24,12 +24,17 @@
   const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
   const { validarPermisos } = useRolPermisos();
 
-  const getSucursales = async () => {
+  const getSucursales = async (  ) => {
     loading.value = true;
     try {
-      let headers = { headers: { company_id: selectCompany.value, NotSetHeaderCompany: true } };
+      const company_id = selectCompany.value
+      selectCompany.value = ''
+
+      let headers = { headers: { 'company-id': company_id } };
       const { data } = await api.get('/sucursal', headers);
+
       rows.value = data;
+      selectCompany.value = company_id
     } catch (error: any) {
       mostrarNotify( 'warning', error.response.data.message )
     }
@@ -73,7 +78,12 @@
           <q-table title-class="text-grey-7 text-h6"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination" >
+            :filter="filter" :pagination.sync="pagination">
+
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary" />
+            </template>
+
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
                 <q-th v-for="col in props.cols" :key="col.name"

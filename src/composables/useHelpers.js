@@ -19,7 +19,7 @@ const useHelpers = () => {
   if(authUserStore.token !== ''){
     const data = JWT.read( authUserStore.token );
     claim = data.claim
-  } 
+  }
 
   const confirmDelete = ( message, ruta ) => {
     isDeleted.value = false;
@@ -67,9 +67,22 @@ const useHelpers = () => {
     })
   }
 
+  const formatearNumero = (numero) => {
+    let partes = numero.toString().split('.');
+    let numeroFormateado = parseFloat(partes[0]);
+
+    if (partes.length > 1) {
+        numeroFormateado += parseFloat('.' + partes[1].substring(0, 2));
+    } else {
+        numeroFormateado += parseFloat('.00');
+    }
+
+    return parseFloat(numeroFormateado.toFixed(2));
+  }
+
   const showLoading = ( active = true ) => {
-    if ( active ) 
-      Loading.show({ message: 'Cargando...' });      
+    if ( active )
+      Loading.show({ message: 'Cargando...' });
     else
     Loading.hide();
   }
@@ -80,6 +93,7 @@ const useHelpers = () => {
     confirmDelete,
     mostrarNotify,
     isDeleted,
+    formatearNumero,
     showLoading,
     router,
     route

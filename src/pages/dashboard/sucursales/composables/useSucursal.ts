@@ -1,4 +1,3 @@
-import { api } from "boot/axios";
 import { ref } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
 
@@ -6,12 +5,14 @@ export interface Sucursal {
   id?:                                string;
   nombre:                             string;
   direccion:                          string;
-  establecimiento:                    string;
-  punto_emision:                      string;
-  secuencia_factura_produccion:       string;
-  secuencia_factura_pruebas?:         string;
-  secuencia_nota_credito_produccion:  string;
-  secuencia_nota_credito_pruebas?:    string;
+  establecimiento:                    number;
+  punto_emision:                      number;
+  secuencia_factura_produccion:       number;
+  secuencia_factura_pruebas?:         number;
+  secuencia_nota_credito_produccion:  number;
+  secuencia_nota_credito_pruebas?:    number;
+  secuencia_retencion_produccion:     number;
+  secuencia_retencion_pruebas?:       number;
   company_id:                         string;
   ambiente?:                          string;
   created_at?:                        string;
@@ -24,19 +25,21 @@ const listCompanies = ref<{ label: string; value: string; }[]>([]);
 const formSucursal = ref<Sucursal>({
   nombre: '',
   direccion: '',
-  establecimiento: '',
-  punto_emision: '',
-  secuencia_factura_produccion: '',
-  secuencia_factura_pruebas: '',
-  secuencia_nota_credito_produccion: '',
-  secuencia_nota_credito_pruebas: '',
+  establecimiento: 0,
+  punto_emision: 0,
+  secuencia_factura_produccion: 0,
+  secuencia_factura_pruebas: 0,
+  secuencia_nota_credito_produccion: 0,
+  secuencia_nota_credito_pruebas: 0,
+  secuencia_retencion_produccion: 0,
+  secuencia_retencion_pruebas: 0,
   ambiente: 'PRUEBA',
   company_id: ''
 })
 
 export const useSucursal = () => {
 
-  const { mostrarNotify, claim, router, route } = useHelpers();
+  const { api, mostrarNotify, claim, router, route } = useHelpers();
 
     const cargarCompanies = async () => {
       listCompanies.value = [];
@@ -55,43 +58,29 @@ export const useSucursal = () => {
     const limpiarFormulario = () => {
       formSucursal.value.nombre = ''
       formSucursal.value.direccion = ''
-      formSucursal.value.establecimiento = ''
-      formSucursal.value.punto_emision = ''
-      formSucursal.value.secuencia_factura_produccion = ''
-      formSucursal.value.secuencia_factura_pruebas = ''
-      formSucursal.value.secuencia_nota_credito_produccion = ''
-      formSucursal.value.secuencia_nota_credito_pruebas = ''
+      formSucursal.value.establecimiento = 1
+      formSucursal.value.punto_emision = 1
+      formSucursal.value.secuencia_factura_produccion = 1
+      formSucursal.value.secuencia_factura_pruebas = 1
+      formSucursal.value.secuencia_nota_credito_produccion = 1
+      formSucursal.value.secuencia_nota_credito_pruebas = 1
     }
-
-    const allowOnlyNumber = () => {
-      formSucursal.value.establecimiento = formSucursal.value.establecimiento.toString().replace(/\D/g, '');
-      formSucursal.value.punto_emision = formSucursal.value.punto_emision.toString().replace(/\D/g, '');
-      formSucursal.value.secuencia_factura_produccion  = formSucursal.value.secuencia_factura_produccion.toString().replace(/\D/g, '');
-      formSucursal.value.secuencia_nota_credito_produccion  = formSucursal.value.secuencia_nota_credito_produccion.toString().replace(/\D/g, '');
-		}
 
     const onSubmit = async( edit: boolean ) => {
 
-      if (parseInt(formSucursal.value.establecimiento) <= 0 ||
-        parseInt(formSucursal.value.punto_emision) <= 0 ||
-        parseInt(formSucursal.value.secuencia_factura_produccion) <= 0)
+      if (formSucursal.value.establecimiento <= 0 ||
+        formSucursal.value.punto_emision <= 0 ||
+        formSucursal.value.secuencia_factura_produccion <= 0)
         return mostrarNotify( 'warning', `Los valores deben ser mayor o igual a 1`);
 
       try {
         loading.value = true;
-        if ( !edit ){
-          await api.post('/sucursal', {
-            ...formSucursal.value,
-            nombre: formSucursal.value.nombre.toUpperCase()
-          })
-        }else{
-          formSucursal.value.establecimiento = formSucursal.value.establecimiento.toString();
-          formSucursal.value.punto_emision = formSucursal.value.punto_emision.toString();
-          formSucursal.value.secuencia_factura_produccion = formSucursal.value.secuencia_factura_produccion.toString();
-          formSucursal.value.secuencia_nota_credito_produccion = formSucursal.value.secuencia_nota_credito_produccion.toString();
-          formSucursal.value.nombre = formSucursal.value.nombre.toUpperCase()
+        formSucursal.value.nombre = formSucursal.value.nombre.toUpperCase()
+
+        if ( !edit )
+          await api.post('/sucursal', formSucursal.value)
+        else
           await api.patch('/sucursal/' + formSucursal.value.id, formSucursal.value)
-        }
 
         mostrarNotify( 'positive', `Sucursal ${ edit ? 'editado' : 'agregado' } exitosamente`);
         loading.value = false;
@@ -112,7 +101,6 @@ export const useSucursal = () => {
       limpiarFormulario,
       cargarCompanies,
       listCompanies,
-      allowOnlyNumber,
       onSubmit
     }
 }

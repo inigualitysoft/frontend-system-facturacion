@@ -100,7 +100,7 @@
         try {
           await espera(70)
 
-          let headers = { sucursal_id: sucursal_selected.value };
+          let headers = { 'sucursal-id': sucursal_selected.value };
 
           await api.post('/products', {
             aplicaIva: element[4] == 'SI' ? true : false,

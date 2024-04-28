@@ -58,6 +58,15 @@
         ]
       },
       {
+        "label": "Retenciones",
+        "value": "Retenciones",
+        "children": [
+          { "label": "Ver Retenciones", "value": "index.retencion" },
+          { "label": "Crear Retencion", "value": "crear.retencion" },
+          { "label": "Anular Retencion", "value": "anular.retencion" }
+        ]
+      },
+      {
         "label": "Gestión Personal",
         "value": "Gestión Personal",
         "children": [

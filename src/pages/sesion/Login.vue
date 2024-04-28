@@ -36,8 +36,13 @@
           style="width: 80%;margin-left: 29px;margin-top: 48px;margin-bottom: 24px;" />
       </div>
       <form @submit.prevent="onSubmit" class="element-form q-mt-md">
-        <q-input  label-color="blue-grey-10" color="primary"  class="q-mb-lg custom-input"
-        bg-color="blue-2" filled label="Ingresa tu email" rounded outlined
+        <q-input
+          type="email"
+          label-color="blue-grey-10" color="primary"
+          class="q-mb-lg custom-input"
+          bg-color="blue-2" filled
+          label="Ingresa tu email"
+          rounded outlined
           v-model.trim="form.email" required>
 
           <template v-slot:prepend>

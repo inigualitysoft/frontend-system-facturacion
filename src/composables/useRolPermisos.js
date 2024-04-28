@@ -5,7 +5,9 @@ const useRolPermisos = () => {
     const authUserStore = useAuthUserStore();
 
     const validarPermisos = ( permiso ) => {
-      if(authUserStore.permisos !== null && authUserStore.permisos.includes( permiso ))
+      if(authUserStore.permisos !== null &&
+          (authUserStore.permisos.includes( permiso ) || permiso == 'sin-permiso')
+        )
         return true;
       else
         return false;

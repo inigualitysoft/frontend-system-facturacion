@@ -14,7 +14,7 @@ const { api, claim, mostrarNotify } = useHelpers()
 
 const onSubmit = async () => {
   try {
-    let headers = { company_id: claim.company.id  }
+    let headers = { 'company-id': claim.company.id  }
     await api.post('/proforma/clausula', {
       clausulas: props.clausulas,
       aceptacion_proforma: detalle.value

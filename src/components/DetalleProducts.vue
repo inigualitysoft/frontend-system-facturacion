@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import useHelpers from "../composables/useHelpers";
 
 const columns: any = [
-  { label: 'Codigo Barra', align: 'left', name: 'codigoBarra' },
+  { label: 'Codigo', align: 'left', name: 'codigoBarra' },
   { label: 'Producto', align: 'left', name: 'product' },
   { label: 'Cantidad', align: 'center', field: 'cantidad' },
   { label: 'Precio de Venta', align: 'center', name: 'pvp' },
@@ -12,7 +13,7 @@ const columns: any = [
 ]
 
 const props = defineProps<{ detalleData: any }>();
-const { api, claim, mostrarNotify } = useHelpers();
+const { api, claim, mostrarNotify, formatearNumero } = useHelpers();
 
 let estado: string;
 if (props.detalleData.buyToProduct) {
@@ -48,6 +49,13 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
   }
 }
 
+const pagination = ref({
+  sortBy: 'desc',
+  descending: false,
+  page: 1,
+  rowsPerPage: 10,
+  rowsNumber: 15
+})
 </script>
 
 <template>
@@ -56,13 +64,13 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
     <q-card-section class="q-pb-none">
       <div class="text-h6 text-center">
         {{ props.detalleData.buyToProduct
-            ? 'Detallle de Compra'
-            : 'Detalle de la Factura/Proforma'
+            ? 'Detalle de Compra'
+            : props.detalleData.estadoSRI == 'PROFORMA' ? 'Detalle de la Proforma' : 'Detalle de la Factura'
         }}
       </div>
     </q-card-section>
 
-    <q-card-section>
+    <q-card-section class="q-pb-none q-pt-xs">
       <div class="row q-gutter-sm text-center">
         <div class="col-xs-12 col-sm-5"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
@@ -125,7 +133,7 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
         </div>
         <div class="col-xs-12 col-sm-5 q-mt-none flex items-center"
           :class="[$q.screen.xs ? 'justify-center' : 'q-ml-lg']">
-          <label>{{ props.detalleData.user_id.fullName }}</label>
+          <label>{{ props.detalleData.user_id.fullName.toUpperCase() }}</label>
         </div>
         <div class="col-xs-12 col-sm-5 q-mt-none"
           :class="[$q.screen.xs ? 'text-center' : 'text-right']">
@@ -156,10 +164,13 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
         </div>
 
         <div class="col-xs-12 col-sm-12 q-my-sm">
-          <q-table :class="[$q.dark.isActive ? '' : 'my-sticky-header-table2']"
+          <q-table
+            style="max-height: 300px"
+            :class="[$q.dark.isActive ? '' : 'my-sticky-header-table2']"
             :rows="props.detalleData.invoiceToProduct ?
               props.detalleData.invoiceToProduct : props.detalleData.buyToProduct"
             :columns="columns"
+            v-model:pagination="pagination"
             hide-bottom
             row-key="name">
             <template v-slot:body-cell-indice="props">
@@ -187,7 +198,9 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
             </template>
 
             <template v-slot:body-cell-total="props">
-              <q-td :props="props">${{ props.row.v_total }}</q-td>
+              <q-td :props="props">
+                {{ props.row.v_total }}
+              </q-td>
             </template>
 
             <template v-slot:body-cell-codigoBarra="props">
@@ -195,7 +208,9 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
             </template>
 
             <template v-slot:body-cell-pvp="props">
-              <q-td :props="props">${{ props.row.product_id.pvp }}</q-td>
+              <q-td :props="props">
+                {{ formatearNumero((parseFloat(props.row.v_total) / parseInt(props.row.cantidad))) }}
+              </q-td>
             </template>
 
             <template v-slot:loading>
@@ -223,7 +238,6 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
                       <q-item-label>Descargar XML</q-item-label>
                     </q-item-section>
                   </q-item>
-
                 </q-list>
               </q-btn-dropdown>
             </div>
@@ -235,25 +249,25 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
                 <tr class="text-right">
                   <td><b>TOTAL BRUTO:</b></td>
                   <td style="width: 90px;" class="text-subtitle1 text-weight-regular">
-                    {{ props.detalleData.subtotal }}
+                    {{ formatearNumero(props.detalleData.subtotal) }}
                   </td>
                 </tr>
                 <tr class="text-right">
                   <td class=""><b>DESCUENTOS:</b></td>
                   <td style="width: 90px;" class="text-subtitle1 text-weight-regular">
-                    {{ props.detalleData.descuento }}
+                    {{ formatearNumero(props.detalleData.descuento) }}
                   </td>
                 </tr>
                 <tr class="text-right">
                   <td><b>SUBTOTAL:</b></td>
                   <td style="width: 90px;" class="text-subtitle1 text-weight-regular">
-                    {{ parseFloat(props.detalleData.subtotal) - parseFloat(props.detalleData.descuento)  }}
+                    {{ formatearNumero(parseFloat(props.detalleData.subtotal) - parseFloat(props.detalleData.descuento))  }}
                   </td>
                 </tr>
                 <tr class="text-right">
                   <td class="q-py-none"><b>IVA({{ props.detalleData.porcentaje_iva }}%):</b></td>
                   <td style="width: 90px;" class="text-subtitle1 text-weight-regular">
-                    {{ props.detalleData.iva }}
+                    {{ formatearNumero(props.detalleData.iva) }}
                   </td>
                 </tr>
                 <tr class="text-right">
@@ -266,7 +280,7 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
                   </b></td>
                   <td style="width: 90px;">
                     <q-badge outline class="text-subtitle1 text-weight-bold"
-                        color="secondary" :label="`${ props.detalleData.total }`" />
+                        color="secondary" :label="`${ formatearNumero(props.detalleData.total) }`" />
                   </td>
                 </tr>
               </table>

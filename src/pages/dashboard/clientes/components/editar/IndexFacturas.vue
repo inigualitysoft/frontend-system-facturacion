@@ -22,13 +22,13 @@ import { Manager } from "socket.io-client";
   const nuevoPago = ref( true );
   const servicioSelected = ref({});
 
-  const { 
-    api, 
-    servicios, 
-    pagos, 
-    showModalPago, 
-    showModalNuevaFactura, 
-    dia_vencimiento 
+  const {
+    api,
+    servicios,
+    pagos,
+    showModalPago,
+    showModalNuevaFactura,
+    dia_vencimiento
   } = useEditCliente();
   const { claim, route } = useCliente();
 
@@ -61,24 +61,24 @@ import { Manager } from "socket.io-client";
     try {
       pagos.value = []
       const { data } = await api.get('/pagos/find/' + servicios.value[0].servicio_id);
-      
+
       if( data.length > 0 ){
         if( data[0].servicio.factura_id.tipo_comprobante == 'Recibo' )
           columns.value[1].label = 'Tipo Comprobante'
       }
 
-      data.forEach(x => {  
-        
+      data.forEach(x => {
+
         let impuesto;
         if(x.servicio.factura_id.tipo_impuesto == 'Impuestos incluido')
         impuesto = `${ Math.floor((parseFloat( x.servicio.precio ) * 0.12) * 100) / 100 }`
-      else 
-          impuesto = 0.00      
-        
+      else
+          impuesto = 0.00
+
         let totalPagado = 0;
         x.pagos.forEach( pago => { totalPagado += parseFloat(pago.valor) });
         const estado = x.estadoSRI?.trim();
-  
+
         let diasGracias = parseInt(x.servicio.factura_id.dia_gracia.split(' ')[0]);
         const fechaPago = date.addToDate(x.dia_pago, { days: ( diasGracias + 1 ) })
 
@@ -104,16 +104,16 @@ import { Manager } from "socket.io-client";
           expand: false,
           loading: false
         })
-      });   
+      });
     } catch (error) {
       console.log( error );
     }
   }
 
-  const reEmitirFactura = async ( data, index ) => {  
+  const reEmitirFactura = async ( data, index ) => {
     pagos.value[index].loading = true;
 
-    let headers = { headers: { sucursal_id: data.sucursal_id } };
+    let headers = { headers: { 'sucursal-id': data.sucursal_id } };
     let datosFactura = {
       ambiente: data.ambiente,
       clave_acceso: data.clave_acceso,
@@ -139,11 +139,11 @@ import { Manager } from "socket.io-client";
       }]
     }
 
-    if (data.estado.trim() == 'ERROR ENVIO RECEPCION') 
-      await api.post('/CE/facturas/recepcionComprobantesOffline', datosFactura, headers);      
-    
-    if (data.estado.trim() == 'RECIBIDA') 
-      await api.post('/CE/facturas/autorizacionComprobantesOffline', datosFactura, headers);      
+    if (data.estado.trim() == 'ERROR ENVIO RECEPCION')
+      await api.post('/CE/facturas/recepcionComprobantesOffline', datosFactura, headers);
+
+    if (data.estado.trim() == 'RECIBIDA')
+      await api.post('/CE/facturas/autorizacionComprobantesOffline', datosFactura, headers);
 
     pagos.value[index].loading = false;
   }
@@ -168,7 +168,7 @@ import { Manager } from "socket.io-client";
 
     let plantilla = ''
     if ( tipo == 'Recibo' )
-      plantilla = imprimirAbono( data, dataCliente, claim.fullName, tipo );      
+      plantilla = imprimirAbono( data, dataCliente, claim.fullName, tipo );
     else
       plantilla = imprimirFactura( data, dataCliente, claim.fullName, tipo );
 
@@ -186,7 +186,7 @@ import { Manager } from "socket.io-client";
       message: `<span style="display: block;width: 100%;display: flex;align-items: center;">
                   <strong style="display: inline-block;width: 40%;text-align: end;">
                     Fecha abonado:
-                  </strong> 
+                  </strong>
                   <label style="display: inline-block;width: 57%;" class="q-ml-xs">
                     ${ abono.fecha_abono } ${ abono.hora_abono }
                   </label>
@@ -194,18 +194,18 @@ import { Manager } from "socket.io-client";
                 <span style="display: block;width: 100%;display: flex;align-items: center;">
                   <strong style="display: inline-block;width: 40%;text-align: end;">
                     Forma de pago:
-                  </strong> 
+                  </strong>
                   <label style="display: inline-block;width: 57%;" class="q-ml-xs">
-                    ${ abono.forma_pago } 
+                    ${ abono.forma_pago }
                   </label>
                 </span>
                 <span style="display: block;width: 100%;display: flex;align-items: center;">
                   <strong style="display: inline-block;width: 40%;text-align: end;">
                     Valor Abonado:
-                  </strong> 
+                  </strong>
                   <label style="display: inline-block;width: 57%;" class="q-ml-xs">
                     $${ parseFloat(abono.valor).toFixed(2) }
-                  </label>                
+                  </label>
                 </span>`,
       html: true,
       ok: { push: true, label:'Eliminar', color: 'teal-7' },
@@ -224,7 +224,7 @@ import { Manager } from "socket.io-client";
             totalAbonado += parseFloat(pago.totalAbonado);
           }
         })
-        
+
         setTimeout(async () => {
           const array = pagoss.filter( x => x.delete !== true);
 
@@ -240,14 +240,14 @@ import { Manager } from "socket.io-client";
 
   const downloadRide = async ( clave_acceso ) => {
     await api.post(`/CE/facturas/getRide/${ clave_acceso }`, { }, {responseType: 'blob'}).then(response => {
-      var oMyBlob = new Blob([response.data], {type : 'application/pdf'}); 
+      var oMyBlob = new Blob([response.data], {type : 'application/pdf'});
       var url = URL.createObjectURL(oMyBlob);
       window.open(url);
     }).catch(error => {
       if(error.response.status == 422) {
-        this.$setLaravelErrors(error.response.data.errors);                               
-      }                
-    }) 
+        this.$setLaravelErrors(error.response.data.errors);
+      }
+    })
   }
 
   getPagosServicio();
@@ -265,7 +265,7 @@ import { Manager } from "socket.io-client";
 
               <div class="col-12 text-right">
                 <q-btn @click="showModalNuevaFactura = true"
-                  outline color="primary" label="Factura de Servicio" 
+                  outline color="primary" label="Factura de Servicio"
                   class="q-mr-xs" :class="!$q.screen.xs || 'q-mt-sm'" />
               </div>
 
@@ -280,21 +280,21 @@ import { Manager } from "socket.io-client";
 
                       <q-td v-if="props.row.estado != 'NO PAGADO'"
                         auto-width>
-                        <q-btn size="sm" color="accent" round dense 
-                        @click="props.row.expand = !props.row.expand" 
+                        <q-btn size="sm" color="accent" round dense
+                        @click="props.row.expand = !props.row.expand"
                         :icon="props.row.expand ? 'remove' : 'add'" />
                       </q-td>
                       <q-td v-else auto-width>
                       </q-td>
 
                       <q-td key="n_comprobantes" :props="props">
-                        {{ 
+                        {{
                           props.row.tipo_comprobante == 'Recibo'
                           ? 'Recibo'
-                          : (props.row.num_comprobante == '' || props.row.num_comprobante == null) 
+                          : (props.row.num_comprobante == '' || props.row.num_comprobante == null)
                           ? '- - - - - -'
                           : props.row.num_comprobante
-                        }}                        
+                        }}
                       </q-td>
                       <q-td key="emitido" :props="props">
                         {{ props.row.emitido }}
@@ -317,36 +317,36 @@ import { Manager } from "socket.io-client";
                           PAGADO <br> Y <br> AUTORIZADO
                         </q-badge>
 
-                        <q-badge v-else-if="props.row.estado == 'NO PAGADO' 
-                                            || props.row.estado == 'PENDIENTE'" 
+                        <q-badge v-else-if="props.row.estado == 'NO PAGADO'
+                                            || props.row.estado == 'PENDIENTE'"
                         outline class="q-py-xs q-px-md"
-                        :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'" 
+                        :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'"
                         :label="props.row.estado" />
 
-                        <q-badge v-else-if="props.row.estado == 'PAGADO'" 
+                        <q-badge v-else-if="props.row.estado == 'PAGADO'"
                         outline class="q-py-xs q-px-md"
-                        :color="'secondary'" 
+                        :color="'secondary'"
                         :label="props.row.estado" />
 
-                        <q-badge v-else outline class="q-py-xs q-px-md" 
+                        <q-badge v-else outline class="q-py-xs q-px-md"
                           :color="$q.dark.isActive ? 'warning' : 'orange-10'">
                           PAGADO <br> - <br> {{ props.row.estado }}
                         </q-badge>
                       </q-td>
                       <q-td key="acciones" :props="props">
                         <q-btn v-if="!props.row.cancelado"
-                          round color="blue-grey" 
+                          round color="blue-grey"
                           @click="showModalPago = true, servicioSelected = props.row"
                           icon="done" size="10px" class="q-mr-sm">
                           <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
                             Agregar Pago
                           </q-tooltip>
                         </q-btn>
-                        <q-btn v-if="props.row.estado == 'ERROR ENVIO RECEPCION' 
-                              || props.row.estado == 'ERROR ENVIO RECEPCION - ANULACION' 
+                        <q-btn v-if="props.row.estado == 'ERROR ENVIO RECEPCION'
+                              || props.row.estado == 'ERROR ENVIO RECEPCION - ANULACION'
                               || props.row.estado == 'RECIBIDA'"
                               round color="blue-grey" icon="fa-solid fa-retweet"
-                                :loading="props.row.loading" 
+                                :loading="props.row.loading"
                                @click="reEmitirFactura( props.row, props.rowIndex )"
                               size="10px" class="q-mr-sm">
                           <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
@@ -354,7 +354,7 @@ import { Manager } from "socket.io-client";
                           </q-tooltip>
                         </q-btn>
                         <q-btn v-if="props.row.estado == 'AUTORIZADO'"
-                            round color="blue-grey" icon="print" 
+                            round color="blue-grey" icon="print"
                             @click="imprimir(props.row, 'factura')"
                             size="10px" class="q-mr-sm">
                           <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
@@ -362,7 +362,7 @@ import { Manager } from "socket.io-client";
                           </q-tooltip>
                         </q-btn>
                         <q-btn v-if="props.row.estado == 'AUTORIZADO'"
-                            round color="blue-grey" icon="fa-solid fa-file-pdf" 
+                            round color="blue-grey" icon="fa-solid fa-file-pdf"
                             @click="downloadRide(props.row.clave_acceso)"
                             size="10px" class="q-mr-sm">
                           <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
@@ -375,7 +375,7 @@ import { Manager } from "socket.io-client";
                     <q-tr v-show="props.row.expand" :props="props">
                       <q-td colspan="100%">
                         <div class="row q-col-gutter-sm">
-                          <div v-for="(pago, index) in props.row.pagos" :key="index" 
+                          <div v-for="(pago, index) in props.row.pagos" :key="index"
                           class="col-4" >
                             <q-list bordered padding dense>
                               <q-item-label header class="text-center">
@@ -426,21 +426,21 @@ import { Manager } from "socket.io-client";
                                 <q-item-section>
                                   <q-item-label class="text-center">
 
-                                    <q-btn v-if="props.row.estado == 'PENDIENTE'" square 
+                                    <q-btn v-if="props.row.estado == 'PENDIENTE'" square
                                     @click="showModalPago = true, servicioSelected = { pagos: props.row, pago}, nuevoPago = false"
-                                    :color="$q.dark.isActive ? 'blue-grey-2' : 'blue-grey-7'" 
+                                    :color="$q.dark.isActive ? 'blue-grey-2' : 'blue-grey-7'"
                                       class="q-px-md q-mr-md" outline rounded
                                       dense icon-right="edit" />
 
-                                    <q-btn square 
+                                    <q-btn square
                                     @click="imprimir(pago, 'Recibo', props.row)"
-                                    :color="$q.dark.isActive ? 'blue-grey-2' : 'blue-grey-7'" 
+                                    :color="$q.dark.isActive ? 'blue-grey-2' : 'blue-grey-7'"
                                       class="q-px-md" outline rounded
                                       dense icon-right="print" />
 
-                                    <q-btn v-if="props.row.estado == 'PENDIENTE'" square 
+                                    <q-btn v-if="props.row.estado == 'PENDIENTE'" square
                                       @click="borrarAbono( pago, props.row.pagos, props.row.precio, props.row.pago_id )"
-                                      :color="$q.dark.isActive ? 'blue-grey-2' : 'blue-grey-7'"  
+                                      :color="$q.dark.isActive ? 'blue-grey-2' : 'blue-grey-7'"
                                       class="q-px-md q-ml-md" outline rounded
                                       dense icon-right="delete" />
                                   </q-item-label>
@@ -471,7 +471,7 @@ import { Manager } from "socket.io-client";
   </q-form>
 
   <q-dialog v-model="showModalPago">
-    <ModalPago :servicio="servicioSelected" :nuevoPago="nuevoPago" 
+    <ModalPago :servicio="servicioSelected" :nuevoPago="nuevoPago"
       @actualizar-datos="getPagosServicio" />
   </q-dialog>
 

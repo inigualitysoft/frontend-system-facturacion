@@ -53,7 +53,7 @@
       if ( listSucursales.value.length == 0 ) await getSucursales();
 
       let headers = { headers: {
-        sucursal_id: selectSucursal.value,
+        'sucursal-id': selectSucursal.value,
         desde: dateOne.value,
         hasta: dateTwo.value,
         tipo: tipo.value
@@ -210,7 +210,12 @@
           <q-table title-class="text-grey-7 text-h6"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination" >
+            :filter="filter" :pagination.sync="pagination">
+
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary" />
+            </template>
+
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
                 <q-th v-for="col in props.cols"

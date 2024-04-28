@@ -4,8 +4,8 @@
   import useRolPermisos from "../../../composables/useRolPermisos";
   import useHelpers from "../../../composables/useHelpers";
   import { date, useQuasar } from 'quasar'
+  import { useVentas } from "./useVentas.js";
   import DetalleCompra from '../../../components/DetalleProducts.vue'
-  import FiltrarVentas from './FiltrarVentas.vue'
   import { useImpresion } from "../clientes/composables/useImpresion";
   import ModalReenviarComprobantes from "./ModalReenviarComproantes.vue";
 
@@ -24,10 +24,8 @@
     socket?.removeAllListeners();
     socket = manager.socket('/'); //conectarme algun namespace
 
-    socket.on('updateStateInvoice', () => {
-      setTimeout(async () => {
-        await getVentas();
-      }, 3000)
+    socket.on('updateStateInvoice', async () => {
+      await getVentas();
     })
   }
   // ---------------------------------------------------------------------------
@@ -48,9 +46,7 @@
   const rows = ref([]);
   const showModalReenvioComprobantes = ref(false);
   const modalDetalle = ref(false);
-  const consumidor_final_id = import.meta.env.VITE_CONSUMIDOR_FINAL_ID;
-
-  const formFiltrarVentas = ref({ desde: '', hasta: '', pv_id: '' })
+  const { generarExcel } = useVentas();
 
   const imprimirComprobanteFactura = async ( data, tipo) => {
 
@@ -86,7 +82,7 @@
     ventanaImpresion.close();
   }
 
-  const tipoComprobantes = ref('Todos');
+  const tipoComprobantes = ref('FACTURAS');
   const filter = ref('');
   const detalleData = ref({})
   const sucursales = ref([]);
@@ -116,7 +112,7 @@
       loading.value = true;
       let headers = { headers: {
         tipo: tipoComprobantes.value,
-        sucursal_id: sucursal_selected.value,
+        'sucursal-id': sucursal_selected.value,
         desde: dateOne.value,
         hasta: dateTwo.value
       }};
@@ -204,19 +200,12 @@
     })
   }
 
-  const actualizarLista = ( data ) => {
-    rows.value = data.compras;
-    data.compras.map( ( compra ) => {
-      const dateArray = compra.fecha_compra.split('T')[0].split('-');
-      const timeArray = compra.hora_compra.split(':');
-      compra.fecha = `${ dateArray[2] }/${ dateArray[1] }/${ dateArray[0] }  ${ timeArray[0] }:${ timeArray[1] } ${ (timeArray[0] < 12 ) ? 'am' : 'pm' }`
-    })
-  }
-
   watch(sucursal_selected, (newValue, oldValue) => {
     getVentas();
   })
   const getSucursales = async( company_id ) => {
+    loading.value = true;
+
     sucursales.value = [];
 
     const { data } = await api.get(`/sucursal/find/${ company_id }/company`);
@@ -258,7 +247,7 @@
       }
     })
 
-    let headers = { headers: { sucursal_id: data.sucursal_id.id } };
+    let headers = { headers: { 'sucursal-id': data.sucursal_id.id } };
     let datosFactura = {
       ambiente: data.sucursal_id.ambiente,
       clave_acceso,
@@ -380,18 +369,43 @@
         </div>
         <div v-if="$q.screen.width >= 935"
           class="flex flex-center">
-          <q-btn @click="downloadComprobantes"
+          <q-btn-dropdown class="q-ml-md"
+            label="Descargar Documento"
+            outline color="primary" icon="download">
+            <q-list>
+              <q-item clickable v-close-popup
+                @click="downloadComprobantes">
+                <q-item-section>
+                  <q-item-label>Descargar Facturas</q-item-label>
+                </q-item-section>
+              </q-item>
+
+              <q-item @click="generarExcel(rows)"
+                clickable v-close-popup>
+                <q-item-section>
+                  <q-item-label>Descargar EXCEL</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+          <!-- <q-btn @click="downloadComprobantes"
             class="q-ml-lg q-px-sm" dense outline color="primary" icon-right="picture_as_pdf"
-              style="margin-top: 2px;" label="descargar facturas" />
+              style="margin-top: 2px;" label="descargar facturas" /> -->
         </div>
       </div>
 
       <div class="col-12 q-pt-none">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6" :rows="rows"
-            :loading="loading" :hide-header="mode === 'grid'"
+            :hide-header="mode === 'grid'"
+            :loading="loading"
             :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination" >
+            :filter="filter" :pagination.sync="pagination">
+
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary" />
+            </template>
+
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
                 <q-th
@@ -424,7 +438,6 @@
                   emit-value map-options
                   :options="[
                       { label: 'Todos', value: 'TODOS' },
-                      { label: 'Proformas', value: 'PROFORMA' },
                       { label: 'Facturas', value: 'FACTURAS' },
                       { label: 'Facturas Anuladas', value: 'ANULADO' },
                       { label: 'Facturas Autorizadas', value: 'AUTORIZADO' },
@@ -447,7 +460,7 @@
             <template v-slot:top-right="props">
               <q-btn v-if="$q.screen.width >= 1023 && validarPermisos('crear.venta')"
                 @click="$router.push('/ventas/add')"
-                outline color="primary" label="Agregar Venta" class="q-mr-xs"/>
+                outline color="primary" label="Agregar Factura" class="q-mr-xs"/>
 
               <q-input :style="$q.screen.width > 700 || 'width: 70%'"
                 outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
@@ -487,7 +500,7 @@
             </template>
 
             <template v-slot:body-cell-usuario="props">
-              <q-td :props="props">{{ props.row.user_id.fullName }}</q-td>
+              <q-td :props="props">{{ props.row.user_id.fullName.toUpperCase() }}</q-td>
             </template>
 
             <template v-slot:body-cell-estado="props">
@@ -502,9 +515,6 @@
 
                 <q-badge v-else-if="props.row.estadoSRI == 'AUTORIZADO'"
                   outline class="q-py-xs q-px-md" color="secondary" :label="props.row.estadoSRI" />
-
-                <q-badge  v-else-if="props.row.estadoSRI == 'PROFORMA'" outline class="q-py-xs q-px-md"
-                :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'" :label="props.row.estadoSRI" />
 
                 <q-badge  v-else-if="props.row.estadoSRI == 'ANULADO'" outline class="q-py-xs q-px-md"
                     color="red-4" :label="props.row.estadoSRI" />
@@ -522,12 +532,10 @@
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
 
-                <q-btn v-if="props.row.estadoSRI.trim() == 'ERROR ENVIO RECEPCION'
-                    || props.row.estadoSRI.trim() == 'ERROR ENVIO RECEPCION - ANULACION'
-                    || props.row.estadoSRI.trim() == 'ERROR ENVIO AUTORIZACION'
-                    || props.row.estadoSRI.trim() == 'ERROR ENVIO AUTORIZACION - ANULACION'
-                    || props.row.estadoSRI.trim() == 'RECIBIDA'
-                    || props.row.estadoSRI.trim() == 'ANULACION - RECIBIDA'"
+                <q-btn v-if="props.row.estadoSRI.trim() === 'ERROR ENVIO RECEPCION'
+                    || props.row.estadoSRI.trim() === 'ERROR ENVIO RECEPCION - ANULACION'
+                    || props.row.estadoSRI.trim() === 'ERROR ENVIO AUTORIZACION'
+                    || props.row.estadoSRI.trim() === 'ERROR ENVIO AUTORIZACION - ANULACION'"
                     round color="deep-orange-8" icon="fa-solid fa-retweet"
                     :loading="props.row.loading"
                     @click="reEmitirFactura( props.row )"

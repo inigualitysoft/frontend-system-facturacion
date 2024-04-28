@@ -2,6 +2,7 @@
   import FormEmpresa from "./components/FormEmpresa.vue";
   import { useEmpresa } from './composables/useEmpresa';
   import { onMounted } from 'vue';
+  import { date } from 'quasar'
 
   const { api, isValid, formEmpresa, route } = useEmpresa();
 
@@ -12,7 +13,8 @@
       logo: null,
       logo_old: ( data[0].logo == null ) ? null : data[0].logo,
       archivo_certificado: null,
-      archivo_certificado_old: data[0].archivo_certificado
+      archivo_certificado_old: data[0].archivo_certificado,
+      fecha_caducidad_certificado: date.formatDate(data[0].fecha_caducidad_certificado, 'DD/MM/YYYY HH:mma')
     }
   }
 

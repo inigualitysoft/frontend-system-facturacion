@@ -5,7 +5,7 @@
   import useHelpers from "src/composables/useHelpers";
   import { useQuasar } from 'quasar'
 
-  const { api, claim, mostrarNotify } = useHelpers();
+  const { api, claim, mostrarNotify, showLoading } = useHelpers();
   const clausulas = ref([]);
   const aceptacion = ref('');
   const proforma_id = ref('');
@@ -28,12 +28,14 @@
   ];
 
   const getProforma = async () => {
+    showLoading(true)
     const { data } = await api.get(`/proforma/${ claim.company.id }`);
 
     proforma_id.value = data.id
     clausulas.value   = data.clausulas ? data.clausulas : []
     aceptacion.value  = data.aceptacion_proforma ? data.aceptacion_proforma : ''
 
+    showLoading(false)
   }
 
   const edit = async () => {

@@ -36,39 +36,39 @@
     }else{
       let totalPagado = 0;
       props.servicio.pagos.forEach( pago => { totalPagado += parseFloat(pago.valor) });
-  
+
       const resultado = parseFloat(props.servicio.precio) - totalPagado
-  
+
       formPago.value.montoPendiente = resultado.toString();
       formPago.value.montoCancelar  = resultado.toString();
-    }    
+    }
   }else{
-    formPago.value = { 
-      ...props.servicio.pago, 
-      montoCancelar: parseFloat(props.servicio.pago.valor).toFixed(2) 
+    formPago.value = {
+      ...props.servicio.pago,
+      montoCancelar: parseFloat(props.servicio.pago.valor).toFixed(2)
     }
   }
 
   const validDecimal = ( campo ) => {
     let currentValue = 0;
-    currentValue = formPago.value[campo];    
-    
+    currentValue = formPago.value[campo];
+
     const regex = /^\d{0,9}(\.\d{1,2})?$/
-    
+
     setTimeout(function(){
       let newValue = 0
-      
+
       newValue = formPago.value[campo]
-      
+
       if(!regex.test(newValue.toString())){
-        const result = parseFloat(currentValue.toString().substring(0, currentValue.toString().length - 1));      
+        const result = parseFloat(currentValue.toString().substring(0, currentValue.toString().length - 1));
         formPago.value[campo] = result
       }
-    }, 0); 
+    }, 0);
   }
 
   const validarDatos = () => {
-    let existError = false;  
+    let existError = false;
 
     if ( props.nuevoPago ) {
       camposRequeridos.forEach( campo => {
@@ -78,32 +78,32 @@
           existError = true;
         }
       })
-  
-      if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR') 
+
+      if ( (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR')
             && formPago.value.sucursal_id == '' && props.servicio.tipo_comprobante != 'Recibo' &&
             parseFloat(formPago.value.montoCancelar) >= parseFloat(formPago.value.montoPendiente)) {
         validaciones.value['sucursal_id'].message = 'Debes seleccionar una sucursal'
         validaciones.value['sucursal_id'].isValid = false;
         existError = true;
-      }      
+      }
     }
 
     return existError;
   }
-  
+
   const formas_pago = ['Efectivo Oficina/Sucursal', 'Depósito Bancario', 'Transferencia Bancaria', 'Facilito', 'Punto Agil']
-  
+
   const onSubmit = async () => {
 
     if ( validarDatos() ) return;
-    
+
     const timeStamp = Date.now()
     const formattedString = date.formatDate(timeStamp, 'DD/MM/YYYY')
     const timeString = date.formatDate(timeStamp, 'HH:mma')
     const monto_pendiente = parseFloat(formPago.value.montoPendiente) - parseFloat(formPago.value.montoCancelar);
 
     let totalAbonado = 0;
-    if ( props.nuevoPago ) 
+    if ( props.nuevoPago )
       props.servicio.pagos.forEach( pago => {
         totalAbonado += parseFloat(pago.valor);
       })
@@ -122,7 +122,7 @@
         forma_pago: formPago.value.forma_pago
       })
     }else{
-      const index = props.servicio.pagos.pagos.findIndex( pago => 
+      const index = props.servicio.pagos.pagos.findIndex( pago =>
       props.servicio.pago.hora_abono == pago.hora_abono && props.servicio.pago.valor == pago.valor);
 
       props.servicio.pagos.pagos[ index ] = { ...formPago.value }
@@ -131,22 +131,22 @@
     let pago;
     let pago_id;
     if ( props.nuevoPago ){
-      pago = { pagos: listPagos, estadoSRI: (monto_pendiente <= 0 ? 'PAGADO' : 'PENDIENTE') }      
+      pago = { pagos: listPagos, estadoSRI: (monto_pendiente <= 0 ? 'PAGADO' : 'PENDIENTE') }
       pago_id = props.servicio.pago_id
     }else{
-      pago = { pagos: props.servicio.pagos.pagos }      
+      pago = { pagos: props.servicio.pagos.pagos }
       pago_id = props.servicio.pagos.pago_id
     }
 
     try {
-      let headers = { headers: { sucursal_id: formPago.value.sucursal_id } };
+      let headers = { headers: { 'sucursal-id': formPago.value.sucursal_id } };
 
       loading.value = true;
 
       const { data } = await api.patch(`/pagos/${ pago_id }`, pago, headers);
-      
+
       if ( monto_pendiente <= 0 && props.servicio.tipo_comprobante != 'Recibo' && props.nuevoPago) {
-        
+
         let datosFactura = {
           customer_id: route.params.client_id,
           tipo: 'EMISION',
@@ -180,14 +180,14 @@
 
   const getSucursales = async( company_id ) => {
     sucursales.value = [];
-    
+
     const { data } = await api.get(`/sucursal/find/${ company_id }/company`);
 
     data.forEach( x => {
       sucursales.value.push({ label: x.nombre, value: x.id })
-    })  
+    })
 
-    if ( sucursales.value.length == 1 ) 
+    if ( sucursales.value.length == 1 )
       formPago.value.sucursal_id = sucursales.value[0].value;
   }
 
@@ -213,11 +213,11 @@
 
           <div class="col-12">
             <label>Forma de pago:</label>
-            <q-select color="orange" 
-              transition-show="scale" transition-hide="scale" 
+            <q-select color="orange"
+              transition-show="scale" transition-hide="scale"
               @update:model-value="validaciones.forma_pago.isValid = true"
-              :error="!validaciones.forma_pago.isValid" 
-              outlined v-model="formPago.forma_pago" dense 
+              :error="!validaciones.forma_pago.isValid"
+              outlined v-model="formPago.forma_pago" dense
               :options="formas_pago">
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
@@ -235,7 +235,7 @@
           <div v-if="props.nuevoPago"
             class="col-12 q-mt-sm">
             <label>Pagar Importe Total:</label>
-            <q-toggle color="green" 
+            <q-toggle color="green"
               @update:model-value="formPago.montoCancelar = formPago.montoPendiente"
               size="lg" v-model="formPago.importe_total"/>
           </div>
@@ -246,17 +246,17 @@
             </label>
             <q-input v-model.trim="formPago.montoCancelar"
               :readonly="formPago.importe_total || !props.nuevoPago"
-              input-style="padding-right: 27px;"   
-              type="number" step="0.01"  
-              :error="!validaciones.montoCancelar.isValid"    
-              @update:model-value="validDecimal('montoCancelar'), validaciones.montoCancelar.isValid = true" 
+              input-style="padding-right: 27px;"
+              type="number" step="0.01"
+              :error="!validaciones.montoCancelar.isValid"
+              @update:model-value="validDecimal('montoCancelar'), validaciones.montoCancelar.isValid = true"
               input-class="resaltarTextoInput" dense outlined>
                 <template v-slot:error>
                   <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                     {{ validaciones.montoCancelar.message }}
                   </label>
                 </template>
-                
+
                 <template v-slot:prepend>
                   <q-icon name="attach_money" />
                 </template>
@@ -268,10 +268,10 @@
             <label>Monto Pendiente:</label>
             <q-input v-model.trim="formPago.montoPendiente"
               disable
-              type="number" step="0.01"  
-              :error="!validaciones.montoPendiente.isValid"    
-              @update:model-value="validDecimal('montoPendiente'), validaciones.montoPendiente.isValid = true" 
-              input-style="padding-right: 27px;"         
+              type="number" step="0.01"
+              :error="!validaciones.montoPendiente.isValid"
+              @update:model-value="validDecimal('montoPendiente'), validaciones.montoPendiente.isValid = true"
+              input-style="padding-right: 27px;"
               input-class="resaltarTextoInput" dense outlined>
                 <template v-slot:error>
                   <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
@@ -284,7 +284,7 @@
               </q-input>
           </div>
 
-          <div 
+          <div
           v-if="props.servicio.tipo_comprobante != 'Recibo' && props.nuevoPago
              && parseFloat(formPago.montoCancelar) >= parseFloat(formPago.montoPendiente)"
             class="col-12 q-mt-sm">
@@ -320,7 +320,7 @@
           <div class="col-xs-9 col-sm-12 q-mt-lg q-mb-md flex justify-center">
             <q-btn type="submit" icon="save" :loading="loading"
             outline rounded class="q-mr-lg" style="color: #696cff">
-            &nbsp; Guardar 
+            &nbsp; Guardar
           </q-btn>
           </div>
 
@@ -336,8 +336,7 @@
   position: absolute;
   right: 0px;
   justify-content: center;
-  font-size:14px; 
+  font-size:14px;
   cursor: pointer;
 }
 </style>
-  

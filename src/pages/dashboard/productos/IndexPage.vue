@@ -23,6 +23,8 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     { name: 'stock', label: 'Stock', align: 'center', field: 'stock' },
     { name: 'descuento', label: 'Descuento', align: 'center', field: 'descuento' },
     { name: 'aplicaIva', label: 'Aplica Iva', align: 'center', field: 'aplicaIva' },
+    { name: 'precio_compra', label: 'Precio Compra', align: 'center', field: 'precio_compra' },
+    { name: 'pvp', label: 'PVP', align: 'center', field: 'pvp' },
     { name: 'estado', label: 'Estado', align: 'center', field: 'isActive' }
   ]
 
@@ -110,7 +112,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
     if ( listSucursales.value.length == 0 ) await getSucursales();
 
-    let headers = { sucursal_id: selectSucursal.value };
+    let headers = { 'sucursal-id': selectSucursal.value };
 
     try {
       const { data } = await api.get('/products', {
@@ -186,6 +188,10 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
               :filter="filter" v-model:pagination="pagination"
               :rows-per-page-options="[10, 15, 20, 0]" ref="tableRef"
               binary-state-sort @request="onRequest">
+
+              <template v-slot:loading>
+                <q-inner-loading showing color="primary" />
+              </template>
 
               <template v-slot:header="props">
                 <q-tr :props="props" style="height: 60px">

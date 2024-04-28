@@ -80,6 +80,10 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
               :rows-per-page-options="[3, 7, 15, 0]" ref="tableRef"
               binary-state-sort @request="onRequest">
 
+              <template v-slot:loading>
+                <q-inner-loading showing color="primary" />
+              </template>
+
               <template v-slot:header="props">
                 <q-tr :props="props" style="height: 60px">
                   <q-th v-for="col in props.cols"

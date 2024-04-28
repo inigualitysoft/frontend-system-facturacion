@@ -2,7 +2,7 @@
   import { computed, ref } from 'vue';
   import { date, Dialog } from 'quasar'
   import { useEditCliente } from "../../composables/useEditCliente";
-  
+
   const { api, claim, pagos, mostrarNotify, route, showModalNuevaFactura } = useEditCliente();
 
   const columns = ref([
@@ -22,11 +22,11 @@
     fecha: '',
     sucursal_id: ''
   })
-  
-  const { 
-    vencimiento, 
-    servicio: { perfil_internet: { nombre_plan, descarga_Mbps, subida_Mbps, impuesto }, 
-    factura_id: { tipo_comprobante }, precio } 
+
+  const {
+    vencimiento,
+    servicio: { perfil_internet: { nombre_plan, descarga_Mbps, subida_Mbps, impuesto },
+    factura_id: { tipo_comprobante }, precio }
   } = pagos.value[0];
 
   const arrayLastPay = vencimiento.split('/');
@@ -63,8 +63,8 @@ Subida : ${ subida_Mbps } Mbps`;
         descuento += (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100;
 
       if ( row.iva )
-        iva += (parseFloat( row.v_total ) - (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100) * (parseInt( row.iva ) / 100); 
-      
+        iva += (parseFloat( row.v_total ) - (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100) * (parseInt( row.iva ) / 100);
+
       subtotal += parseFloat(row.v_total)
     })
 
@@ -80,16 +80,16 @@ Subida : ${ subida_Mbps } Mbps`;
 
   const getSucursales = async( company_id ) => {
     sucursales.value = [];
-    
+
     const { data } = await api.get(`/sucursal/find/${ company_id }/company`);
 
     data.forEach( (x, index) => {
       sucursales.value.push({ label: x.nombre, value: x.id })
 
-      if ( ( index + 1 ) == data.length ) 
-        if ( sucursales.value.length > 0 ) 
+      if ( ( index + 1 ) == data.length )
+        if ( sucursales.value.length > 0 )
           formFactura.value.sucursal_id = sucursales.value[0].value;
-    })  
+    })
   }
 
   if ( claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR' )
@@ -104,10 +104,10 @@ Subida : ${ subida_Mbps } Mbps`;
       cancel: { push: true, color: 'blue-grey-6', label: 'Cancelar' }
     }).onOk(async () => {
       try {
-        let headers = { headers: { sucursal_id: formFactura.value.sucursal_id } };
-  
+        let headers = { headers: { 'sucursal-id': formFactura.value.sucursal_id } };
+
         loading.value = true;
-  
+
         const pago = {
           estadoSRI: 'PAGADO',
           pagos: [{
@@ -121,15 +121,15 @@ Subida : ${ subida_Mbps } Mbps`;
             valor: `${valorFactura.value.total}`
           }]
         }
-  
+
         const { data } = await api.post('/pagos/create', {
-          servicio: pagos.value[0].servicio.id, 
+          servicio: pagos.value[0].servicio.id,
           ...pago,
-          dia_pago: date.formatDate(formFactura.value.fechaVencimiento, 'YYYY-MM-DD')  
+          dia_pago: date.formatDate(formFactura.value.fechaVencimiento, 'YYYY-MM-DD')
         }, headers);
-  
-        if ( tipo_comprobante != 'Recibo' ) {    
-          
+
+        if ( tipo_comprobante != 'Recibo' ) {
+
           let products = [];
           rows.value.forEach( (row, index) => {
             products.push({
@@ -141,7 +141,7 @@ Subida : ${ subida_Mbps } Mbps`;
               codigoBarra: data.id.split('-')[0] + `${ index }`
             })
           })
-          
+
           let datosFactura = {
             customer_id: route.params.client_id,
             tipo: 'EMISION',
@@ -156,7 +156,7 @@ Subida : ${ subida_Mbps } Mbps`;
           }
           await api.post('/CE/facturas/generarFacturaElectronica', datosFactura, headers);
         }
-  
+
         loading.value = false;
         showModalNuevaFactura.value = false;
         mostrarNotify( 'positive', "Factura Generado" );
@@ -190,7 +190,7 @@ Subida : ${ subida_Mbps } Mbps`;
 
                 <div class="col-xs-12 col-sm-6 q-pt-sm">
                   <label class="q-mr-md row items-center">Vencimiento:</label>
-    
+
                   <q-input dense filled v-model="formFactura.fechaVencimiento" mask="date" :rules="['date']">
                     <template v-slot:append>
                       <q-icon name="event" class="cursor-pointer">
@@ -205,7 +205,7 @@ Subida : ${ subida_Mbps } Mbps`;
                     </template>
                   </q-input>
                 </div>
-    
+
                 <div class="col-xs-12 col-sm-6 q-pt-sm">
                   <label class="q-mr-md row items-center">Fecha:</label>
                   <q-input dense filled v-model="formFactura.fecha" mask="date" :rules="['date']" hint="ejfiojwef"
@@ -228,7 +228,7 @@ Subida : ${ subida_Mbps } Mbps`;
             </div>
 
             <div class="col-12">
-              <q-table :rows="rows" :columns="columns" row-key="name" 
+              <q-table :rows="rows" :columns="columns" row-key="name"
                 :class="[$q.dark.isActive ? '' : 'my-sticky-header-table3']"
                 :hide-pagination="true" :rows-per-page-options="[50]" >
 
@@ -251,7 +251,7 @@ Subida : ${ subida_Mbps } Mbps`;
 
                 <template v-slot:body-cell-cantidad="props">
                   <q-td :props="props">
-                    <q-input input-class="resaltarTextoInput" dense required 
+                    <q-input input-class="resaltarTextoInput" dense required
                       :readonly="props.row.tipo == 'servicio'" min="0" :max="props.row.stock"
                       type="number" style="width: 100px;" v-model.trim="props.row.cantidad" />
                   </q-td>
@@ -266,17 +266,17 @@ Subida : ${ subida_Mbps } Mbps`;
 
                 <template v-slot:body-cell-iva="props">
                   <q-td :props="props">
-                    <q-input input-class="resaltarTextoInput" dense required 
-                      min="0" max="100" type="number" style="width: 100px;" 
+                    <q-input input-class="resaltarTextoInput" dense required
+                      min="0" max="100" type="number" style="width: 100px;"
                       v-model.trim="props.row.iva" />
                   </q-td>
-                </template>        
+                </template>
 
                 <template v-slot:body-cell-v_total="props">
                   <q-td :props="props">
                     ${{ props.row.v_total}}
                   </q-td>
-                </template>        
+                </template>
 
                 <template v-slot:body-cell-acciones="props">
                   <q-td :props="props">
@@ -285,8 +285,8 @@ Subida : ${ subida_Mbps } Mbps`;
                     @click="quitarArticulo(props.row.id)"
                     icon="close" size="8px" />
                   </q-td>
-                </template>  
-              </q-table>    
+                </template>
+              </q-table>
             </div>
             <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
               class="col-xs-12 col-sm-5 q-mt-sm">

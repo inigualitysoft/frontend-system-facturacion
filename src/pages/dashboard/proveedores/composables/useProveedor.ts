@@ -90,7 +90,7 @@ export const useProveedor = () => {
     const onSubmit = async ( edit: boolean ) => {
       try {
         loading.value = true;
-        let headers = { company_id: claim.company.id }
+        let headers = { 'company-id': claim.company.id }
 
         if ( !edit )
           await api.post('/providers', formProveedor.value, { headers })

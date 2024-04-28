@@ -1,7 +1,6 @@
 <script setup lang="ts">
   import { ref, watch } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
-  import { useEmpresa } from "./composables/useEmpresa";
   import useRolPermisos from "src/composables/useRolPermisos.js";
 
   const columns: any = [
@@ -15,19 +14,20 @@
     { label: "Estado", name: "estado", align: "center" }
   ];
 
-  let { api } = useEmpresa();
   const { validarPermisos } = useRolPermisos();
 
   const filter = ref('')
   const rows = ref([]);
   const loading = ref( false );
 
-  const { claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { api, claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
   const getCompanies = async () => {
-    let headers = { company_id: claim.company.id };
+    loading.value = true;
+    let headers = { 'company-id': claim.company.id };
     const { data } = await api.get('/companies', { headers });
     rows.value = data;
+    loading.value = false;
   }
 
   const activarDesactivarEmpresa = async (company_id: string, estado: boolean) => {
@@ -62,7 +62,12 @@
           <q-table title-class="text-grey-7 text-h6" title="Listado de Empresas"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination" >
+            :filter="filter" :pagination.sync="pagination">
+
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary" />
+            </template>
+
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
                 <q-th v-for="col in props.cols"

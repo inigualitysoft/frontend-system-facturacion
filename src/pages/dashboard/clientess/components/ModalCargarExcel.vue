@@ -101,7 +101,7 @@
         try {
 
           await espera(50)
-          let headers = { company_id: claim.company.id };
+          let headers = { 'company-id': claim.company.id };
 
           let codigo;
           if ( element[1].toLowerCase() == 'ruc' ) codigo = '04'

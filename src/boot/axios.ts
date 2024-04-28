@@ -22,19 +22,17 @@ api.interceptors.request.use(async function(config){
   token =  token != null ? token.token : '';
 
 	config.headers.Authorization = token ? `${token}` : null;
-	config.headers.rol_name      = claim != null ? `${ claim.claim.roles[0] }` : null;
-
-  // console.log(claim.claim);
+	config.headers['rol-name'] = claim != null ? `${ claim.claim.roles[0] }` : null;
 
   if ( claim != null && claim.claim.roles[0] != 'SUPER-ADMINISTRADOR' &&
   claim.claim.roles[0] != 'ADMINISTRADOR')
-      config.headers.sucursal_id = (claim != null && claim.claim.sucursales.length != 0 )
+      config.headers['sucursal-id'] = (claim != null && claim.claim.sucursales.length != 0 )
                                     ? `${ claim.claim.sucursales[0] }`
                                     : null;
 
   if ( claim != null && claim.claim.roles[0] != 'SUPER-ADMINISTRADOR' &&
   claim.claim.roles[0] != 'ADMINISTRADOR')
-      config.headers.company_id = (claim != null && claim.claim.company )
+      config.headers['company-id'] = (claim != null && claim.claim.company )
                                     ? `${ claim.claim.company.id }`
                                     : null;
   // else

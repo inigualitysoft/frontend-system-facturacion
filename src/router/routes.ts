@@ -78,10 +78,22 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true}
       },
       {
+        path: 'proformas/:tipo?/:fecha?',
+        name: 'Ver-Proformas',
+        component: () => import('pages/dashboard/proformas/IndexPage.vue'),
+        meta: { requiresAuth: false }
+      },
+      {
         path: 'ventas/add/:venta_id?',
         name: 'Agregar Venta',
         component: () => import('pages/dashboard/ventas/AddVenta.vue'),
-        meta: { requiresAuth: true}
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'proforma/add/:proforma_id?',
+        name: 'agregar.proforma',
+        component: () => import('pages/dashboard/proformas/AddVenta.vue'),
+        meta: { requiresAuth: true }
       },
       {
         path: 'roles-permisos',
@@ -237,6 +249,18 @@ const routes: RouteRecordRaw[] = [
         path: 'proforma',
         name: 'Config Proforma',
         component: () => import('pages/dashboard/proforma/IndexPage.vue'),
+        meta: { requiresAuth: true}
+      },
+      {
+        path: 'retenciones',
+        name: 'index.retencion',
+        component: () => import('pages/dashboard/retenciones/IndexPage.vue'),
+        meta: { requiresAuth: true}
+      },
+      {
+        path: 'retencion/add',
+        name: 'add.retencion',
+        component: () => import('pages/dashboard/retenciones/AddRetencion.vue'),
         meta: { requiresAuth: true}
       },
     ]

@@ -26,7 +26,7 @@
     loading.value = true;
     try {
 
-      let headers = { company_id: selectEmpresa.value };
+      let headers = { 'company-id': selectEmpresa.value };
 
       const { data } = await api.get('/auth/users', { headers });
       data.forEach(user => {
@@ -81,7 +81,12 @@
             <q-table title-class="text-grey-7 text-h6"
               :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
               :columns="columns" row-key="name" :grid="mode==='grid'"
-              :filter="filter" :pagination.sync="pagination" >
+              :filter="filter" :pagination.sync="pagination">
+
+              <template v-slot:loading>
+                <q-inner-loading showing color="primary" />
+              </template>
+
               <template v-slot:header="props">
                 <q-tr :props="props" style="height: 60px">
                   <q-th v-for="col in props.cols"
@@ -161,6 +166,7 @@
                     icon="edit" class="q-mr-sm" size="11px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
+                    :disabled="claim.id == props.row.id"
                     v-if="props.row.estado == 'Activo' && validarPermisos('eliminar.usuario')"
                     icon="delete"
                     @click="eliminarUsuario(props.row.id)"

@@ -85,7 +85,12 @@
           <q-table title-class="text-grey-7 text-h6" title="Listado de Proveedores"
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination" >
+            :filter="filter" :pagination.sync="pagination">
+
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary" />
+            </template>
+
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
                 <q-th

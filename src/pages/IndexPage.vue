@@ -17,7 +17,7 @@ const productosMasVendidos = ref([]);
 const ventasPorMes = ref([]);
 const listSucursales = ref([]);
 const color = ref('rgba(226, 224, 224, 0.2)');
-const colorLabels = ref('rgb(247, 238, 238, 0.7)');
+const colorLabels = ref('rgb(26, 61, 61, 1)');
 const $q = useQuasar();
 
 watch(
@@ -99,7 +99,7 @@ const showVentasPorMes = () => {
     data: {
       labels: ventasPorMes.value.map(p => p.mes),
       datasets: [{
-        label: 'Total ventas por mes',
+        label: 'Total de ventas por mes',
         data: ventasPorMes.value.map(p => p.total_ventas),
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)', // Rojo

@@ -44,8 +44,8 @@
           "value": "Compras",
           "children": [
             { "label": "Ver Compras", "value": "index.compras" },
-            { "label": "Crear Compra", "value": "crear.compra" },            
-            { "label": "Anular Compra", "value": "anular.compra" }            
+            { "label": "Crear Compra", "value": "crear.compra" },
+            { "label": "Anular Compra", "value": "anular.compra" }
           ]
         },
         {
@@ -53,11 +53,19 @@
           "value": "Ventas",
           "children": [
             { "label": "Ver Ventas", "value": "index.ventas" },
-            { "label": "Crear Venta", "value": "crear.venta" },            
-            { "label": "Anular Venta", "value": "anular.venta" }            
+            { "label": "Crear Venta", "value": "crear.venta" },
+            { "label": "Anular Venta", "value": "anular.venta" }
+          ]
+        },
+        {
+          "label": "Retenciones",
+          "value": "Retenciones",
+          "children": [
+            { "label": "Ver Retenciones", "value": "index.retencion" },
+            { "label": "Crear Retencion", "value": "crear.retencion" },
+            { "label": "Anular Retencion", "value": "anular.retencion" }
           ]
         }
       ]
     }
   ]
-  

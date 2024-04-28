@@ -2,8 +2,8 @@ import { api } from "boot/axios";
 import { ref } from "vue"
 import useHelpers from "../../../../../composables/useHelpers";
 
-const loading  = ref( false );  
-const showPass  = ref( true );  
+const loading  = ref( false );
+const showPass  = ref( true );
 const listCompanies = ref([]);
 const formRouter = ref({
   id: '',
@@ -38,9 +38,9 @@ const validaciones = ref({
 
 const cargarCompanies = async () => {
   listCompanies.value = [];
-  
+
   const { data } = await api.get('/companies/true');
-  
+
   data.forEach(company => {
     listCompanies.value.push({
       label:  company.nombre_comercial,
@@ -78,7 +78,7 @@ export const useRouter = ( edit ) => {
     }
 
     const validarCampos = () => {
-      let existError = false;  
+      let existError = false;
       // Patrón de expresión regular para validar una dirección IP
       const patronIP = /^([0-9]{1,3}\.){3}[0-9]{1,3}$/;
       const ip = formRouter.value.ip_host;
@@ -122,8 +122,8 @@ export const useRouter = ( edit ) => {
       try {
         loading.value = true;
 
-        let headers = { headers: { 
-          company_id: formRouter.value.company_id, 
+        let headers = { headers: {
+          'company-id': formRouter.value.company_id,
           NotSetHeaderCompany: claim.roles[0] == 'SUPER-ADMINISTRADOR' ? true : false
         }};
 
@@ -132,7 +132,7 @@ export const useRouter = ( edit ) => {
         }else{
           await api.patch('/router/' + formRouter.value.id, formRouter.value)
         }
-        
+
         mostrarNotify( 'positive', `Router ${ edit ? 'editado' : 'agregado' } exitosamente`);
         loading.value = false;
 

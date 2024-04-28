@@ -12,9 +12,9 @@ const columns: any = ref([
   { name: 'acciones', label: 'Quitar', align: 'left'  },
   { label: 'Codigo Barra', align: 'left', field: 'codigoBarra', name: 'codigoBarra' },
   { label: 'Producto', align: 'left', field: 'nombre', name: 'nombre' },
-  { name: 'cantidad', label: 'Cantidad', align: 'left'},
+  { name: 'cantidad', label: 'Cantidad', align: 'center'},
   { name: 'iva', label: 'Aplica IVA', align: 'center' },
-  { name: 'descuento', label: 'descuento %', align: 'left', field: 'descuento' },
+  { name: 'descuento', label: 'Descuento(%)', align: 'center', field: 'descuento' },
   { label: 'Stock', align: 'center', field: 'stock', name: 'stock' },
   { name: 'pvm', label: 'Costo Neto', align: 'center' },
   { name: 'v_total', label: 'Valor Total', align: 'center', field: 'v_total' }
@@ -28,25 +28,29 @@ export const useProduct = () => {
   const agregarAndValidarStock = ( data: any, modulo: string ) => {
     //VERIFICAR SI YA SE AGREGO ESTE ARTICULO
     const resultado = rows.value.some( (row: any) => row.id == data.id )
-    if ( !resultado ){
-      if ( modulo !== 'compras' && data.stock <= 0 && data.tipo != 'Servicio')
+    if ( !resultado ) {
+      if ( modulo !== 'proforma' && modulo !== 'compras' && data.stock <= 0 && data.tipo != 'Servicio')
         return mostrarNotify('negative', `No hay stock del articulo ${ data.nombre }`);
 
       let cantidad = 0;
-      if (modulo == 'proforma') cantidad = data.cantidad
-      else if (data.tipo == 'Servicio') cantidad = 1
+      if (data.tipo == 'Servicio' || modulo == 'proforma'){
+        cantidad = 1;
+        data.v_total = data.pvp
+      }
       else cantidad = 0;
 
       data.cantidad  = cantidad;
-      data.v_total   = modulo == 'proforma' ? parseFloat(data.pvp) : 0;
+      data.v_total   = modulo == 'proforma' ? parseFloat(data.v_total) : 0;
       data.descuento = (modulo == 'venta' || modulo == 'proforma') ? data.descuento : 0;
 
       rows.value.unshift( data );
+
       if (data.tipo == 'Servicio') getSubtotalByProduct( data, 'ventas' )
-      filterByCodBarra.value = ''
     }
     else
-      mostrarNotify('warning', 'Ya fue agregado este articulo');
+      mostrarNotify('warning', 'Ya fue agregado este producto/servicio');
+
+    filterByCodBarra.value = ''
   }
 
   const filterArticulo = async ( modulo: string ) => {
@@ -56,7 +60,7 @@ export const useProduct = () => {
     loadingState.value = true
     try {
 
-      let headers = { company_id: claim.company.id };
+      let headers = { 'company-id': claim.company.id };
       let { data } = await api.get(`/products/${ filterByCodBarra.value }`, { headers });
 
       data = data.filter( (x: any) => {
@@ -118,7 +122,7 @@ export const useProduct = () => {
         descuento += (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100;
 
       if ( row.aplicaIva )
-        iva += ((parseFloat( row.v_total ) - (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100) * iva_selected.value) / 100 ;
+        iva += ((parseFloat( row.v_total ) - (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100) * iva_selected.value) / 100;
 
       subtotal += parseFloat(row.v_total)
     })
@@ -137,6 +141,8 @@ export const useProduct = () => {
       row.v_total = ( parseInt(row.cantidad) * parseFloat(( Math.floor( row.precio_compra * 100) / 100).toString()))
     else
       row.v_total = formatearNumero(parseInt(row.cantidad) * parseFloat(row.pvp))
+
+    row.pvp = formatearNumero(row.pvp)
   }
 
   const formatearNumero = (numero: any) => {

@@ -8,7 +8,6 @@
     formSucursal,
     loading,
     listCompanies,
-    allowOnlyNumber,
     onSubmit
   } = useSucursal();
 
@@ -57,9 +56,10 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+            <q-input type="number"
               v-model="formSucursal.establecimiento" input-class="resaltarTextoInput"
-              :maxlength="3" dense filled required @keyup="allowOnlyNumber" />
+              :maxlength="3" dense filled required
+              @keyup="formSucursal.establecimiento = parseInt(formSucursal.establecimiento.toString().replace(/\D/g, ''));" />
           </div>
         </div>
       </div>
@@ -72,9 +72,10 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+            <q-input type="number"
               v-model="formSucursal.punto_emision" input-class="resaltarTextoInput"
-              :maxlength="3" dense filled required @keyup="allowOnlyNumber" />
+              :maxlength="3" dense filled required
+              @keyup="formSucursal.punto_emision = parseInt(formSucursal.punto_emision.toString().replace(/\D/g, ''));" />
           </div>
         </div>
       </div>
@@ -87,10 +88,11 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+            <q-input type="number"
               v-model.trim="formSucursal.secuencia_factura_produccion"
               input-class="resaltarTextoInput"
-              :maxlength="9" @keyup="allowOnlyNumber"
+              :maxlength="9"
+              @keyup="formSucursal.secuencia_factura_produccion = parseInt(formSucursal.secuencia_factura_produccion.toString().replace(/\D/g, ''));"
               dense filled required />
           </div>
         </div>
@@ -104,10 +106,11 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+            <q-input type="number"
               v-model.trim="formSucursal.secuencia_factura_pruebas"
               input-class="resaltarTextoInput"
-              :maxlength="9" @keyup="allowOnlyNumber"
+              :maxlength="9"
+              @keyup="formSucursal.secuencia_factura_pruebas! = parseInt(formSucursal.secuencia_factura_pruebas!.toString().replace(/\D/g, ''));"
               dense filled required />
           </div>
         </div>
@@ -121,10 +124,11 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+            <q-input type="number"
               v-model.trim="formSucursal.secuencia_nota_credito_produccion"
               input-class="resaltarTextoInput"
-              :maxlength="9" @keyup="allowOnlyNumber"
+              :maxlength="9"
+              @keyup="formSucursal.secuencia_nota_credito_produccion! = parseInt(formSucursal.secuencia_nota_credito_produccion!.toString().replace(/\D/g, ''));"
               dense filled required />
           </div>
         </div>
@@ -138,10 +142,47 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+            <q-input type="number"
             input-class="resaltarTextoInput"
             v-model.trim="formSucursal.secuencia_nota_credito_pruebas"
-            :maxlength="9" @keyup="allowOnlyNumber"
+            :maxlength="9"
+            @keyup="formSucursal.secuencia_nota_credito_pruebas! = parseInt(formSucursal.secuencia_nota_credito_pruebas!.toString().replace(/\D/g, ''));"
+            dense filled required />
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-12 col-md-6">
+        <div class="row">
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
+            :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
+            <label :class="$q.screen.width < 1022 || 'q-pr-md'">
+              N° secuencial Retención:
+            </label>
+          </div>
+          <div class="col-xs-12 col-md-7">
+            <q-input type="number"
+              v-model.trim="formSucursal.secuencia_retencion_produccion"
+              input-class="resaltarTextoInput"
+              :maxlength="9"
+              @keyup="formSucursal.secuencia_retencion_produccion! = parseInt(formSucursal.secuencia_retencion_produccion!.toString().replace(/\D/g, ''));"
+              dense filled required />
+          </div>
+        </div>
+      </div>
+      <div class="col-xs-12 col-md-6">
+        <div class="row">
+          <div class="col-xs-12 col-md-5 flex items-center justify-end"
+            :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
+            <label :class="$q.screen.width < 1022 || 'q-pr-md'">
+              N° secuencial Retención: Pruebas:
+            </label>
+          </div>
+          <div class="col-xs-12 col-md-7">
+            <q-input type="number"
+            input-class="resaltarTextoInput"
+            v-model.trim="formSucursal.secuencia_retencion_pruebas"
+            :maxlength="9"
+            @keyup="formSucursal.secuencia_retencion_pruebas! = parseInt(formSucursal.secuencia_retencion_pruebas!.toString().replace(/\D/g, ''));"
             dense filled required />
           </div>
         </div>

@@ -1,0 +1,13 @@
+{
+  "name": "sis-farmacia",
+  "version": "0.0.1",
+  "description": "sistema pos-ventas para farmacias",
+  "author": "FernanDev <juan96saa@gmail.com>",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^5.7.5",
+    "@capacitor/app": "^5.0.0",
+    "@capacitor/cli": "^5.0.0",
+    "@capacitor/core": "^5.0.0"
+  }
+}

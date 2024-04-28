@@ -36,7 +36,7 @@
   const getClientes = async () => {
     loading.value = true;
     try {
-      let headers = { company_id: claim.company.id };
+      let headers = { 'company-id': claim.company.id };
       const { data } = await api.get('/customers', { headers });
       rows.value = data;
       actualizarLista.value = false;
@@ -106,6 +106,11 @@
             :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
             :columns="columns" row-key="name" :grid="mode==='grid'"
             :filter="filter" :pagination.sync="pagination" >
+
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary" />
+            </template>
+
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
                 <q-th v-for="col in props.cols"

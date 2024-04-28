@@ -1,12 +1,13 @@
 import forge from "node-forge";
 import { onMounted, ref } from "vue"
+import { date } from 'quasar'
 import useHelpers from "../../../../composables/useHelpers";
 
 const formEmpresa = ref({
   id: '',
   ruc: '',
-  nombre_comercial: '',
   razon_social: '',
+  nombre_comercial: '',
   direccion_matriz: '',
   obligado_contabilidad: false,
   email: '',
@@ -24,7 +25,6 @@ const validaciones = ref({
   id:                       { message: '', isValid: true },
   ruc:                      { message: '', isValid: true },
   nombre_comercial:         { message: '', isValid: true },
-  razon_social:             { message: '', isValid: true },
   direccion_matriz:         { message: '', isValid: true },
   obligado_contabilidad:    { message: '', isValid: true },
   email:                    { message: '', isValid: true },
@@ -41,13 +41,14 @@ const validaciones = ref({
 const loading  = ref( false );
 const isPwd = ref( true );
 const isValid = ref( false );
+const formaOriginalFechaCaducidad = ref( false );
 
 export const useEmpresa = () => {
 
     const { api, mostrarNotify, route, router } = useHelpers();
     const existError = ref(false);
 
-    const camposRequeridos = ['ruc', 'razon_social', 'nombre_comercial', 'direccion_matriz', 'email', 'telefono', 'clave_certificado', 'iva']
+    const camposRequeridos = ['ruc', 'nombre_comercial', 'direccion_matriz', 'email', 'telefono', 'clave_certificado', 'iva']
 
     onMounted(() => {
       camposRequeridos.forEach( campo => { validaciones.value[campo].isValid = true; })
@@ -91,11 +92,16 @@ export const useEmpresa = () => {
             const bags = p12.getBags({bagType: forge.pki.oids.certBag});
             const cert = bags[forge.pki.oids.certBag][0];
 
+            const firma = cert.cert.subject.attributes.find( firma => firma.type == '2.5.4.3')
+            formEmpresa.value.razon_social = firma.value;
+
             const certificate = cert.cert;
             const validity = certificate.validity;
             const expiryDate = validity.notAfter;
 
-            formEmpresa.value.fecha_caducidad_certificado = expiryDate;
+            formaOriginalFechaCaducidad.value = expiryDate
+
+            formEmpresa.value.fecha_caducidad_certificado = date.formatDate(expiryDate, 'DD/MM/YYYY HH:mma');
 
             resolve(false);
           } catch (error) {
@@ -216,7 +222,7 @@ export const useEmpresa = () => {
       formData.append('clave_certificado', formEmpresa.value.clave_certificado);
       formData.append('archivo_certificado', formEmpresa.value.archivo_certificado);
       formData.append('archivo_certificado_old', formEmpresa.value.archivo_certificado_old);
-      formData.append('fecha_caducidad_certificado', formEmpresa.value.fecha_caducidad_certificado);
+      formData.append('fecha_caducidad_certificado', formaOriginalFechaCaducidad.value);
       formData.append('logo', formEmpresa.value.logo);
       formData.append('logo_old', formEmpresa.value.logo_old);
 

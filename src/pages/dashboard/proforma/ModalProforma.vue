@@ -18,7 +18,7 @@ const { api, claim, mostrarNotify } = useHelpers()
 const onSubmit = async () => {
   try {
     props.clausulas.unshift({...formProforma.value})
-    let headers = { company_id: claim.company.id  }
+    let headers = { 'company-id': claim.company.id  }
     await api.post('/proforma/clausula', {
       clausulas: props.clausulas,
       aceptacion_proforma: props.aceptacion

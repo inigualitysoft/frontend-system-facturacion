@@ -164,10 +164,10 @@ export const useUser = () => {
         loading.value = true;
 
         let formData = new FormData();
-        formData.append('usuario', formUser.value.usuario);
+        formData.append('usuario', formUser.value.usuario.toUpperCase() );
         formData.append('email', formUser.value.email);
         formData.append('celular', formUser.value.celular);
-        formData.append('fullName', formUser.value.fullName);
+        formData.append('fullName', formUser.value.fullName.toUpperCase());
         formData.append('roles', JSON.stringify(formUser.value.roles));
         formData.append('permisos', JSON.stringify(formUser.value.permisos));
         formData.append('horarios_dias', JSON.stringify(formUser.value.horarios_dias));
