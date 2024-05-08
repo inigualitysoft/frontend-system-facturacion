@@ -205,16 +205,16 @@
     },
     {
       title: 'Proformas',
-      icon: 'img:https://img.icons8.com/3d-fluency/94/fund-accounting.png',
+      icon: 'description',
       link: '/proformas',
       permisoRequerido: 'sin-permiso'
     },
-    {
-      title: 'Retenciones',
-      icon: 'img:https://img.icons8.com/3d-fluency/94/fund-accounting.png',
-      link: '/retenciones',
-      permisoRequerido: 'index.retencion'
-    },
+    // {
+    //   title: 'Retenciones',
+    //   icon: 'img:https://img.icons8.com/3d-fluency/94/fund-accounting.png',
+    //   link: '/retenciones',
+    //   permisoRequerido: 'index.retencion'
+    // },
     {
       title: 'Productos y Servicios',
       icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',

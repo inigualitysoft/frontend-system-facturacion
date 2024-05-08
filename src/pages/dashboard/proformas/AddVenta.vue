@@ -623,7 +623,7 @@
               <q-btn
                 v-if="$route.params.proforma_id == ''"
                 @click="onSubmit('PROFORMA')"
-                outline rounded class="q-mr-lg"
+                outline rounded
                 style="color: #696cff">
                 &nbsp; GENERAR PROFORMA
               </q-btn>

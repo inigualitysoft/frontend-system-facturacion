@@ -2,6 +2,7 @@
   import { useEmpresa } from '../composables/useEmpresa.js';
   import ModalWhatsapp from "../components/ModalWhatsapp.vue";
   import { ref, watch } from 'vue';
+  import Vue3QTelInput from 'vue3-q-tel-input'
 
   const props = defineProps<{ edit: boolean }>();
   const modalAsociarWhatsApp = ref( false );
@@ -15,6 +16,17 @@
     isPwd,
     isValid
   } = useEmpresa();
+
+  const updateMovil = ( movil: string ) => {
+    formEmpresa.value.telefono = movil.split(':')[0]
+    setTimeout(() => {
+      modalAsociarWhatsApp.value = false;
+    }, 1500)
+  }
+
+  const existError = (value: any) => {
+    validaciones.value.telefono.isValid = !value
+  }
 
   watch(
     () => formEmpresa.value.clave_certificado,
@@ -108,29 +120,43 @@
             <q-toggle color="green" size="lg" v-model="formEmpresa.obligado_contabilidad"/>
           </div>
 
-          <div class="col-xs-11 col-md-5">
-            <label>Celular:</label>
-            <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
-              v-model="formEmpresa.telefono"
-              counter maxlength="10"
-              :error="!validaciones.telefono.isValid"
-              input-style="width: 81%"
-              @update:model-value="validaciones.telefono.isValid = true"
-              @keyup="formEmpresa.telefono = formEmpresa.telefono.replace(/\D/g, '')"
-              lazy-rules dense filled>
-              <template v-slot:error>
-                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                  {{ validaciones.telefono.message }}
-                </label>
-              </template>
-              <template v-slot:append>
-                <q-badge filled color="teal-8"
-                  @click="modalAsociarWhatsApp = true"
-                  style="height: 100%;width: 19%;position: absolute;right: 0px;justify-content: center;font-size:14px; cursor: pointer;">
-                  <q-icon name="fa-brands fa-whatsapp" size="sm" />
-                </q-badge>
-              </template>
-            </q-input>
+          <div class="col-xs-11 col-md-5 row items-center">
+            <div
+              style="width: 79%;">
+              <label>Celular:</label>
+              <vue3-q-tel-input
+                default-country="EC"
+                search-text="Buscar pais..."
+                @update:model-value="validaciones.telefono.isValid = true"
+                @error="existError"
+                :error="!validaciones.telefono.isValid"
+                filled dense v-model:tel="formEmpresa.telefono">
+                <template v-slot:error>
+                  <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                    {{ validaciones.telefono.message }}
+                  </label>
+                </template>
+              </vue3-q-tel-input>
+              <!-- <q-input
+                type="number"
+                disable
+                v-model="formEmpresa.telefono"
+                :error="!validaciones.telefono.isValid"
+                @update:model-value="validaciones.telefono.isValid = true"
+                @keyup="formEmpresa.telefono = formEmpresa.telefono.replace(/\D/g, '')"
+                lazy-rules dense filled>
+                <template v-slot:error>
+                  <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                    {{ validaciones.telefono.message }}
+                  </label>
+                </template>
+              </q-input> -->
+            </div>
+            <q-btn
+              @click="modalAsociarWhatsApp = true"
+              style="width: 21%;height: 50%;"
+              icon="fa-brands fa-whatsapp"
+              color="secondary" />
           </div>
 
           <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
@@ -267,11 +293,12 @@
   </q-form>
 
   <q-dialog v-model="modalAsociarWhatsApp">
-    <ModalWhatsapp />
+    <ModalWhatsapp :movil="formEmpresa.telefono" @sendMovil="updateMovil" />
   </q-dialog>
 </template>
 
 <style>
+@import 'vue3-q-tel-input/dist/vue3-q-tel-input.esm.css';
 .obligadoContb{
   position: relative;
   top: 12px;

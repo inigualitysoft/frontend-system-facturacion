@@ -35,11 +35,11 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
     );
 
     const blob = new Blob([ data ], {
-      type: tipo_documento == 'ride' ?  'application/pdf' : 'application/xml'
+      type: tipo_documento == 'ride' || tipo_documento == 'proforma' ?  'application/pdf' : 'application/xml'
     });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `${ clave_acceso }${ tipo_documento == 'ride' ? '.pdf' : '.xml' }`;
+    link.download = `${ clave_acceso }${ tipo_documento == 'ride' || tipo_documento == 'proforma' ? '.pdf' : '.xml' }`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -242,8 +242,18 @@ const pagination = ref({
               </q-btn-dropdown>
             </div>
 
+            <div
+              v-if="!$q.screen.xs && estado == 'PROFORMA'"
+              class="col-xs-12 col-sm-6 row items-center">
+              <q-btn
+                @click="descargarDocumento(props.detalleData.name_proforma, 'proforma')"
+                outline rounded
+                style="color: #696cff">
+                &nbsp; DESCARGAR PROFORMA
+              </q-btn>
+            </div>
+
             <div class="col-xs-12 col-sm-6"
-              :class="[estado == 'PROFORMA' ? 'col-sm-12' : 'col-sm-5' ]"
               style="display: flex;justify-content: end;">
               <table style="margin-right: 5px;">
                 <tr class="text-right">

@@ -14,8 +14,8 @@
 
   const { api, claim, route } = useHelpers();
 
-  const connectToServer = ( token ) => {
-    const manager = new Manager(`${ import.meta.env.VITE_BASE_URL }/socket.io/socket.io.js`, {
+  const connectToServer = () => {
+    const manager = new Manager(`https://facturacion.rednuevaconexion.net/socket.io/socket.io.js`, {
       extraHeaders: {
         autentication: claim.id
       }

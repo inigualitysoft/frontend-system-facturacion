@@ -14,7 +14,7 @@ const api = axios.create({
   headers: {'Content-Type': 'application/json'}
 });
 
-api.interceptors.request.use(async function(config){
+api.interceptors.request.use(async function(config) {
 	let token = await JSON.parse(sessionStorage.getItem('auth/user') as string);
   let claim: any = null;
 

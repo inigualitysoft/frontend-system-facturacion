@@ -1,35 +1,46 @@
 <script setup>
   import { Manager } from "socket.io-client";
-  import { onMounted, ref } from "vue";
+  import { ref, onMounted } from "vue";
+  import axios from "axios";
+
+  const props = defineProps(['movil'])
+  const emit = defineEmits(['sendMovil']);
 
   let socket;
   const estado = ref('desconectado')
 
-  onMounted(() => {
+  onMounted(async () => {
     const qrcode = document.getElementById("qrcode");
     const iduser = document.getElementById("iduser");
 
-    const manager = new Manager(`${ import.meta.env.VITE_API_WHATSAPP }/socket.io/socket.io.js`);
+    await axios.post(`https://sms.rednuevaconexion.net/check-state`, { movil: props.movil });
 
-      socket = manager.socket('/');
+    const manager = new Manager(`https://sms.rednuevaconexion.net/socket.io/socket.io.js`);
 
-      socket.on('qr', url => {
-        console.log(qrcode);
-        qrcode.setAttribute("src", url)
-      });
+    socket = manager.socket('/');
 
-      socket.on('qrstatus',src => {
-        if ( src.includes('check') ) estado.value = 'conectado'
-        if ( src.includes('loader') ) estado.value = 'cargando'
+    socket.on('conectado', data => {
+      comprobarEstado( data );
+    })
 
-        qrcode.setAttribute("src",src)
-      })
+    socket.on('qr', data => {
+      qrcode.setAttribute("src", data.qr)
+    })
 
-      socket.on("user",user =>{
-        iduser.innerHTML=user
-      })
+    const comprobarEstado = (data) => {
+      setTimeout(() => {
+        qrcode.setAttribute("src", data.qrstatus)
+        iduser.innerHTML = data.user;
+
+        if ( data.qrstatus.includes('check') ){
+          estado.value = 'conectado'
+          emit('sendMovil', data.user)
+        }
+        if ( data.qrstatus.includes('loader') ) estado.value = 'cargando'
+
+      }, 2000)
+    }
   })
-
 
 </script>
 
@@ -53,6 +64,7 @@
 
           <div class="body">
             <p>
+
               <li v-if="estado != 'conectado'" class="q-mt-md">
                 Escanea el siguiente código QR con tu aplicación de WhatsApp
               </li>

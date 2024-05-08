@@ -5,7 +5,7 @@
 
   const props = defineProps(['detalleFactura']);
   const emit  = defineEmits(['closeModal']);
-  const { api, mostrarNotify } = useHelpers();
+  const { api, claim, mostrarNotify } = useHelpers();
 
   const existError = ref(false);
   const loading = ref(false);
@@ -55,6 +55,8 @@
 
     if ( validarCampos() ) return;
 
+    const { data } = await api.get(`/companies/find/${ claim.company.id }`);
+
     if ( (formEnvio.value.tipo_envio == 'whatsapp' || formEnvio.value.tipo_envio == 'ambas')
       && !validaciones.value.telefono.isValid ) return
 
@@ -62,6 +64,8 @@
       loading.value = true;
       await api.post('/CE/facturas/reenviar-comprobantes', {
         ...formEnvio.value,
+        telefono: data[0].telefono,
+        number: formEnvio.value.telefono,
         factura: props.detalleFactura
       });
       mostrarNotify('positive', 'Comprobantes enviados')

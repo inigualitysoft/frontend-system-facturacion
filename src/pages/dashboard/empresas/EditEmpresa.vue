@@ -8,8 +8,10 @@
 
   const getEmpresa = async () => {
     const { data } = await api.get('/companies/find/' + route.params.empresa_id);
+
     formEmpresa.value = {
       ...data[0],
+      telefono: data[0].telefono == null ? '' : data[0].telefono,
       logo: null,
       logo_old: ( data[0].logo == null ) ? null : data[0].logo,
       archivo_certificado: null,

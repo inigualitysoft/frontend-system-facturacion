@@ -1,4 +1,5 @@
 <script setup>
+  import { Manager } from "socket.io-client";
   import { ref, watch } from 'vue'
   import useRolPermisos from "../../../composables/useRolPermisos";
   import useHelpers from "../../../composables/useHelpers";
@@ -7,7 +8,25 @@
   import DetalleCompra from '../../../components/DetalleProducts.vue'
   import ModalReenviarComprobantes from "./ModalReenviarComproantes.vue";
 
+  /* --------------------- IMPLEMENTACION DE WEBSOCKET ---------------------- */
+  let socket;
+
   const { api, claim, route, mostrarNotify } = useHelpers();
+
+  const connectToServer = ( token ) => {
+    const manager = new Manager(`${ import.meta.env.VITE_BASE_URL }/socket.io/socket.io.js`, {
+      extraHeaders: {
+        autentication: claim.id
+      }
+    });
+
+    socket?.removeAllListeners();
+    socket = manager.socket('/'); //conectarme algun namespace
+
+    socket.on('updateStateInvoice', async () => {
+      await getVentas();
+    })
+  }
 
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
@@ -117,6 +136,8 @@
 
     getVentas();
   }
+
+  connectToServer();
 
   watch(filter, (newValue, oldValue) => {
     getVentas();
