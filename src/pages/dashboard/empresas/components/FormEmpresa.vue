@@ -126,6 +126,7 @@
               <label>Celular:</label>
               <vue3-q-tel-input
                 default-country="EC"
+                disable
                 search-text="Buscar pais..."
                 @update:model-value="validaciones.telefono.isValid = true"
                 @error="existError"
@@ -137,20 +138,6 @@
                   </label>
                 </template>
               </vue3-q-tel-input>
-              <!-- <q-input
-                type="number"
-                disable
-                v-model="formEmpresa.telefono"
-                :error="!validaciones.telefono.isValid"
-                @update:model-value="validaciones.telefono.isValid = true"
-                @keyup="formEmpresa.telefono = formEmpresa.telefono.replace(/\D/g, '')"
-                lazy-rules dense filled>
-                <template v-slot:error>
-                  <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                    {{ validaciones.telefono.message }}
-                  </label>
-                </template>
-              </q-input> -->
             </div>
             <q-btn
               @click="modalAsociarWhatsApp = true"

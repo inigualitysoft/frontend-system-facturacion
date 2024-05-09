@@ -9,11 +9,34 @@
   let socket;
   const estado = ref('desconectado')
 
+  function convertirFormatoTelefono(numero) {
+      // Verificar si el número ya está en el formato correcto para Ecuador (comienza con '593')
+      if (numero.startsWith('593')) {
+          // Si ya está en el formato correcto, no hacemos nada
+          return numero;
+      } else {
+          // Si no está en el formato correcto, lo convertimos
+          // Eliminamos cualquier espacio en blanco o guiones en el número
+          numero = numero.replace(/\s/g, '').replace(/-/g, '');
+
+          // Verificar si el número comienza con '0' (indicativo de Ecuador)
+          if (numero.startsWith('0')) {
+              // Eliminar el '0' inicial y agregar '593' al principio
+              return '593' + numero.substring(1);
+          } else {
+              // Si no comienza con '0', agregar '593' al principio
+              return '593' + numero;
+          }
+      }
+  }
+
   onMounted(async () => {
     const qrcode = document.getElementById("qrcode");
     const iduser = document.getElementById("iduser");
 
-    await axios.post(`https://sms.rednuevaconexion.net/check-state`, { movil: props.movil });
+    console.log( convertirFormatoTelefono(props.movil) );
+
+    await axios.post(`https://sms.rednuevaconexion.net/check-state`, { movil: convertirFormatoTelefono(props.movil) });
 
     const manager = new Manager(`https://sms.rednuevaconexion.net/socket.io/socket.io.js`);
 

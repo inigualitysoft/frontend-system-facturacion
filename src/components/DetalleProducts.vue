@@ -39,7 +39,7 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
     });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `${ clave_acceso }${ tipo_documento == 'ride' || tipo_documento == 'proforma' ? '.pdf' : '.xml' }`;
+    link.download = `${ props.detalleData.numero_comprobante }${ tipo_documento == 'ride' || tipo_documento == 'proforma' ? '.pdf' : '.xml' }`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
