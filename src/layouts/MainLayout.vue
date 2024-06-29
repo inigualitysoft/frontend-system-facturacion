@@ -28,7 +28,7 @@
           <q-btn class="q-mr-md q-py-xs q-px-sm custom-border" flat
             color="grey" icon="img:https://img.icons8.com/3d-fluency/94/bell.png" />
             
-          <q-avatar class="cursor-pointer">
+          <q-avatar size="46px" font-size="52px" class="cursor-pointer">
             <img :src="ruta_perfil_img">
             <q-menu>
               <q-list style="min-width: 200px">
@@ -46,6 +46,7 @@
               </q-list>
             </q-menu>
           </q-avatar>
+          
         </div>
 
       </q-toolbar>
@@ -257,7 +258,8 @@
 
 <style>
 body {
-  background-color: #71dfcb73;
+  /* background-color: #71dfcb73; */
+  background: linear-gradient(to bottom, #E6E6FA, #98fbf6ba);
 }
 body.body--dark {
   background: #2d2d3d
@@ -277,7 +279,8 @@ body.body--dark {
 
 
 .tab-active {
-  background-color: #549fb0 !important;
+  /* background-color: #549fb0 !important; */
+  background-color: #094350be !important;
   color: #ffffff !important;
   
 }
