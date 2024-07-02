@@ -34,11 +34,8 @@
     const qrcode = document.getElementById("qrcode");
     const iduser = document.getElementById("iduser");
 
-    console.log( convertirFormatoTelefono(props.movil) );
-
-    await axios.post(`https://sms.rednuevaconexion.net/check-state`, { movil: convertirFormatoTelefono(props.movil) });
-
-    const manager = new Manager(`https://sms.rednuevaconexion.net/socket.io/socket.io.js`);
+    await axios.post(`${ process.env.VITE_API_WHATSAPP }/check-state`, { movil: convertirFormatoTelefono(props.movil) });
+    const manager = new Manager(`${ process.env.VITE_API_WHATSAPP }/socket.io/socket.io.js`);
 
     socket = manager.socket('/');
 

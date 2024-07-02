@@ -20,7 +20,10 @@
     }
   }
 
-  getSucursales();
+  if ( claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR' )
+    getSucursales();
+  else
+    selectSucursal.value = claim.sucursales[0]
 
   const {
     formProduct,

@@ -32,14 +32,6 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
   const { api, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
   const { validarPermisos } = useRolPermisos();
 
-  // const formFiltrarArticulo = ref({
-  //     page: '',
-  //     rowsPerPage: '',
-  //     pv_id: 0,
-  //     tipoBusqueda: 'codigo',
-  //     busqueda: ''
-  // })
-
   const rows           = ref([]);
   const tipoBusqueda   = ref('codigo');
   const filter         = ref('');
@@ -71,8 +63,6 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
   })
 
   watch(tipoBusqueda, (currentValue, _) => {
-    // formFiltrarArticulo.value.tipoBusqueda = currentValue;
-
     getArticulos(1, pagination.value.rowsPerPage);
   });
 
@@ -182,11 +172,18 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     <div class="row q-col-gutter-lg">
       <div class="col-12">
         <q-card flat class="shadow_custom">
-            <q-table title-class="text-grey-7 text-h6"
-              :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
-              :columns="columns" row-key="name" :grid="mode==='grid'"
-              :filter="filter" v-model:pagination="pagination"
-              :rows-per-page-options="[10, 15, 20, 0]" ref="tableRef"
+            <q-table
+              title-class="text-grey-7 text-h6"
+              :rows="rows"
+              :loading="loading"
+              :hide-header="mode === 'grid'"
+              :columns="columns"
+              row-key="name"
+              :grid="mode==='grid'"
+              :filter="filter"
+              v-model:pagination="pagination"
+              :rows-per-page-options="[10, 15, 20, 0]"
+              ref="tableRef"
               binary-state-sort @request="onRequest">
 
               <template v-slot:loading>

@@ -1,3 +1,4 @@
+import provincias from "src/apis/provincias.json";
 import forge from "node-forge";
 import { onMounted, ref } from "vue"
 import { date } from 'quasar'
@@ -16,6 +17,8 @@ const formEmpresa = ref({
   archivo_certificado: null,
   archivo_certificado_old: null,
   fecha_caducidad_certificado: '',
+  provincia: '',
+  ciudad: '',
   logo: null,
   iva: '',
   logo_old: null
@@ -32,6 +35,8 @@ const validaciones = ref({
   clave_certificado:        { message: '', isValid: true },
   archivo_certificado:      { message: '', isValid: true },
   iva:                      { message: '', isValid: true },
+  provincia:                { message: '', isValid: true },
+  ciudad:                   { message: '', isValid: true },
   archivo_certificado_old:  { message: '', isValid: true },
   archivo_certificado_old:  { message: '', isValid: true },
   logo:                     { message: '', isValid: true },
@@ -42,18 +47,46 @@ const loading  = ref( false );
 const isPwd = ref( true );
 const isValid = ref( false );
 const formaOriginalFechaCaducidad = ref( false );
+const listProvincias        = ref([]);
+const listCantones          = ref([]);
 
 export const useEmpresa = () => {
 
     const { api, mostrarNotify, route, router } = useHelpers();
     const existError = ref(false);
 
-    const camposRequeridos = ['ruc', 'nombre_comercial', 'direccion_matriz', 'email', 'telefono', 'clave_certificado', 'iva']
+    const camposRequeridos = [
+      'ruc',
+      'nombre_comercial',
+      'direccion_matriz',
+      'email',
+      'telefono',
+      'clave_certificado',
+      'iva',
+      'provincia',
+      'ciudad',
+    ];
 
     onMounted(() => {
       camposRequeridos.forEach( campo => { validaciones.value[campo].isValid = true; })
       validaciones.value['archivo_certificado'].isValid = true;
+
+      let list = Object.entries(provincias)
+      list.forEach( (data) => {
+          if ( data[1].provincia !== undefined )
+            listProvincias.value.push( data[1].provincia )
+      })
     });
+
+    const loadCantones = () => {
+      let list = Object.entries(provincias)
+      const provincia = list.find( (x) => x[1].provincia === formEmpresa.value.provincia );
+
+      listCantones.value = []
+
+      let objectListCantones = Object.entries( provincia[1].cantones )
+      objectListCantones.forEach( (y) => { listCantones.value.push( y[1].canton ) });
+    }
 
     const limpiarFormulario = () => {
       formEmpresa.value.id                      = '';
@@ -164,7 +197,7 @@ export const useEmpresa = () => {
       }
 
       camposRequeridos.forEach( campo => {
-        if ( formEmpresa.value[campo].length == 0 ) {
+        if ( formEmpresa.value[campo]?.length == 0 || !formEmpresa.value[campo]) {
           validaciones.value[campo].message = 'Debes completar este campo'
           validaciones.value[campo].isValid = false;
           existError.value = true;
@@ -220,6 +253,8 @@ export const useEmpresa = () => {
       formData.append('telefono', formEmpresa.value.telefono);
       formData.append('iva', formEmpresa.value.iva);
       formData.append('clave_certificado', formEmpresa.value.clave_certificado);
+      formData.append('provincia', formEmpresa.value.provincia);
+      formData.append('ciudad', formEmpresa.value.ciudad);
       formData.append('archivo_certificado', formEmpresa.value.archivo_certificado);
       formData.append('archivo_certificado_old', formEmpresa.value.archivo_certificado_old);
       formData.append('fecha_caducidad_certificado', formaOriginalFechaCaducidad.value);
@@ -248,7 +283,10 @@ export const useEmpresa = () => {
       api,
       formEmpresa,
       loading,
+      listProvincias,
+      listCantones,
       limpiarFormulario,
+      loadCantones,
       validaciones,
       validateNumRuc,
       validateNumCelular,

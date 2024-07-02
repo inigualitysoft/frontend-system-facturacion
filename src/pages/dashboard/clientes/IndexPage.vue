@@ -75,9 +75,14 @@
       <div class="col-12">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6" title="Listado de Clientes"
-            :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
-            :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination" >
+            :hide-header="mode === 'grid'"
+            :loading="loading"
+            :columns="columns"
+            row-key="name"
+            :grid="mode==='grid'"
+            :rows="rows"
+            :filter="filter"
+            :pagination.sync="pagination">
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
                 <q-th v-for="col in props.cols"

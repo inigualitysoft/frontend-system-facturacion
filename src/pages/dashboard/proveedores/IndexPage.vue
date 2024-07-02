@@ -28,12 +28,14 @@
   } = useProveedor();
 
   const loading = ref( false );
-  const { mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
   const getProveedores = async () => {
     loading.value = true;
     try {
-      const { data } = await api.get('/providers');
+      const { data } = await api.get('/providers', {
+        headers: { 'company-id': claim.company.id }
+      });
       rows.value = data;
     } catch (error: any) {
       console.log( error );

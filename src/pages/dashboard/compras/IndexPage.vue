@@ -53,6 +53,7 @@
       if ( listSucursales.value.length == 0 ) await getSucursales();
 
       let headers = { headers: {
+        'company-id': claim.company.id,
         'sucursal-id': selectSucursal.value,
         desde: dateOne.value,
         hasta: dateTwo.value,
@@ -66,7 +67,7 @@
         compra.sucursal_name = compra.sucursal_id.nombre;
         compra.proveedor_name = compra.proveedor_id.razon_social;
         compra.user_name = compra.user_id.fullName;
-        compra.total = `$${ compra.total }`;
+        compra.total = `${ compra.total }`;
       })
 
       rows.value = data;
@@ -114,13 +115,19 @@
     loading.value = true;
     try {
       const { data } = await api.get(`/sucursal/find/${ claim.company.id }/company`);
+
       data.forEach((companie: any) => {
         listSucursales.value.push({
           label:  companie.nombre,
           value:  companie.id
         })
       });
+
+      if (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR')
+        listSucursales.value.unshift({ label: 'TODOS', value: null });
+
       if ( listSucursales.value.length !== 0 ) selectSucursal.value = listSucursales.value[0].value
+
     } catch (error: any) {
       mostrarNotify( 'warning', error.response.data.message )
     }

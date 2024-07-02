@@ -192,7 +192,7 @@
       return existError;
   }
 
-  const onSubmit = async ( tipo ) => {
+  const onSubmit = async ( tipo, edit = false ) => {
     if ( validarCampos(tipo) ) return;
 
     rows.value.map( row => {
@@ -214,14 +214,14 @@
     let message;
     if (tipo == 'EMISION')
       message = '¿Deseas emitir factura de esta proforma?'
-    if (tipo == 'FACTURA')
-      message = '¿Deseas generar esta FACTURA?'
-    if (tipo == 'PROFORMA')
+    if (tipo == 'PROFORMA' && !edit)
       message = '¿Deseas generar esta Proforma?'
+    if (tipo == 'PROFORMA' && edit)
+      message = '¿Deseas guardar cambios?'
 
     Dialog.create({
       title: message,
-      ok: { push: true, color: 'cyan-10', label: 'Enviar' },
+      ok: { push: true, color: 'cyan-10', label: 'OK' },
       cancel: { push: true, color: 'blue-grey-6', label: 'Cancelar' }
     }).onOk(async () => {
       try {
@@ -614,7 +614,9 @@
             <div class="col-12 flex q-mt-md q-my-lg"
               :class="[ $q.screen.width < 600 ? 'justify-center' : 'justify-between']">
 
-              <q-btn v-if="$q.screen.width > 600" icon="arrow_back" @click="$router.push('/ventas')"
+              <q-btn
+                v-if="$q.screen.width > 600" icon="arrow_back"
+                @click="$router.push('/proformas')"
                 outline rounded class="q-mr-lg"
                 :color="!$q.dark.isActive ? 'blue-grey-10' : 'blue-grey-2'">
                 &nbsp; Regresar
@@ -638,7 +640,7 @@
                     </q-item-section>
                   </q-item>
 
-                  <q-item clickable v-close-popup @click="onSubmit('PROFORMA')">
+                  <q-item clickable v-close-popup @click="onSubmit('PROFORMA', true)">
                     <q-item-section>
                       <q-item-label>Guardar Cambios</q-item-label>
                     </q-item-section>

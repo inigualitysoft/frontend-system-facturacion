@@ -13,6 +13,9 @@
     validaciones,
     onRejected,
     onSubmit,
+    listProvincias,
+    loadCantones,
+    listCantones,
     isPwd,
     isValid
   } = useEmpresa();
@@ -229,6 +232,40 @@
                 <q-icon name="key" color="blue-grey-3" />
               </template>
             </q-input>
+          </div>
+
+          <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
+            <label>Provincia:</label>
+            <q-select
+              v-model.trim="formEmpresa.provincia"
+              @update:model-value="loadCantones(), validaciones.provincia.isValid = true"
+              :error="!validaciones.provincia.isValid"
+              filled
+              dense
+              :options="listProvincias">
+              <template v-slot:error>
+                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                  {{ validaciones.provincia.message }}
+                </label>
+              </template>
+            </q-select>
+          </div>
+
+          <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-xs']">
+            <label>Ciudad:</label>
+            <q-select
+              filled
+              v-model.trim="formEmpresa.ciudad"
+              @update:model-value="loadCantones, validaciones.ciudad.isValid = true"
+              :error="!validaciones.ciudad.isValid"
+              dense
+              :options="listCantones">
+              <template v-slot:error>
+                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                  {{ validaciones.ciudad.message }}
+                </label>
+              </template>
+            </q-select>
           </div>
 
           <div class="col-xs-11 col-md-4" :class="[ $q.screen.width > 600 || 'q-mt-sm']">

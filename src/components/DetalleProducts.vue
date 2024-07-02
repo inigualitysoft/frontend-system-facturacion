@@ -23,7 +23,7 @@ if (props.detalleData.buyToProduct) {
   estado = props.detalleData.estadoSRI
 }
 
-const descargarDocumento = async ( clave_acceso: string, tipo_documento: string ) => {
+const descargarDocumento = async ( clave_acceso: string, tipo_documento: string, name_proforma = '' ) => {
 
   try {
     const { data } = await api.post('/invoices/download-ride-xml', {
@@ -35,11 +35,15 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string 
     );
 
     const blob = new Blob([ data ], {
-      type: tipo_documento == 'ride' || tipo_documento == 'proforma' ?  'application/pdf' : 'application/xml'
+      type: tipo_documento == 'ride' || tipo_documento == 'proforma'
+                                ?  'application/pdf'
+                                : 'application/xml'
     });
     const link = document.createElement('a');
     link.href = window.URL.createObjectURL(blob);
-    link.download = `${ props.detalleData.numero_comprobante }${ tipo_documento == 'ride' || tipo_documento == 'proforma' ? '.pdf' : '.xml' }`;
+    link.download = `${ tipo_documento == 'proforma'
+                        ? name_proforma.replace('.pdf', '')
+                        : props.detalleData.numero_comprobante }${ tipo_documento == 'ride' || tipo_documento == 'proforma' ? '.pdf' : '.xml' }`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -55,7 +59,7 @@ const pagination = ref({
   page: 1,
   rowsPerPage: 10,
   rowsNumber: 15
-})
+});
 </script>
 
 <template>
@@ -220,7 +224,7 @@ const pagination = ref({
 
           <div class="row">
 
-            <div v-if="!$q.screen.xs && estado !== 'PROFORMA'"
+            <div v-if="!$q.screen.xs && estado !== 'PROFORMA' && !props.detalleData.buyToProduct"
               class="col-xs-12 col-sm-6 row items-center">
               <q-btn-dropdown class="q-mr-xs" label="Descargar Documento"
                   outline color="primary" icon="download">
@@ -246,14 +250,16 @@ const pagination = ref({
               v-if="!$q.screen.xs && estado == 'PROFORMA'"
               class="col-xs-12 col-sm-6 row items-center">
               <q-btn
-                @click="descargarDocumento(props.detalleData.name_proforma, 'proforma')"
+                @click="descargarDocumento(props.detalleData.name_proforma, 'proforma', props.detalleData.name_proforma)"
                 outline rounded
                 style="color: #696cff">
                 &nbsp; DESCARGAR PROFORMA
               </q-btn>
             </div>
 
-            <div class="col-xs-12 col-sm-6"
+            <div
+              class="col-xs-12"
+              :class="props.detalleData.buyToProduct ? 'col-sm-12' : 'col-sm-6'"
               style="display: flex;justify-content: end;">
               <table style="margin-right: 5px;">
                 <tr class="text-right">

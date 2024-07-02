@@ -80,14 +80,14 @@
               </h5>
               <h5 class="text-center text-weight-medium q-mt-none q-mb-md"
                 style="font-size: 15px;color: #a8a4a4;line-height: 20px;">
-                {{ claim.company.razon_social }}
+                {{ claim.company.nombre_comercial }}
               </h5>
             </div>
 
             <q-item class="navigation-item" active-class="tab-active" to="/" exact clickable v-ripple>
               <q-item-section avatar>
 
-                <q-icon  name="img:https://img.icons8.com/fluency/48/home.png" size="35px" />
+                <q-icon name="img:https://img.icons8.com/fluency/48/home.png" size="35px" />
               </q-item-section>
 
               <q-item-section>

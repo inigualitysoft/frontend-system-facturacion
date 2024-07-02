@@ -52,7 +52,7 @@ export const useSucursal = () => {
           value:  companie.id
         })
       });
-      formSucursal.value.company_id = claim.company.id
+      // formSucursal.value.company_id = claim.company.id
     }
 
     const limpiarFormulario = () => {

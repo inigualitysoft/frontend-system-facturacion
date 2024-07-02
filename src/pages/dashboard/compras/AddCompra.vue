@@ -197,6 +197,11 @@
     }
   }
 
+  if ( claim.roles[0] !== 'SUPER-ADMINISTRADOR' || claim.roles[0] !== 'ADMINISTRADOR' ) {
+    sucursal_selected.value = claim.sucursales[0]
+    getAllProducts();
+  }
+
   onBeforeUnmount(() => {
     rows.value = [];
   })
@@ -412,8 +417,12 @@
       :class="$q.screen.xs ? 'q-mt-lg' : 'q-mt-md'">
 
       <div class="col-12">
-        <q-table :rows="rows" :columns="columns" row-key="name"
-          :hide-pagination="true" :rows-per-page-options="[50]"
+        <q-table
+          :rows="rows"
+          :columns="columns"
+          row-key="name"
+          :hide-pagination="true"
+          :rows-per-page-options="[50]"
           :class="[$q.dark.isActive ? '' : 'my-sticky-header-table3']">
 
           <template v-slot:no-data="{  }">
@@ -440,7 +449,7 @@
           </template>
 
           <template v-slot:body-cell-descuento="props">
-            <q-td :props="props">
+            <q-td :props="props" class="flex flex-center">
               <q-input input-class="resaltarTextoInput" dense required min="0"
                 @change="getSubtotalByProduct( props.row )"
                 type="number" style="width: 100px;" v-model.trim="props.row.descuento" />
@@ -448,7 +457,7 @@
           </template>
 
           <template v-slot:body-cell-pvm="props">
-            <q-td :props="props">
+            <q-td :props="props" class="flex flex-center">
               <q-input input-class="resaltarTextoInput" dense required
               @change="getSubtotalByProduct( props.row )" min="0"
               type="number" style="width: 100px;" v-model.trim="props.row.precio_compra" />
@@ -550,7 +559,7 @@
   }
   .resaltarTextoInput{
     font-size: 17px;
-    text-align: center;
+    text-align: center !important;
     color: #313131;
     font-weight: 500;
   }

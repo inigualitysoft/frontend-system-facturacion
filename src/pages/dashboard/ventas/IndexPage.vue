@@ -1,6 +1,6 @@
 <script setup>
   import { Manager } from "socket.io-client";
-  import { ref, watch } from 'vue'
+  import { onMounted, ref, watch } from 'vue'
   import useRolPermisos from "../../../composables/useRolPermisos";
   import useHelpers from "../../../composables/useHelpers";
   import { date, useQuasar } from 'quasar'
@@ -15,7 +15,7 @@
   const { api, claim, route } = useHelpers();
 
   const connectToServer = () => {
-    const manager = new Manager(`https://facturacion.rednuevaconexion.net/socket.io/socket.io.js`, {
+    const manager = new Manager(`${ process.env.VITE_BASE_URL }/socket.io/socket.io.js`, {
       extraHeaders: {
         autentication: claim.id
       }
@@ -44,6 +44,7 @@
   const dateOne = ref('');
   const dateTwo = ref('');
   const rows = ref([]);
+  const tableRef = ref();
   const showModalReenvioComprobantes = ref(false);
   const modalDetalle = ref(false);
   const { generarExcel } = useVentas();
@@ -107,28 +108,52 @@
     }
   }
 
-  const getVentas = async () => {
+  const getVentas = async (page = 1, limit = 10) => {
     try {
       loading.value = true;
-      let headers = { headers: {
+
+      let headers = {
         tipo: tipoComprobantes.value,
+        'company-id': claim.company.id,
         'sucursal-id': sucursal_selected.value,
         desde: dateOne.value,
         hasta: dateTwo.value
-      }};
-      const { data } = await api.get('/invoices', headers);
+      };
 
-      data.map( ( venta ) => {
+      const { data } = await api.get('/invoices', {
+        params: { page, limit, busqueda: filter.value },
+        headers: headers
+      });
+
+      pagination.value.rowsNumber = data.meta.totalItems;
+
+      data.items.map( ( venta ) => {
         venta.created_at = date.formatDate(venta.created_at, 'DD/MM/YYYY HH:mm a'),
         venta.loading = false;
       });
 
-      rows.value = data;
+      rows.value = data.items;
       loading.value = false;
     } catch (error) {
       console.log(error)
       loading.value = false;
     }
+  }
+
+  async function onRequest ( props ) {
+
+    const { page, rowsPerPage, sortBy, descending } = props.pagination;
+
+    loading.value = true
+
+    await getVentas( page, rowsPerPage );
+
+    pagination.value.page        = page
+    pagination.value.rowsPerPage = rowsPerPage
+    pagination.value.sortBy      = sortBy
+    pagination.value.descending  = descending
+
+    loading.value = false
   }
 
   const downloadComprobantes = async() => {
@@ -210,14 +235,15 @@
 
     const { data } = await api.get(`/sucursal/find/${ company_id }/company`);
 
-    data.forEach(( x) => {
+    if (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR')
+      sucursales.value.unshift({ label: 'TODOS', value: null });
+
+    data.forEach((x) => {
       sucursales.value.push({ label: x.nombre, value: x.id })
     })
 
     if ( sucursales.value.length != 0)
       sucursal_selected.value = sucursales.value[0].value;
-
-    getVentas();
   }
 
   const reEmitirFactura = async ( data ) => {
@@ -240,7 +266,7 @@
       return {
         aplicaIva: p.product_id.aplicaIva,
         cantidad: p.cantidad,
-        pvp: p.product_id.pvp,
+        pvp: parseFloat(p.v_total) / p.cantidad,
         descuento: p.product_id.descuento,
         nombre: p.product_id.nombre,
         codigoBarra: p.product_id.codigoBarra
@@ -278,25 +304,27 @@
         || data.estadoSRI.trim() == 'ERROR ENVIO AUTORIZACION'
         || data.estadoSRI.trim() == 'ERROR ENVIO AUTORIZACION - ANULACION')
       await api.post('/CE/facturas/autorizacionComprobantesOffline', datosFactura, headers);
-
   }
 
   connectToServer();
 
-  watch(filter, (newValue, oldValue) => {
-    getVentas();
-  })
-
-  if (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR')
-    getSucursales(claim.company.id)
-  else
-    getVentas();
-
   checkRoute();
 
   const mode = ref("list");
+
   const pagination = ref({
-    rowsPerPage: 10
+    sortBy: 'desc',
+    descending: false,
+    page: 1,
+    rowsPerPage: 10,
+    rowsNumber: 15
+  })
+
+  onMounted(async () => {
+    if (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR')
+      await getSucursales(claim.company.id)
+
+    tableRef.value.requestServerInteraction()
   })
 
 </script>
@@ -323,11 +351,11 @@
               <q-input outlined dense v-model="dateOne" mask="date" >
                 <template v-slot:append>
 
-                  <q-icon v-if="dateOne !== ''" name="close" @click="dateOne = '', getVentas()" class="cursor-pointer" />
+                  <q-icon v-if="dateOne !== ''" name="close" @click="dateOne = '', getVentas(page = 1, limit = 10)" class="cursor-pointer" />
 
                   <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="dateOne" @update:model-value="getVentas">
+                      <q-date v-model="dateOne" @update:model-value="getVentas(page = 1, limit = 10)">
                         <div class="row items-center justify-end">
                           <q-btn v-close-popup label="Close" color="primary" flat />
                         </div>
@@ -350,13 +378,13 @@
               <q-input outlined dense v-model="dateTwo" mask="date">
                 <template v-slot:append>
 
-                  <q-icon v-if="dateTwo !== ''" name="close" @click="dateTwo = '', getVentas()" class="cursor-pointer" />
+                  <q-icon v-if="dateTwo !== ''" name="close" @click="dateTwo = '', getVentas(page = 1, limit = 10)" class="cursor-pointer" />
 
                   <q-icon name="event" class="cursor-pointer">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="dateTwo" @update:model-value="getVentas">
+                      <q-date v-model="dateTwo" @update:model-value="getVentas(page = 1, limit = 10)">
                         <div class="row items-center justify-end">
-                          <q-btn @click="getVentas"
+                          <q-btn @click="getVentas(page = 1, limit = 10)"
                             v-close-popup label="Close" color="primary" flat />
                         </div>
                       </q-date>
@@ -388,19 +416,24 @@
               </q-item>
             </q-list>
           </q-btn-dropdown>
-          <!-- <q-btn @click="downloadComprobantes"
-            class="q-ml-lg q-px-sm" dense outline color="primary" icon-right="picture_as_pdf"
-              style="margin-top: 2px;" label="descargar facturas" /> -->
         </div>
       </div>
 
       <div class="col-12 q-pt-none">
         <q-card flat class="shadow_custom">
-          <q-table title-class="text-grey-7 text-h6" :rows="rows"
+          <q-table title-class="text-grey-7 text-h6"
             :hide-header="mode === 'grid'"
             :loading="loading"
-            :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination">
+            :columns="columns"
+            row-key="name"
+            :grid="mode==='grid'"
+            :rows="rows"
+            :filter="filter"
+            :pagination.sync="pagination"
+            v-model:pagination="pagination"
+            :rows-per-page-options="[10, 15, 20, 0]"
+            ref="tableRef"
+            binary-state-sort @request="onRequest">
 
             <template v-slot:loading>
               <q-inner-loading showing color="primary" />
@@ -437,8 +470,7 @@
                   <q-select outlined dense v-model="tipoComprobantes"
                   emit-value map-options
                   :options="[
-                      { label: 'Todos', value: 'TODOS' },
-                      { label: 'Facturas', value: 'FACTURAS' },
+                      { label: 'Todos', value: 'FACTURAS' },
                       { label: 'Facturas Anuladas', value: 'ANULADO' },
                       { label: 'Facturas Autorizadas', value: 'AUTORIZADO' },
                     ]">
@@ -463,7 +495,7 @@
                 outline color="primary" label="Agregar Factura" class="q-mr-xs"/>
 
               <q-input :style="$q.screen.width > 700 || 'width: 70%'"
-                outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
+                outlined dense debounce="800" v-model.trim="filter" placeholder="Buscar...">
                 <template v-slot:append>
                   <q-icon name="search"/>
                 </template>
