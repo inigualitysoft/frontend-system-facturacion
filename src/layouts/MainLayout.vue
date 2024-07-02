@@ -9,7 +9,7 @@
             :class="[!$q.dark.isActive ? 'text-black' : '']">
             <div>
               <span class="text-weight-regular">Bienvenido: </span>
-              <span class="text-weight-light">{{ fullName.toUpperCase() }}</span>
+              <span class="text-weight-light">{{ fullName }}</span>
             </div>
             <div>
               <span class="text-weight-regular">Rol: </span>
@@ -28,19 +28,16 @@
           <q-btn class="q-mr-md q-py-xs q-px-sm custom-border" flat
             color="grey" icon="img:https://img.icons8.com/3d-fluency/94/bell.png" />
 
-          <q-avatar class="cursor-pointer">
+          <q-avatar size="46px" font-size="52px" class="cursor-pointer">
             <img :src="ruta_perfil_img">
             <q-menu>
               <q-list style="min-width: 200px">
                 <q-item clickable v-close-popup>
-                  <q-item-section>{{ claim.usuario }}</q-item-section>
+                  <q-item-section>John Doe</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item clickable v-close-popup>
-                  <q-item-section
-                    @click="$router.push({ name:'editar.usuario.profile', params: { term: claim.id } })">
-                    Mi Perfil
-                  </q-item-section>
+                  <q-item-section>Mi Perfil</q-item-section>
                 </q-item>
                 <q-separator />
                 <q-item @click="cerrarSesion" clickable v-close-popup>
@@ -49,6 +46,7 @@
               </q-list>
             </q-menu>
           </q-avatar>
+
         </div>
 
       </q-toolbar>
@@ -70,24 +68,13 @@
           />
         </q-toolbar>
 
-        <q-scroll-area style="height:100%;position: relative;">
+        <q-scroll-area style="height:100%;">
           <q-list padding class="q-mt-sm">
-
-            <div class="div-show-empresa-name">
-              <h5 class="text-center text-weight-medium q-my-none"
-                style="font-size: 18px;">
-                Empresa:
-              </h5>
-              <h5 class="text-center text-weight-medium q-mt-none q-mb-md"
-                style="font-size: 15px;color: #a8a4a4;line-height: 20px;">
-                {{ claim.company.nombre_comercial }}
-              </h5>
-            </div>
 
             <q-item class="navigation-item" active-class="tab-active" to="/" exact clickable v-ripple>
               <q-item-section avatar>
 
-                <q-icon name="img:https://img.icons8.com/fluency/48/home.png" size="35px" />
+                <q-icon  name="img:https://img.icons8.com/fluency/48/home.png" size="35px" />
               </q-item-section>
 
               <q-item-section>
@@ -103,6 +90,27 @@
               <q-expansion-item
                 expand-separator icon="img:https://img.icons8.com/3d-fluency/94/gear--v1.png" label="Ajustes">
 
+                <q-expansion-item v-if="validarPermisos('index.usuario')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/conference.png" class="item-options"
+                  active-class="tab-active" :to="{ name: 'Ver Usuarios' }"
+                  dense-toggle label="Gestión Personal" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item v-if="validarPermisos('index.rol')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/services--v2.png" class="item-options"
+                  active-class="tab-active" :to="{ name: 'Rol-Permiso' }"
+                  dense-toggle label="Roles y Permisos" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item v-if="validarPermisos('index.correo')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/gmail.png" class="item-options"
+                  active-class="tab-active"
+                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
+                      ? { name: 'emails' }
+                      : { name: 'email.edit', params: { email_id: claim.company.id } }"
+                  dense-toggle label="Servidor de Correo" :header-inset-level="0">
+                </q-expansion-item>
+
                 <q-expansion-item v-if="validarPermisos('index.empresa')"
                   hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/client-company.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Ver Empresas' }"
@@ -113,27 +121,6 @@
                   hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/skyscrapers.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Ver Sucursales' }"
                   dense-toggle label="Sucursales" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item v-if="validarPermisos('index.rol')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/services--v2.png" class="item-options"
-                  active-class="tab-active" :to="{ name: 'Rol-Permiso' }"
-                  dense-toggle label="Roles y Permisos" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item v-if="validarPermisos('index.usuario')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/conference.png" class="item-options"
-                  active-class="tab-active" :to="{ name: 'Ver Usuarios' }"
-                  dense-toggle label="Gestión Personal" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item v-if="validarPermisos('index.correo')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/gmail.png" class="item-options"
-                  active-class="tab-active"
-                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
-                      ? { name: 'emails' }
-                      : { name: 'email.edit', params: { email_id: claim.company.id } }"
-                  dense-toggle label="Servidor de Correo" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/documents.png" class="item-options"
@@ -180,16 +167,22 @@
 
   const essentialLinks = [
     {
+      title: 'Proveedores',
+      icon: 'img:https://img.icons8.com/3d-fluency/96/group--v2.png',
+      link: '/proveedores',
+      permisoRequerido: 'index.proveedores'
+    },
+    {
       title: 'Clientes',
       icon: 'img:https://img.icons8.com/color/96/supplier.png',
       link: '/customer',
       permisoRequerido: 'index.clientes'
     },
     {
-      title: 'Proveedores',
-      icon: 'img:https://img.icons8.com/3d-fluency/96/group--v2.png',
-      link: '/proveedores',
-      permisoRequerido: 'index.proveedores'
+      title: 'Productos y Servicios',
+      icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',
+      link: '/productos',
+      permisoRequerido: 'index.productos'
     },
     {
       title: 'Compras',
@@ -198,29 +191,11 @@
       permisoRequerido: 'index.compras'
     },
     {
-      title: 'Facturas',
+      title: 'Ventas',
       icon: 'img:https://img.icons8.com/3d-fluency/94/fund-accounting.png',
       link: '/ventas',
       permisoRequerido: 'index.ventas'
     },
-    {
-      title: 'Proformas',
-      icon: 'description',
-      link: '/proformas',
-      permisoRequerido: 'sin-permiso'
-    },
-    // {
-    //   title: 'Retenciones',
-    //   icon: 'img:https://img.icons8.com/3d-fluency/94/fund-accounting.png',
-    //   link: '/retenciones',
-    //   permisoRequerido: 'index.retencion'
-    // },
-    {
-      title: 'Productos y Servicios',
-      icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',
-      link: '/productos',
-      permisoRequerido: 'index.productos'
-    }
   ]
 
   const $q = useQuasar();
@@ -283,7 +258,8 @@
 
 <style>
 body {
-  background-color: #71dfcb73;
+  /* background-color: #71dfcb73; */
+  background: linear-gradient(to bottom, #E6E6FA, #98fbf6ba);
 }
 body.body--dark {
   background: #2d2d3d
@@ -303,7 +279,8 @@ body.body--dark {
 
 
 .tab-active {
-  background-color: #549fb0 !important;
+  /* background-color: #549fb0 !important; */
+  background-color: #094350be !important;
   color: #ffffff !important;
 
 }
@@ -335,9 +312,5 @@ body.body--dark {
 }
 .item-options{
   margin-left: 6px;
-}
-
-.div-show-empresa-name{
-  width: 100%;
 }
 </style>

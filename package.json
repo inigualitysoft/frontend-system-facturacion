@@ -2,7 +2,7 @@
   "name": "sis-farmacia",
   "version": "0.0.1",
   "description": "sistema pos-ventas para farmacias",
-  "productName": "Red Nueva Conexion",
+  "productName": "FactuCash",
   "author": "FernanDev <juan96saa@gmail.com>",
   "private": true,
   "scripts": {
