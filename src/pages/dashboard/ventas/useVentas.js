@@ -1,10 +1,72 @@
 import ExcelJS from 'exceljs';
+import useHelpers from 'src/composables/useHelpers';
+import { ref } from 'vue';
+import { date } from 'quasar'
+
+const dateOne = ref('');
+const dateTwo = ref('');
+const sucursal_selected = ref([]);
+const tipoComprobantes = ref('FACTURAS');
+const filter = ref('');
+const rows = ref([]);
+const loading = ref( false )
+const pagination = ref({
+  sortBy: 'desc',
+  descending: false,
+  page: 1,
+  rowsPerPage: 10,
+  rowsNumber: 15
+})
 
 export const useVentas = ( ) => {
 
-  const generarExcel = ( rows ) => {
+  const { api, claim, route } = useHelpers();
 
-    let filas = rows.map( row => {
+  const getVentas = async (page = 1, limit = 10, download_excel = false) => {
+    try {
+      loading.value = true;
+
+      let headers = {
+        tipo: tipoComprobantes.value,
+        'company-id': claim.company.id,
+        'sucursal-id': sucursal_selected.value,
+        desde: dateOne.value,
+        hasta: dateTwo.value
+      };
+
+      if (download_excel) limit = 100000
+
+      const { data } = await api.get('/invoices', {
+        params: { page, limit, busqueda: filter.value },
+        headers: headers
+      });
+
+      pagination.value.rowsNumber = data.meta.totalItems;
+
+      data.items.map( ( venta ) => {
+        venta.created_at = date.formatDate(venta.created_at, 'DD/MM/YYYY HH:mm a'),
+        venta.loading = false;
+      });
+
+      if (download_excel) {
+        return data.items
+      }
+
+      rows.value = data.items;
+      // loading.value = false;
+    } catch (error) {
+      console.log(error)
+      // loading.value = false;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  const generarExcel = async () => {
+
+    const facturas = await getVentas(1, 1, true)
+
+    let filas = facturas.map( row => {
       return [
         row.created_at.split(' ')[0],
         row.numero_comprobante,
@@ -123,6 +185,15 @@ export const useVentas = ( ) => {
   }
 
   return {
-    generarExcel
+    generarExcel,
+    sucursal_selected,
+    dateOne,
+    getVentas,
+    tipoComprobantes,
+    loading,
+    pagination,
+    rows,
+    filter,
+    dateTwo
   }
 }

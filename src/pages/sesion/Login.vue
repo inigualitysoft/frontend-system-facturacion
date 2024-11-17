@@ -30,7 +30,7 @@
 <template>
   <div class="container">
     <section class="image-section">
-      <img src="/imgs/" class="side-image" />
+      <!-- <img src="/imgs/" class="side-image" /> -->
     </section>
     <section class="login-section">
       <div class="login-container">

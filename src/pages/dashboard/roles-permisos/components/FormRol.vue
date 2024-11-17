@@ -60,8 +60,14 @@ const {
       </div>
 
       <div class="col-xs-9 col-md-12 flex justify-center q-mt-none">
-        <q-btn :label=" !edit ? 'Guardar' : 'Editar'" :loading="loading"
-          class="q-px-xl q-mt-md q-mb-md" type="submit" style="color: #696cff" outline rounded />
+        <q-btn
+          :label=" !edit ? 'Guardar' : 'Editar'"
+          :loading="loading"
+          class="q-px-xl q-mt-md q-mb-md"
+          type="submit"
+          style="color: #696cff"
+          outline
+          rounded />
       </div>
     </div>
   </q-form>

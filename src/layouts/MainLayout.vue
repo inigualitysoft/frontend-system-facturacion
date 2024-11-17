@@ -46,7 +46,6 @@
               </q-list>
             </q-menu>
           </q-avatar>
-
         </div>
 
       </q-toolbar>
@@ -71,6 +70,17 @@
         <q-scroll-area style="height:100%;">
           <q-list padding class="q-mt-sm">
 
+            <div class="div-show-empresa-name">
+              <h5 class="text-center text-weight-medium q-my-none"
+                style="font-size: 18px;">
+                Empresa:
+              </h5>
+              <h5 class="text-center text-weight-medium q-mt-none q-mb-md"
+                style="font-size: 15px;color: #a8a4a4;line-height: 20px;">
+                {{ claim.company.nombre_comercial }}
+              </h5>
+            </div>
+
             <q-item class="navigation-item" active-class="tab-active" to="/" exact clickable v-ripple>
               <q-item-section avatar>
 
@@ -90,27 +100,6 @@
               <q-expansion-item
                 expand-separator icon="img:https://img.icons8.com/3d-fluency/94/gear--v1.png" label="Ajustes">
 
-                <q-expansion-item v-if="validarPermisos('index.usuario')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/conference.png" class="item-options"
-                  active-class="tab-active" :to="{ name: 'Ver Usuarios' }"
-                  dense-toggle label="Gestión Personal" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item v-if="validarPermisos('index.rol')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/services--v2.png" class="item-options"
-                  active-class="tab-active" :to="{ name: 'Rol-Permiso' }"
-                  dense-toggle label="Roles y Permisos" :header-inset-level="0">
-                </q-expansion-item>
-
-                <q-expansion-item v-if="validarPermisos('index.correo')"
-                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/gmail.png" class="item-options"
-                  active-class="tab-active"
-                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
-                      ? { name: 'emails' }
-                      : { name: 'email.edit', params: { email_id: claim.company.id } }"
-                  dense-toggle label="Servidor de Correo" :header-inset-level="0">
-                </q-expansion-item>
-
                 <q-expansion-item v-if="validarPermisos('index.empresa')"
                   hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/client-company.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Ver Empresas' }"
@@ -123,10 +112,32 @@
                   dense-toggle label="Sucursales" :header-inset-level="0">
                 </q-expansion-item>
 
+                <q-expansion-item v-if="validarPermisos('index.rol')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/services--v2.png" class="item-options"
+                  active-class="tab-active" :to="{ name: 'Rol-Permiso' }"
+                  dense-toggle label="Roles y Permisos" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item v-if="validarPermisos('index.usuario')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/conference.png" class="item-options"
+                  active-class="tab-active" :to="{ name: 'Ver Usuarios' }"
+                  dense-toggle label="Gestión Personal" :header-inset-level="0">
+                </q-expansion-item>
+
+                <q-expansion-item v-if="validarPermisos('index.correo')"
+                  hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/gmail.png" class="item-options"
+                  active-class="tab-active"
+                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
+                      ? { name: 'emails' }
+                      : { name: 'email.edit', params: { email_id: claim.company.id } }"
+                  dense-toggle label="Servidor de Correo" :header-inset-level="0">
+                </q-expansion-item>
+
                 <q-expansion-item hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/documents.png" class="item-options"
                   active-class="tab-active" :to="{ name: 'Config Proforma' }"
                   dense-toggle label="Proforma" :header-inset-level="0">
                 </q-expansion-item>
+
 
               </q-expansion-item>
             </q-list>
@@ -167,22 +178,16 @@
 
   const essentialLinks = [
     {
-      title: 'Proveedores',
-      icon: 'img:https://img.icons8.com/3d-fluency/96/group--v2.png',
-      link: '/proveedores',
-      permisoRequerido: 'index.proveedores'
-    },
-    {
       title: 'Clientes',
       icon: 'img:https://img.icons8.com/color/96/supplier.png',
       link: '/customer',
       permisoRequerido: 'index.clientes'
     },
     {
-      title: 'Productos y Servicios',
-      icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',
-      link: '/productos',
-      permisoRequerido: 'index.productos'
+      title: 'Proveedores',
+      icon: 'img:https://img.icons8.com/3d-fluency/96/group--v2.png',
+      link: '/proveedores',
+      permisoRequerido: 'index.proveedores'
     },
     {
       title: 'Compras',
@@ -191,11 +196,23 @@
       permisoRequerido: 'index.compras'
     },
     {
-      title: 'Ventas',
+      title: 'Facturas',
       icon: 'img:https://img.icons8.com/3d-fluency/94/fund-accounting.png',
       link: '/ventas',
       permisoRequerido: 'index.ventas'
     },
+    {
+      title: 'Proformas',
+      icon: 'description',
+      link: '/proformas',
+      permisoRequerido: 'sin-permiso'
+    },
+    {
+      title: 'Productos y Servicios',
+      icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',
+      link: '/productos',
+      permisoRequerido: 'index.productos'
+    }
   ]
 
   const $q = useQuasar();

@@ -3,7 +3,7 @@
   import { onMounted, ref, watch } from 'vue'
   import useRolPermisos from "../../../composables/useRolPermisos";
   import useHelpers from "../../../composables/useHelpers";
-  import { date, useQuasar } from 'quasar'
+  import { useQuasar } from 'quasar'
   import { useVentas } from "./useVentas.js";
   import DetalleCompra from '../../../components/DetalleProducts.vue'
   import { useImpresion } from "../clientes/composables/useImpresion";
@@ -41,13 +41,21 @@
     { name: 'estado', label: 'Estado', field: 'estado', align: 'center' }
   ]
 
-  const dateOne = ref('');
-  const dateTwo = ref('');
-  const rows = ref([]);
   const tableRef = ref();
   const showModalReenvioComprobantes = ref(false);
   const modalDetalle = ref(false);
-  const { generarExcel } = useVentas();
+  const {
+    generarExcel,
+    sucursal_selected,
+    tipoComprobantes,
+    dateOne,
+    loading,
+    filter,
+    rows,
+    pagination,
+    getVentas,
+    dateTwo
+  } = useVentas();
 
   const imprimirComprobanteFactura = async ( data, tipo) => {
 
@@ -83,16 +91,11 @@
     ventanaImpresion.close();
   }
 
-  const tipoComprobantes = ref('FACTURAS');
-  const filter = ref('');
   const detalleData = ref({})
   const sucursales = ref([]);
-  const sucursal_selected = ref([]);
   const detalleFactura = ref({})
   const { validarPermisos } = useRolPermisos();
-
   const $q = useQuasar();
-  const loading = ref( false )
 
   watch(tipoComprobantes, (currentValue, _) => { getVentas(); });
 
@@ -105,38 +108,6 @@
     if (fecha != '') {
       dateOne.value = fecha.split(' - ')[0].replace(/-/g, "/");
       dateTwo.value = fecha.split(' - ')[1].replace(/-/g, "/");
-    }
-  }
-
-  const getVentas = async (page = 1, limit = 10) => {
-    try {
-      loading.value = true;
-
-      let headers = {
-        tipo: tipoComprobantes.value,
-        'company-id': claim.company.id,
-        'sucursal-id': sucursal_selected.value,
-        desde: dateOne.value,
-        hasta: dateTwo.value
-      };
-
-      const { data } = await api.get('/invoices', {
-        params: { page, limit, busqueda: filter.value },
-        headers: headers
-      });
-
-      pagination.value.rowsNumber = data.meta.totalItems;
-
-      data.items.map( ( venta ) => {
-        venta.created_at = date.formatDate(venta.created_at, 'DD/MM/YYYY HH:mm a'),
-        venta.loading = false;
-      });
-
-      rows.value = data.items;
-      loading.value = false;
-    } catch (error) {
-      console.log(error)
-      loading.value = false;
     }
   }
 
@@ -254,6 +225,7 @@
     let clave_acceso = '';
     if ( data.estadoSRI.trim() == 'ERROR ENVIO RECEPCION'
           || data.estadoSRI.trim() == 'ERROR ENVIO AUTORIZACION'
+          || data.estadoSRI.trim() == 'RECIBIDA'
           || data.estadoSRI.trim() == 'ANULACION - RECIBIDA') {
       tipo_comprobante = 'factura'
       clave_acceso = data.clave_acceso
@@ -311,14 +283,6 @@
   checkRoute();
 
   const mode = ref("list");
-
-  const pagination = ref({
-    sortBy: 'desc',
-    descending: false,
-    page: 1,
-    rowsPerPage: 10,
-    rowsNumber: 15
-  })
 
   onMounted(async () => {
     if (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR')
@@ -408,7 +372,7 @@
                 </q-item-section>
               </q-item>
 
-              <q-item @click="generarExcel(rows)"
+              <q-item @click="generarExcel"
                 clickable v-close-popup>
                 <q-item-section>
                   <q-item-label>Descargar EXCEL</q-item-label>
@@ -537,27 +501,44 @@
 
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
-                <q-badge v-if="props.row.estadoSRI == 'NO AUTORIZADO' || props.row.estadoSRI.trim() == 'DEVUELTA'"
-                  outline class="q-py-xs q-px-md" :color="$q.dark.isActive ? 'warning' : 'orange-10'"
+                <q-badge
+                  v-if="props.row.estadoSRI == 'NO AUTORIZADO' || props.row.estadoSRI.trim() == 'DEVUELTA'"
+                  outline
+                  class="q-py-xs q-px-md"
+                  :color="$q.dark.isActive ? 'warning' : 'orange-10'"
                   :label="props.row.estadoSRI">
-                  <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="blue-grey-9 text-subtitle2">
+                  <q-tooltip
+                    anchor="center left"
+                    self="center right"
+                    :offset="[10, 10]"
+                    class="blue-grey-9 text-subtitle2">
                     {{ props.row.respuestaSRI }}
                   </q-tooltip>
                 </q-badge>
 
-                <q-badge v-else-if="props.row.estadoSRI == 'AUTORIZADO'"
-                  outline class="q-py-xs q-px-md" color="secondary" :label="props.row.estadoSRI" />
+                <q-badge
+                  v-else-if="props.row.estadoSRI == 'AUTORIZADO'"
+                  outline
+                  class="q-py-xs q-px-md"
+                  color="secondary"
+                  :label="props.row.estadoSRI" />
 
-                <q-badge  v-else-if="props.row.estadoSRI == 'ANULADO'" outline class="q-py-xs q-px-md"
-                    color="red-4" :label="props.row.estadoSRI" />
+                <q-badge
+                  v-else-if="props.row.estadoSRI == 'ANULADO'"
+                  class="q-py-xs q-px-md"
+                  color="red-4"
+                  :label="props.row.estadoSRI" />
 
-                <q-badge v-else outline class="q-py-xs q-px-md" :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'"
+                <q-badge
+                  v-else
+                  outline
+                  class="q-py-xs q-px-md"
+                  :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'"
                   :label="props.row.estadoSRI">
                   <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="blue-grey-9 text-subtitle2">
-                    {{ props.row.respuestaSRI }}
+                    {{ props.row.estadoSRI }}
                   </q-tooltip>
                 </q-badge>
-
               </q-td>
             </template>
 
@@ -567,6 +548,7 @@
                 <q-btn v-if="props.row.estadoSRI.trim() === 'ERROR ENVIO RECEPCION'
                     || props.row.estadoSRI.trim() === 'ERROR ENVIO RECEPCION - ANULACION'
                     || props.row.estadoSRI.trim() === 'ERROR ENVIO AUTORIZACION'
+                    || props.row.estadoSRI.trim() === 'RECIBIDA'
                     || props.row.estadoSRI.trim() === 'ERROR ENVIO AUTORIZACION - ANULACION'"
                     round color="deep-orange-8" icon="fa-solid fa-retweet"
                     :loading="props.row.loading"

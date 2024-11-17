@@ -458,9 +458,12 @@
 
           <template v-slot:body-cell-pvm="props">
             <q-td :props="props" class="flex flex-center">
-              <q-input input-class="resaltarTextoInput" dense required
-              @change="getSubtotalByProduct( props.row )" min="0"
-              type="number" style="width: 100px;" v-model.trim="props.row.precio_compra" />
+              <q-input
+                input-class="resaltarTextoInput"
+                dense required
+                @change="getSubtotalByProduct( props.row )"
+                style="width: 100px;"
+                v-model.trim="props.row.precio_compra" />
             </q-td>
           </template>
 
