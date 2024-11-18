@@ -30,7 +30,7 @@
       }
   }
 
-  onMounted(async () => {
+  onMounted(async() => {
     const qrcode = document.getElementById("qrcode");
     const iduser = document.getElementById("iduser");
 
