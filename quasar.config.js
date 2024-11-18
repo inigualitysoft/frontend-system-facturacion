@@ -63,8 +63,8 @@ module.exports = configure(function (/* ctx */) {
       // publicPath: '/',
       // analyze: true,
       env: {
-        VITE_API_WHATSAPP:'https://sms.rednuevaconexion.net',
-        VITE_BASE_URL:'https://facturacion.rednuevaconexion.net',
+        VITE_API_WHATSAPP: process.env.VITE_API_WHATSAPP,
+        VITE_BASE_URL: process.env.VITE_BASE_URL
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

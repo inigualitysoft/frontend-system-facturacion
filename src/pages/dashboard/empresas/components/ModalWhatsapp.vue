@@ -34,8 +34,8 @@
     const qrcode = document.getElementById("qrcode");
     const iduser = document.getElementById("iduser");
 
-    await axios.post(`${ process.env.VITE_API_WHATSAPP }/check-state`, { movil: convertirFormatoTelefono(props.movil) });
-    const manager = new Manager(`${ process.env.VITE_API_WHATSAPP }/socket.io/socket.io.js`);
+    await axios.post(`${ import.meta.env.VITE_API_WHATSAPP }/check-state`, { movil: convertirFormatoTelefono(props.movil) });
+    const manager = new Manager(`${ import.meta.env.VITE_BASE_URL }/socket.io/socket.io.js`);
 
     socket = manager.socket('/');
 
