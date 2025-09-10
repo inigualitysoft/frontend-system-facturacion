@@ -60,7 +60,6 @@ export const useEmpresa = () => {
       'nombre_comercial',
       'direccion_matriz',
       'email',
-      'telefono',
       'clave_certificado',
       'iva',
       'provincia',
@@ -155,18 +154,20 @@ export const useEmpresa = () => {
           const width = this.width;
           const height = this.height;
 
-          if (width >= 206 || height >= 206) {
-            validaciones.value.logo.message = 'La imagen supera las medidas requeridas(menor a 200px por 200px)'
-            validaciones.value.logo.isValid = false
-            reject(false)
-          }else if( validaciones.value.logo.isValid && (formEmpresa.value.logo.size / 1024) > 105 ){
-            validaciones.value.logo.message = 'La imagen supera el tamaño permitido (100KB)'
-            validaciones.value.logo.isValid = false
-            reject(false)
-          }else{
-            validaciones.value.logo.isValid = true
-            resolve(true)
-          }
+          // if (width >= 206 || height >= 206) {
+          //   validaciones.value.logo.message = 'La imagen supera las medidas requeridas(menor a 200px por 200px)'
+          //   validaciones.value.logo.isValid = false
+          //   reject(false)
+          // }else if( validaciones.value.logo.isValid && (formEmpresa.value.logo.size / 1024) > 105 ){
+          //   validaciones.value.logo.message = 'La imagen supera el tamaño permitido (100KB)'
+          //   validaciones.value.logo.isValid = false
+          //   reject(false)
+          // }else{
+          //   validaciones.value.logo.isValid = true
+          //   resolve(true)
+          // }
+          validaciones.value.logo.isValid = true
+          resolve(true)
         }
 
         // Asignar el archivo a la imagen para obtener las dimensiones
