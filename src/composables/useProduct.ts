@@ -122,10 +122,12 @@ export const useProduct = () => {
         descuento += (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100;
 
       if ( row.aplicaIva )
-        iva += ((parseFloat( row.v_total ) - (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100) * iva_selected.value) / 100;
+        iva += ((( +row.v_total ) - ((+row.v_total) * (+row.descuento)) / 100) * iva_selected.value) / 100;
 
-      subtotal += parseFloat(row.v_total)
+      subtotal += +row.v_total
     })
+
+    iva = Math.round(iva * 100) / 100;
 
     total = ( subtotal + iva ) - descuento;
     return {
