@@ -67,9 +67,9 @@
           <div class="col-xs-11 col-md-5"
             :class="[ $q.screen.width > 600 || 'q-mt-xs']">
             <label>Razón Social</label>
-            <q-input v-model.trim="formEmpresa.razon_social"
+            <q-input
+              v-model.trim="formEmpresa.razon_social"
               input-style="text-transform: uppercase;"
-              readonly
               dense outlined>
             </q-input>
           </div>
