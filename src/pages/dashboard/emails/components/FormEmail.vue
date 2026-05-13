@@ -120,6 +120,20 @@
 
         <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
           :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
+          <label for="">Seguridad:</label>
+        </div>
+        <div class="col-xs-11 col-md-3 q-ml-md"
+          :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
+          <q-select
+            v-model="formEmail.seguridad"
+            :options="['SSL', 'TLS', 'NONE']"
+            outlined dense emit-value map-options required
+            hint="SSL=465 · TLS/STARTTLS=587 · NONE=sin cifrado"
+          />
+        </div>
+
+        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
+          :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
           <label for="">Empresa:</label>
         </div>
         <div class="col-xs-11 col-md-3 q-ml-md"
