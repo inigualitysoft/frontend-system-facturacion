@@ -102,27 +102,9 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true}
       },
       {
-        path: 'customer',
-        name: 'customer.index',
-        component: () => import('pages/dashboard/clientess/IndexPage.vue'),
-        meta: { requiresAuth: true}
-      },
-      {
         path: 'clientes',
         name: 'cliente.index',
         component: () => import('pages/dashboard/clientes/IndexPage.vue'),
-        meta: { requiresAuth: true}
-      },
-      {
-        path: 'clientes/add',
-        name: 'cliente.add',
-        component: () => import('pages/dashboard/clientes/AddCliente.vue'),
-        meta: { requiresAuth: true}
-      },
-      {
-        path: 'clientes/edit/:client_id',
-        name: 'cliente.edit',
-        component: () => import('pages/dashboard/clientes/EditCliente.vue'),
         meta: { requiresAuth: true}
       },
       {
@@ -165,84 +147,6 @@ const routes: RouteRecordRaw[] = [
         path: 'email/edit/:email_id',
         name: 'email.edit',
         component: () => import('pages/dashboard/emails/EditEmail.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'red/getIp',
-        name: 'getIp',
-        component: () => import('pages/dashboard/red/getIp.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'router',
-        name: 'index.routers',
-        component: () => import('pages/dashboard/Gestion-Red/routers/IndexPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'router/add',
-        name: 'router.add',
-        component: () => import('pages/dashboard/Gestion-Red/routers/AddRouter.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'router/edit/:router_id',
-        name: 'router.edit',
-        component: () => import('pages/dashboard/Gestion-Red/routers/EditRouter.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'servicios/internet',
-        name: 'internet.index',
-        component: () => import('pages/dashboard/Gestion-Red/internet/IndexPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'servicios/internert/add',
-        name: 'internet.add',
-        component: () => import('pages/dashboard/Gestion-Red/internet/AddPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'servicios/internert/edit/:id',
-        name: 'internet.edit',
-        component: () => import('pages/dashboard/Gestion-Red/internet/EditPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'cajas-nap',
-        name: 'cNap.index',
-        component: () => import('pages/dashboard/Gestion-Red/cajas-nap/IndexPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'cajas-nap/add',
-        name: 'cNap.add',
-        component: () => import('pages/dashboard/Gestion-Red/cajas-nap/AddPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'cajas-nap/edit/:id',
-        name: 'cNap.edit',
-        component: () => import('pages/dashboard/Gestion-Red/cajas-nap/EditPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'redes-ipv4',
-        name: 'redesIpv4.index',
-        component: () => import('pages/dashboard/Gestion-Red/redes-ipv4/IndexPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'redes-ipv4/add',
-        name: 'redesIpv4.add',
-        component: () => import('pages/dashboard/Gestion-Red/redes-ipv4/AddPage.vue'),
-        meta: { requiresAuth: true }
-      },
-      {
-        path: 'redes-ipv4/edit/:id',
-        name: 'redesIpv4.edit',
-        component: () => import('pages/dashboard/Gestion-Red/redes-ipv4/EditPage.vue'),
         meta: { requiresAuth: true }
       },
       {

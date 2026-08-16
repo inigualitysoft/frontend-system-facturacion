@@ -180,7 +180,7 @@
     {
       title: 'Clientes',
       icon: 'img:https://img.icons8.com/color/96/supplier.png',
-      link: '/customer',
+      link: '/clientes',
       permisoRequerido: 'index.clientes'
     },
     {

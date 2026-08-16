@@ -314,7 +314,7 @@ onMounted(async () => {
             class="justify-center q-py-none text-blue-grey-10 text-weight-medium q-px-none"
             style="background-color: #D9A406;">
             <q-btn
-              @click="router.push({ name: 'customer.index' })"
+              @click="router.push({ name: 'cliente.index' })"
               class="full-width" flat
               style="padding-left: 0px;padding-right: 0px;">
               Mas Info

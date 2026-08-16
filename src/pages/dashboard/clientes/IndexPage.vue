@@ -1,40 +1,45 @@
 <script setup>
   import { ref, watch } from 'vue';
+  import useHelpers from "../../../composables/useHelpers";
+  import AddCliente from './AddCliente.vue'
+  import EditCliente from './EditCliente.vue'
   import { useCliente } from "./composables/useCliente";
-  import { date } from 'quasar'
+  import ModalCargarExcel from "./components/ModalCargarExcel.vue";
+  import useRolPermisos from "src/composables/useRolPermisos.js";
 
   const columns = [
     { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'nombre', align: 'center', label: 'Cliente', field: 'nombres', sortable: true },
-    { name: 'ip', align: 'center', label: 'IP', field: 'ip', sortable: true },
-    { name: 'direccion', align: 'center', label: 'Dirección Servicio', field: 'direccion', sortable: true },
-    { name: 'tipo_documento', align: 'center', label: 'T. Doc.', field: 'tipo_documento' },
-    { name: 'numero_documento', align: 'center', label: 'Num. de Doc.', field: 'numero_documento' },
+    { name: 'tipo_documento', align: 'center', label: 'Tipo de Documento', field: 'tipo_documento' },
+    { name: 'numero_documento', align: 'center', label: 'Numero de Documento', field: 'numero_documento' },
     { name: 'email', label: 'Email', field: 'email', align: 'center'},
-    { name: 'celular', label: 'Movil', field: 'celular',  align: 'center' },
-    { name: 'instalado', label: 'Instalado', field: 'instalado',  align: 'center' },
-    { name: 'total_cobrar', label: 'Total Cobrar', field: 'total_cobrar',  align: 'center' },
+    { name: 'celular', label: 'Celular', field: 'celular',  align: 'center' },
     { name: 'estado', label: 'Estado', align: 'center', field: 'estado' },
   ]
+  let {
+    actualizarLista,
+    modalAgregarCliente,
+    modalEditarCliente,
+    formCliente
+  } = useCliente();
+  const { validarPermisos } = useRolPermisos();
 
-  let { api, mostrarNotify, confirmDelete, isDeleted, loading } = useCliente();
+  const showModalUploadFile = ref( false );
+  const filter              = ref('')
+  const rows                = ref([]);
+  const loading             = ref( false );
+  const { api, claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
-  const filter = ref('')
-  const rows = ref([]);
-
+  watch(actualizarLista, (currentValue, _) => {
+    if ( currentValue ) getClientes();
+  });
   const getClientes = async () => {
     loading.value = true;
     try {
-      const { data } = await api.get('/customers');
-      if ( data.length > 0 ) {
-        data.forEach(x => {
-          x.ip = x.planInternet[0].ipv4,
-          x.total_cobrar = `$${ x.planInternet[0].precio }`,
-          x.direccion = `${ x.planInternet[0].direccion == '' ? '- - - - - -' : x.planInternet[0].direccion }`,
-          x.instalado = date.formatDate(x.planInternet[0].fecha_instalacion, 'DD/MM/YYYY')
-        });
-        rows.value = data;
-      }
+      let headers = { 'company-id': claim.company.id };
+      const { data } = await api.get('/customers', { headers });
+      rows.value = data;
+      actualizarLista.value = false;
     } catch (error) {
       mostrarNotify( 'warning', error.response.data.message )
     }
@@ -52,16 +57,39 @@
   }
 
   watch( isDeleted, ( newValue, _ ) => { if ( newValue ) getClientes() })
-  const eliminarCliente = async ( cliente_id ) => {
+  const eliminarCliente = async (cliente_id) => {
+    confirmDelete('Estas seguro de eliminar este cliente?', `/customers/${ cliente_id }`);
+  }
+
+  const downloadFile = () => {
+    var archivoURL = "/plantillas/clientes_plantilla.xlsx";
+
+    window.location.href = archivoURL;
+  }
+
+  const exportarClientes = async () => {
     try {
-      confirmDelete('Estas seguro de eliminar este cliente?', `/customers/${ cliente_id }`);
+      const { data } = await api.post(`/customers/download-clients-excel`, { }, {
+        responseType: 'arraybuffer'
+      });
+
+      const blob = new Blob([ data ], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
+      const link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = 'clientes.xlsx';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      console.log( data );
     } catch (error) {
-      console.log(error);
+
     }
   }
 
   getClientes();
-
   const mode = ref("list");
   const pagination = ref({
     rowsPerPage: 10
@@ -75,14 +103,14 @@
       <div class="col-12">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6" title="Listado de Clientes"
-            :hide-header="mode === 'grid'"
-            :loading="loading"
-            :columns="columns"
-            row-key="name"
-            :grid="mode==='grid'"
-            :rows="rows"
-            :filter="filter"
-            :pagination.sync="pagination">
+            :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
+            :columns="columns" row-key="name" :grid="mode==='grid'"
+            :filter="filter" :pagination.sync="pagination" >
+
+            <template v-slot:loading>
+              <q-inner-loading showing color="primary" />
+            </template>
+
             <template v-slot:header="props">
               <q-tr :props="props" style="height: 60px">
                 <q-th v-for="col in props.cols"
@@ -95,12 +123,38 @@
             </template>
 
             <template v-slot:top-right="props">
-              <q-btn v-if="!$q.screen.xs"
-                @click="$router.push({ name: 'cliente.add' })"
+              <q-btn v-if="!$q.screen.xs && validarPermisos('crear.cliente')"
+                @click="modalAgregarCliente = !modalAgregarCliente"
                 outline color="primary" label="Agregar Cliente" class="q-mr-xs"/>
 
-              <q-input :style="$q.screen.width > 700 || 'width: 70%'"
-                outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
+              <q-btn-dropdown class="q-mr-xs"
+                outline color="teal-6" icon="fa-solid fa-file-excel">
+                <q-list>
+                  <q-item clickable v-close-popup
+                    @click="showModalUploadFile = true">
+                    <q-item-section>
+                      <q-item-label>Importar Excel</q-item-label>
+                    </q-item-section>
+                  </q-item>
+
+                  <q-item @click="downloadFile"
+                    clickable v-close-popup>
+                    <q-item-section>
+                      <q-item-label>Exportar Plantilla</q-item-label>
+                    </q-item-section>
+                  </q-item>
+
+                  <q-item @click="exportarClientes"
+                    clickable v-close-popup>
+                    <q-item-section>
+                      <q-item-label>Exportar Clientes</q-item-label>
+                    </q-item-section>
+                  </q-item>
+
+                </q-list>
+              </q-btn-dropdown>
+
+              <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                 <template v-slot:append>
                   <q-icon name="search"/>
                 </template>
@@ -118,7 +172,8 @@
               <q-btn flat round dense
                 :icon="mode === 'grid' ? 'list' : 'grid_on'"
                 @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
-                v-if="!props.inFullscreen">
+                v-if="!props.inFullscreen"
+              >
                 <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
                   {{ mode === 'grid' ? 'List' : 'Grid' }}
                 </q-tooltip>
@@ -150,18 +205,14 @@
             <template v-slot:body-cell-acciones="props">
               <q-td :props="props">
 
-                <q-btn v-if="props.row.isActive"
-                round color="blue-grey"
-                @click="$router.push({ name: 'cliente.edit', params: { client_id: props.row.id } })"
-                icon="edit" class="q-mr-sm" size="10px">
-                  <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
-                    Editar
-                  </q-tooltip>
-                </q-btn>
-
                 <template v-if="props.row.isActive">
+                  <q-btn v-if="validarPermisos('editar.cliente')"
+                    round color="blue-grey"
+                    @click="formCliente = { ...props.row }, modalEditarCliente = true"
+                    icon="edit" class="q-mr-sm" size="10px" />
+
                   <q-btn round color="blue-grey"
-                    v-if="props.row.isActive"
+                    v-if="props.row.isActive && validarPermisos('inactivar.cliente')"
                     icon="close"
                     @click="activarDesactivarCliente(props.row.id, false)"
                     size="10px" />
@@ -169,20 +220,16 @@
 
                 <template v-else>
                   <q-btn round color="blue-grey"
-                    v-if="!props.row.isActive"
+                    v-if="!props.row.isActive && validarPermisos('activar.cliente')"
                     icon="done"
                     @click="activarDesactivarCliente(props.row.id, true)"
                     size="10px" />
 
                   <q-btn round color="blue-grey" class="q-ml-sm"
-                  v-if="!props.row.estado"
+                  v-if="!props.row.estado && validarPermisos('eliminar.cliente')"
                   icon="delete"
                   @click="eliminarCliente(props.row.id)"
-                  size="10px">
-                    <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
-                      Eliminar
-                    </q-tooltip>
-                  </q-btn>
+                  size="10px" />
 
                 </template>
               </q-td>
@@ -202,9 +249,20 @@
   </div>
 
   <q-page-sticky position="bottom-right" :offset="[18, 18]"
-      v-if="$q.screen.xs">
-    <q-btn round color="secondary" size="lg" icon="add"
-    @click="$router.push({ name: 'cliente.add' })" />
+      v-if="$q.screen.xs && validarPermisos('crear.cliente')">
+    <q-btn round color="secondary" size="lg" icon="add" @click="modalAgregarCliente = !modalAgregarCliente" />
   </q-page-sticky>
+
+  <q-dialog v-model="modalAgregarCliente">
+    <AddCliente  />
+  </q-dialog>
+
+  <q-dialog v-model="modalEditarCliente">
+    <EditCliente />
+  </q-dialog>
+
+  <q-dialog v-model="showModalUploadFile">
+    <ModalCargarExcel @actualizarDatos="getClientes()" />
+  </q-dialog>
 
 </template>

@@ -6,7 +6,7 @@
   import { useQuasar } from 'quasar'
   import { useVentas } from "./useVentas.js";
   import DetalleCompra from '../../../components/DetalleProducts.vue'
-  import { useImpresion } from "../clientes/composables/useImpresion";
+  import { useImpresion } from "src/composables/useImpresion";
   import ModalReenviarComprobantes from "./ModalReenviarComproantes.vue";
 
   /* --------------------- IMPLEMENTACION DE WEBSOCKET ---------------------- */

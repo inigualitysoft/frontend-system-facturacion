@@ -1,64 +1,135 @@
 <script setup lang="ts">
-import { onBeforeUnmount } from 'vue';
+import Vue3QTelInput from 'vue3-q-tel-input'
 import { useCliente } from '../composables/useCliente';
-import DatosPersonales from "./DatosPersonales.vue";
-import FactAndNot from "./FactAndNot.vue";
-import ServicioInternet from "./ServicioInternet.vue";
-
 const props = defineProps<{ edit: boolean }>();
 
-const { done1, done2, done3, onSubmit, step, limpiarFormulario, quitarErrores } = useCliente();
+const {
+    formCliente,
+    loading,
+    allowOnlyNumber,
+    validateNumDocument,
+    validaciones,
+    onSubmit
+  } = useCliente();
 
-onBeforeUnmount(() => {
-  limpiarFormulario();
-  quitarErrores();
-  done1.value, done2.value, done3.value = false;
-  step.value = 1;
-})
+const existError = (value: any) => {
+  validaciones.value.celular.isValid = !value
+}
 
 </script>
 
 <template>
-  <q-form @submit="onSubmit( props.edit )" class="q-mt-md">
-    <div class="row q-col-gutter-md q-px-lg q-pb-lg" 
-      :class="$q.screen.width > 1022 ? 'q-col-gutter-y-lg' : ''">
+  <q-form @submit="onSubmit( props.edit )">
+    <div class="row q-pt-lg q-gutter-lg justify-center">
 
-      <div class="col-12">
-        <q-stepper v-model="step" header-nav 
-          ref="stepper" color="primary" animated>
-
-          <q-step :name="1" title="Datos Personales" done-color="secondary"
-          caption="Nombres, Dirección, Telefono..." icon="settings" 
-            :done="step > 1">              
-              <DatosPersonales />
-          </q-step>
-
-          <q-step :name="2" title="Facturación y Notificaciones" caption="Dia de pago, Corte, aviso"
-            icon="create_new_folder" :done="step > 2" done-color="secondary">
-            <FactAndNot />
-          </q-step>
-
-          <q-step :name="3" title="Servicios" 
-            caption="Queues, PPPoE, Hotspot, etc" 
-            icon="add_comment">
-             <ServicioInternet :edit="props.edit" />
-          </q-step>
-
-        </q-stepper>
+      <div class="col-xs-12 col-sm-11" :class="[ !$q.screen.xs ? 'q-px-md' : '' ]">
+        <label>Razón Social:</label>
+        <q-input
+            v-model.trim="formCliente.nombres"
+            @update:model-value="validaciones.nombres.isValid = true"
+            :error="!validaciones.nombres.isValid"
+            dense filled>
+          <template v-slot:error>
+            <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+              {{ validaciones.nombres.message }}
+            </label>
+          </template>
+        </q-input>
       </div>
+
+      <div class="col-xs-12 col-sm-5">
+        <label>Tipo de Documento:</label>
+        <q-select
+          @update:model-value="validaciones.tipo_documento.isValid = true"
+          :error="!validaciones.tipo_documento.isValid"
+          dense v-model.trim="formCliente.tipo_documento" filled
+          emit-value map-options
+          :options="[
+            { label: 'RUC', value: '04' },
+            { label: 'Cedula', value: '05' },
+            { label: 'Pasaporte', value: '06' }
+            ]">
+          <template v-slot:error>
+            <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+              {{ validaciones.tipo_documento.message }}
+            </label>
+          </template>
+        </q-select>
+      </div>
+
+      <div class="col-xs-12 col-sm-5">
+        <label>Numero de Documento:</label>
+        <q-input v-model="formCliente.numero_documento"
+          @update:model-value="validaciones.numero_documento.isValid = true"
+          :error="!validaciones.numero_documento.isValid"
+          :disable="formCliente.tipo_documento === '' "
+          counter :maxlength="formCliente.tipo_documento === '04' ? 13 : 10"
+          lazy-rules
+          dense filled @keyup="allowOnlyNumber">
+          <template v-slot:error>
+            <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+              {{ validaciones.numero_documento.message }}
+            </label>
+          </template>
+        </q-input>
+      </div>
+
+      <div class="col-xs-12 col-sm-5">
+        <label>Email:</label>
+        <q-input
+          v-model.trim="formCliente.email"
+          dense filled
+          @update:model-value="validaciones.email.isValid = true"
+          :error="!validaciones.email.isValid">
+          <template v-slot:error>
+            <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+              {{ validaciones.email.message }}
+            </label>
+          </template>
+        </q-input>
+      </div>
+
+      <div class="col-xs-12 col-sm-5">
+        <label>Celular:</label>
+        <vue3-q-tel-input
+          default-country="EC"
+          search-text="Buscar pais..."
+          @update:model-value="validaciones.celular.isValid = true"
+          @error="existError"
+          :error="!validaciones.celular.isValid"
+          filled dense v-model:tel="formCliente.celular">
+          <template v-slot:error>
+            <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+              {{ validaciones.celular.message }}
+            </label>
+          </template>
+        </vue3-q-tel-input>
+      </div>
+
+      <div class="col-xs-12 col-sm-11" :class="[ !$q.screen.xs ? 'q-px-md' : '' ]">
+        <label>Dirección:</label>
+        <q-input
+          @update:model-value="validaciones.direccion.isValid = true"
+          :error="!validaciones.direccion.isValid"
+          v-model="formCliente.direccion" dense filled
+          >
+          <template v-slot:error>
+            <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+              {{ validaciones.direccion.message }}
+            </label>
+          </template>
+        </q-input>
+      </div>
+
+      <div class="col-xs-9 col-sm-12  flex justify-center">
+        <q-btn :label=" !edit ? 'Guardar' : 'Editar'" :loading="loading"
+          class="q-px-xl" type="submit" outline rounded style="color: #696cff" />
+      </div>
+
     </div>
   </q-form>
 </template>
 
 <style>
-.texto-rigth{
-  text-align: right;
-}
-.resaltarTextoInput{
-  font-size: 14px;
-  text-align: center;
-  color: #313131;
-  font-weight: 500;
-}
+@import 'vue3-q-tel-input/dist/vue3-q-tel-input.esm.css';
 </style>
-
