@@ -113,7 +113,7 @@
                   :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
                   @click="props.toggleFullscreen"
                   v-if="mode === 'list'" >
-                  <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
+                  <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                     {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                   </q-tooltip>
                 </q-btn>
@@ -122,7 +122,7 @@
                   :icon="mode === 'grid' ? 'list' : 'grid_on'"
                   @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
                   v-if="!props.inFullscreen">
-                  <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
+                  <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                     {{ mode === 'grid' ? 'List' : 'Grid' }}
                   </q-tooltip>
                 </q-btn>

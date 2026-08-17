@@ -1,1 +1,16 @@
 // app global css in SCSS form
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Tooltips legibles en todo el sistema
+ * ──────────────────────────────────────────────────────────────────────
+ * Quasar los renderiza muy pequeños (~10-11px). Se sube el tamaño y el
+ * interlineado para que siempre se lean bien, y se deja el fondo oscuro
+ * por defecto: antes cada botón traía su propio color (bg-indigo,
+ * blue-grey-9…) y el resultado era inconsistente de pantalla a pantalla.
+ * ────────────────────────────────────────────────────────────────────── */
+.q-tooltip {
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  padding: 6px 10px !important;
+  max-width: 320px !important;
+}

@@ -4,7 +4,7 @@
   import { onMounted } from 'vue';
   import { date } from 'quasar'
 
-  const { api, isValid, formEmpresa, route } = useEmpresa();
+  const { api, isValid, formEmpresa, route, previewImage, LOGO_PLACEHOLDER } = useEmpresa();
 
   const getEmpresa = async () => {
     const { data } = await api.get('/companies/find/' + route.params.empresa_id);
@@ -18,6 +18,10 @@
       archivo_certificado_old: data[0].archivo_certificado,
       fecha_caducidad_certificado: date.formatDate(data[0].fecha_caducidad_certificado, 'DD/MM/YYYY HH:mma')
     }
+
+    previewImage.value = data[0].logo
+      ? `${ import.meta.env.VITE_BASE_URL }/images/${ data[0].logo }`
+      : LOGO_PLACEHOLDER;
   }
 
   isValid.value = false;

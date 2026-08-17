@@ -16,6 +16,8 @@
     agregarAndValidarStock,
     formatearNumero,
     getSubtotalByProduct,
+    recalcularLinea,
+    normalizarCampo,
     sucursal_selected,
     iva_selected,
     quitarArticulo
@@ -504,16 +506,19 @@
             <template v-slot:body-cell-cantidad="props">
               <q-td :props="props" class="flex flex-center">
                   <q-input input-class="resaltarTextoInput" dense required
-                  @change="getSubtotalByProduct( props.row, 'ventas' )"
+                  @update:model-value="recalcularLinea( props.row )"
+                  @blur="normalizarCampo( props.row, 'cantidad' )"
                   min="0"
-                  type="number" style="width: 80px;" v-model.trim="props.row.cantidad" />
+                  type="number" style="width: 80px;" v-model="props.row.cantidad" />
               </q-td>
             </template>
 
             <template v-slot:body-cell-descuento="props">
               <q-td :props="props" class="flex flex-center">
                   <q-input input-class="resaltarTextoInput" dense required
-                  @change="getSubtotalByProduct( props.row, 'ventas' )" min="0"
+                  @update:model-value="recalcularLinea( props.row )"
+                  @blur="normalizarCampo( props.row, 'descuento' )"
+                  min="0" step="0.01"
                   type="number" style="width: 100px;" v-model="props.row.descuento" />
               </q-td>
             </template>
@@ -527,7 +532,9 @@
             <template v-slot:body-cell-pvp="props">
               <q-td :props="props" class="flex flex-center">
                 <q-input input-class="resaltarTextoInput" dense required
-                  @change="getSubtotalByProduct( props.row, 'ventas' )" min="0"
+                  @update:model-value="recalcularLinea( props.row )"
+                  @blur="normalizarCampo( props.row, 'pvp' )"
+                  min="0" step="0.01"
                   type="number" style="width: 100px;" v-model="props.row.pvp" />
               </q-td>
             </template>

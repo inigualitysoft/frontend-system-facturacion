@@ -17,8 +17,20 @@
     loadCantones,
     listCantones,
     isPwd,
-    isValid
+    isValid,
+    previewImage
   } = useEmpresa();
+
+  /* Vista previa inmediata del archivo elegido, antes de guardarlo. */
+  const previsualizarImagen = ( file: any ) => {
+    const lector = new FileReader();
+    lector.onload = ( e: any ) => { previewImage.value = e.target.result }
+    lector.readAsDataURL( file );
+  }
+
+  watch(() => formEmpresa.value.logo, ( foto: any ) => {
+    if ( foto ) previsualizarImagen( foto )
+  })
 
   const updateMovil = ( movil: string ) => {
     formEmpresa.value.telefono = movil.split(':')[0]
@@ -158,6 +170,12 @@
               :error="!validaciones.logo.isValid"
               :label="formEmpresa.logo_old == null ?
                 'Cargar Logo' : formEmpresa.logo_old">
+
+              <template v-slot:before>
+                <img
+                  :src="previewImage"
+                  style="max-width: 125px; max-height: 75px; margin-top: 40px;" />
+              </template>
 
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">

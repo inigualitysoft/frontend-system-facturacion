@@ -14,7 +14,7 @@ const columns: any = ref([
   { label: 'Producto', align: 'left', field: 'nombre', name: 'nombre' },
   { name: 'cantidad', label: 'Cantidad', align: 'center'},
   { name: 'iva', label: 'Aplica IVA', align: 'center' },
-  { name: 'descuento', label: 'Descuento(%)', align: 'center', field: 'descuento' },
+  { name: 'descuento', label: 'Descuento($)', align: 'center', field: 'descuento' },
   { label: 'Stock', align: 'center', field: 'stock', name: 'stock' },
   { name: 'pvm', label: 'Costo Neto', align: 'center' },
   { name: 'v_total', label: 'Valor Total', align: 'center', field: 'v_total' }
@@ -41,7 +41,8 @@ export const useProduct = () => {
 
       data.cantidad  = cantidad;
       data.v_total   = modulo == 'proforma' ? parseFloat(data.v_total) : 0;
-      data.descuento = (modulo == 'venta' || modulo == 'proforma') ? data.descuento : 0;
+
+      data.descuento = 0;
 
       rows.value.unshift( data );
 
@@ -118,11 +119,16 @@ export const useProduct = () => {
     let subtotal = 0, iva = 0, descuento = 0, total = 0;
 
     rows.value.forEach( (row: any) => {
-      if ( row.descuento > 0 )
-        descuento += (parseFloat(row.v_total) * parseFloat(row.descuento)) / 100;
+
+      const descuentoLinea = Math.min(
+        Math.max( parseFloat(row.descuento) || 0, 0 ),
+        parseFloat(row.v_total) || 0
+      );
+
+      descuento += descuentoLinea;
 
       if ( row.aplicaIva )
-        iva += ((( +row.v_total ) - ((+row.v_total) * (+row.descuento)) / 100) * iva_selected.value) / 100;
+        iva += (((+row.v_total) - descuentoLinea) * iva_selected.value) / 100;
 
       subtotal += +row.v_total
     })
@@ -137,6 +143,22 @@ export const useProduct = () => {
       total:      formatearNumero(total)
     }
   })
+
+  const recalcularLinea = ( row: any, modulo: string = 'ventas' ) => {
+    const cantidad = parseInt(row.cantidad) || 0;
+
+    row.v_total = modulo == 'compras'
+      ? cantidad * (parseFloat(row.precio_compra) || 0)
+      : formatearNumero( cantidad * (parseFloat(row.pvp) || 0) );
+  }
+
+  /** Al salir del campo se deja el número limpio y se recalcula. */
+  const normalizarCampo = ( row: any, campo: string, modulo: string = 'ventas' ) => {
+    const numero = parseFloat(row[campo]);
+    row[campo] = isNaN(numero) || numero < 0 ? 0 : formatearNumero(numero);
+
+    recalcularLinea( row, modulo );
+  }
 
   const getSubtotalByProduct = ( row: any, modulo: string = 'compras' ) => {
     if ( modulo == 'compras' )
@@ -175,6 +197,8 @@ export const useProduct = () => {
     sucursal_selected,
     iva_selected,
     getSubtotalByProduct,
+    recalcularLinea,
+    normalizarCampo,
     quitarArticulo,
     valorFactura,
     rows

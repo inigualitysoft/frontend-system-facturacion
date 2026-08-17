@@ -23,7 +23,17 @@ if (props.detalleData.buyToProduct) {
   estado = props.detalleData.estadoSRI
 }
 
+/*
+ * Los comprobantes ya no salen de disco: el backend los pide al microservicio
+ * de facturación, así que la descarga tarda. Sin señal visible el operador cree
+ * que no pasó nada y vuelve a hacer clic, disparando varias descargas.
+ */
+const descargando = ref(false);
+
 const descargarDocumento = async ( clave_acceso: string, tipo_documento: string, name_proforma = '' ) => {
+
+  if ( descargando.value ) return;
+  descargando.value = true;
 
   try {
     const { data } = await api.post('/invoices/download-ride-xml', {
@@ -49,7 +59,9 @@ const descargarDocumento = async ( clave_acceso: string, tipo_documento: string,
     document.body.removeChild(link);
 
   } catch (error) {
-    mostrarNotify('negative', 'No se encontro el archivo')
+    mostrarNotify('negative', 'No se pudo descargar el comprobante')
+  } finally {
+    descargando.value = false;
   }
 }
 
@@ -227,9 +239,10 @@ const pagination = ref({
             <div v-if="!$q.screen.xs && estado !== 'PROFORMA' && !props.detalleData.buyToProduct"
               class="col-xs-12 col-sm-6 row items-center">
               <q-btn-dropdown class="q-mr-xs" label="Descargar Documento"
-                  outline color="primary" icon="download">
+                  outline color="primary" icon="download"
+                  :loading="descargando" :disable="descargando">
                 <q-list>
-                  <q-item clickable v-close-popup
+                  <q-item clickable v-close-popup :disable="descargando"
                     @click="descargarDocumento(props.detalleData.clave_acceso, 'ride')">
                     <q-item-section>
                       <q-item-label>Descargar RIDE</q-item-label>
@@ -237,7 +250,7 @@ const pagination = ref({
                   </q-item>
 
                   <q-item @click="descargarDocumento(props.detalleData.clave_acceso, 'xml')"
-                    clickable v-close-popup>
+                    clickable v-close-popup :disable="descargando">
                     <q-item-section>
                       <q-item-label>Descargar XML</q-item-label>
                     </q-item-section>
@@ -252,6 +265,7 @@ const pagination = ref({
               <q-btn
                 @click="descargarDocumento(props.detalleData.name_proforma, 'proforma', props.detalleData.name_proforma)"
                 outline rounded
+                :loading="descargando" :disable="descargando"
                 style="color: #696cff">
                 &nbsp; DESCARGAR PROFORMA
               </q-btn>

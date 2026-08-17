@@ -4,6 +4,21 @@ import { onMounted, ref } from "vue"
 import { date } from 'quasar'
 import useHelpers from "../../../../composables/useHelpers";
 
+/*
+ * Vista previa del logo. Arranca con un marcador de posición embebido (SVG en
+ * data-URI) para no depender de un binario nuevo en `public/`, y se reemplaza
+ * por el logo guardado al editar, o por el archivo elegido al cargar uno.
+ */
+const LOGO_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="125" height="75" viewBox="0 0 125 75">' +
+  '<rect width="125" height="75" rx="6" fill="#eceff1"/>' +
+  '<circle cx="45" cy="27" r="6" fill="#b0bec5"/>' +
+  '<path d="M32 50l14-18 11 14 8-9 12 13z" fill="#b0bec5"/>' +
+  '</svg>'
+);
+
+const previewImage = ref(LOGO_PLACEHOLDER);
+
 const formEmpresa = ref({
   id: '',
   ruc: '',
@@ -101,6 +116,7 @@ export const useEmpresa = () => {
       formEmpresa.value.archivo_certificado_old = null;
       formEmpresa.value.logo            = null;
       formEmpresa.value.logo_old        = null;
+      previewImage.value                = LOGO_PLACEHOLDER;
     }
 
     const validateNumRuc = [ (val) => val.length >= 13 || 'Debes completar 13 digitos' ];
@@ -295,6 +311,8 @@ export const useEmpresa = () => {
       onSubmit,
       isPwd,
       isValid,
+      previewImage,
+      LOGO_PLACEHOLDER,
       route
     }
 }

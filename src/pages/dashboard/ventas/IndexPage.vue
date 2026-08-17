@@ -239,7 +239,7 @@
         aplicaIva: p.product_id.aplicaIva,
         cantidad: p.cantidad,
         pvp: parseFloat(p.v_total) / p.cantidad,
-        descuento: p.product_id.descuento,
+        descuento: parseFloat(p.descuento) || 0,
         nombre: p.product_id.nombre,
         codigoBarra: p.product_id.codigoBarra
       }
@@ -468,7 +468,7 @@
               <q-btn flat round dense
                 :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
                 @click="props.toggleFullscreen" v-if="mode === 'list'" >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
+                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                 </q-tooltip>
               </q-btn>
@@ -477,7 +477,7 @@
                 :icon="mode === 'grid' ? 'list' : 'grid_on'"
                 @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'" v-if="!props.inFullscreen"
               >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
+                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ mode === 'grid' ? 'List' : 'Grid' }}
                 </q-tooltip>
               </q-btn>
@@ -510,8 +510,7 @@
                   <q-tooltip
                     anchor="center left"
                     self="center right"
-                    :offset="[10, 10]"
-                    class="blue-grey-9 text-subtitle2">
+                    :offset="[10, 10]">
                     {{ props.row.respuestaSRI }}
                   </q-tooltip>
                 </q-badge>
@@ -535,7 +534,7 @@
                   class="q-py-xs q-px-md"
                   :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'"
                   :label="props.row.estadoSRI">
-                  <q-tooltip anchor="center left" self="center right" :offset="[10, 10]" class="blue-grey-9 text-subtitle2">
+                  <q-tooltip anchor="center left" self="center right" :offset="[10, 10]">
                     {{ props.row.estadoSRI }}
                   </q-tooltip>
                 </q-badge>
@@ -554,7 +553,7 @@
                     :loading="props.row.loading"
                     @click="reEmitirFactura( props.row )"
                     size="10px" class="q-mr-sm">
-                  <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                  <q-tooltip anchor="top middle" self="bottom middle">
                     Reenviar Factura Electrónica
                   </q-tooltip>
                 </q-btn>
@@ -563,30 +562,42 @@
                     round color="blue-grey" icon="print"
                     @click="imprimirComprobanteFactura(props.row, 'factura')"
                     size="10px" class="q-mr-sm">
-                  <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                  <q-tooltip anchor="top middle" self="bottom middle">
                     Imprimir comprobante
                   </q-tooltip>
                 </q-btn>
 
                 <q-btn round color="blue-grey" icon="visibility" size="10px"
-                class="q-mr-sm" @click="modalDetalle = true, detalleData = { ...props.row }" />
+                class="q-mr-sm" @click="modalDetalle = true, detalleData = { ...props.row }">
+                  <q-tooltip anchor="top middle" self="bottom middle">
+                    Ver Factura
+                  </q-tooltip>
+                </q-btn>
 
                 <q-btn v-if="props.row.estadoSRI == 'PROFORMA' || props.row.estadoSRI.trim() == 'ERROR ENVIO RECEPCION' || props.row.estadoSRI.trim() == 'ERROR ENVIO RECEPCION - ANULACION' || props.row.estadoSRI.trim() == 'PENDIENTE'"
                   @click="$router.push(`ventas/add/${ props.row.id }`)"
-                  round color="blue-grey" icon="description" size="10px" class="q-mr-sm" />
+                  round color="blue-grey" icon="description" size="10px" class="q-mr-sm">
+                  <q-tooltip anchor="top middle" self="bottom middle">
+                    Editar factura
+                  </q-tooltip>
+                </q-btn>
 
                 <q-btn round color="blue-grey"
                   v-if="props.row.customer_id.nombres !== 'CONSUMIDOR FINAL' && (props.row.estadoSRI == 'AUTORIZADO' || props.row.respuestaSRI?.includes('ERROR SECUENCIAL REGISTRADO')) && validarPermisos('anular.venta')" class="q-mr-sm"
                   @click="anularFactura( props.row )"
                   :loading="props.row.loading"
-                  icon="close" size="10px" />
+                  icon="close" size="10px">
+                  <q-tooltip anchor="top middle" self="bottom middle">
+                    Anular factura
+                  </q-tooltip>
+                </q-btn>
 
                 <q-btn v-if="props.row.estadoSRI == 'AUTORIZADO'
                               || props.row.estadoSRI == 'PROFORMA'"
                   round color="blue-grey"
                   @click="showModalReenvioComprobantes = true, detalleFactura = props.row"
                   icon="forward_to_inbox" size="11px">
-                  <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                  <q-tooltip anchor="top middle" self="bottom middle">
                     Enviar comprobante por email
                   </q-tooltip>
                 </q-btn>

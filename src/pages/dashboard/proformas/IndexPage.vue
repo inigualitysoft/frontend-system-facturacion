@@ -326,7 +326,7 @@
               <q-btn flat round dense
                 :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
                 @click="props.toggleFullscreen" v-if="mode === 'list'" >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
+                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                 </q-tooltip>
               </q-btn>
@@ -335,7 +335,7 @@
                 :icon="mode === 'grid' ? 'list' : 'grid_on'"
                 @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'" v-if="!props.inFullscreen"
               >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup>
+                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ mode === 'grid' ? 'List' : 'Grid' }}
                 </q-tooltip>
               </q-btn>
@@ -370,21 +370,29 @@
               <q-td :props="props">
 
                 <q-btn round color="blue-grey" icon="visibility" size="10px"
-                class="q-mr-sm" @click="modalDetalle = true, detalleData = { ...props.row }" />
+                class="q-mr-sm" @click="modalDetalle = true, detalleData = { ...props.row }">
+                  <q-tooltip anchor="top middle" self="bottom middle">
+                    Ver Proforma
+                  </q-tooltip>
+                </q-btn>
 
                 <q-btn
                   v-if="props.row.estadoSRI == 'PROFORMA'"
                   @click="$router.push(`proforma/add/${ props.row.id }`)"
                   round color="blue-grey"
                   icon="description" size="10px"
-                  class="q-mr-sm" />
+                  class="q-mr-sm">
+                  <q-tooltip anchor="top middle" self="bottom middle">
+                    Editar proforma
+                  </q-tooltip>
+                </q-btn>
 
                 <q-btn v-if="props.row.estadoSRI == 'AUTORIZADO'
                               || props.row.estadoSRI == 'PROFORMA'"
                   round color="blue-grey"
                   @click="showModalReenvioComprobantes = true, detalleFactura = props.row"
                   icon="forward_to_inbox" size="11px">
-                  <q-tooltip class="bg-indigo" anchor="top middle" self="center middle">
+                  <q-tooltip anchor="top middle" self="bottom middle">
                     Enviar comprobante por email
                   </q-tooltip>
                 </q-btn>
@@ -392,7 +400,11 @@
                 <q-btn
                   round color="blue-grey" class="q-ml-sm"
                   icon="delete" size="10px"
-                  @click="eliminarProforma(props.row.id)" />
+                  @click="eliminarProforma(props.row.id)">
+                  <q-tooltip anchor="top middle" self="bottom middle">
+                    Eliminar proforma
+                  </q-tooltip>
+                </q-btn>
               </q-td>
             </template>
 
