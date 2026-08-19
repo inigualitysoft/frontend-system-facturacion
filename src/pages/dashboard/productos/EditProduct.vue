@@ -3,10 +3,10 @@
 </script>
 
 <template>
-  <q-card style="width: 643px !important;max-width: fit-content">
+  <q-card style="width: 803px !important;max-width: fit-content">
     <q-card-section>
         <div class="text-h6 text-center">
-          Editar Producto
+          Editar Producto/Servicio
           <q-btn round flat dense icon="close" class="float-right" color="grey-8" v-close-popup></q-btn>
         </div>
     </q-card-section>

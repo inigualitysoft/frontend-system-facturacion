@@ -4,6 +4,7 @@ import useHelpers from "../../../../composables/useHelpers";
 export interface Product {
   id?:            string;
   aplicaIva:      boolean;
+  impuesto:       number;
   codigoBarra:    string;
   nombre:         string;
   precio_compra:  number;
@@ -11,21 +12,31 @@ export interface Product {
   stock:          number;
   tipo:           string;
   descuento:      number;
+  // ICE: null = no aplica · 'tarifa' = porcentaje · 'valor' = monto fijo
+  ice:            string | null;
+  valor_ice:      number | null;
+  tipo_ice:       number | null;
   created_at?:    Date;
   updated_at?:    Date;
   isActive?:      boolean;
 }
 
-const formProduct = ref<Product>({
+const valoresIniciales: Product = {
   aplicaIva: false,
+  impuesto: 0,
   codigoBarra: '',
   nombre: '',
   precio_compra: 0,
   pvp: 0,
   tipo: '',
   stock: 0,
-  descuento: 0.00
-})
+  descuento: 0.00,
+  ice: null,
+  valor_ice: null,
+  tipo_ice: null
+}
+
+const formProduct = ref<Product>({ ...valoresIniciales })
 
 const loading              = ref( false );
 const modalAgregarProducto = ref( false );
@@ -39,15 +50,8 @@ export const useProduct = () => {
   const { api, claim, mostrarNotify } = useHelpers();
 
   const limpiarFormulario = () => {
-    formProduct.value.aplicaIva     = false;
-    formProduct.value.codigoBarra   = '';
-    formProduct.value.nombre        = '';
-    formProduct.value.precio_compra = 0.00;
-    formProduct.value.pvp           = 0.00;
-    formProduct.value.stock         = 0.00;
-    formProduct.value.tipo          = '';
-    formProduct.value.descuento     = 0.00;
-    selectSucursal.value            = ''
+    formProduct.value    = { ...valoresIniciales };
+    selectSucursal.value = ''
   }
 
   const allowOnlyNumber = () => {
@@ -61,10 +65,6 @@ export const useProduct = () => {
       formProduct.value.descuento = parseFloat(formProduct.value.descuento.toString().replace(/\D/g, ''));
     else
       formProduct.value.descuento = 0;
-  }
-
-  const transformToUpperCase = () => {
-    formProduct.value.nombre = formProduct.value.nombre.toUpperCase()
   }
 
   const validDecimal = ( campo: string ) => {
@@ -130,7 +130,6 @@ export const useProduct = () => {
     actualizarTabla,
     claim,
     formProduct,
-    transformToUpperCase,
     limpiarFormulario,
     loading,
     mostrarNotify,

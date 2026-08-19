@@ -3,6 +3,20 @@ import useHelpers from "../../../../composables/useHelpers";
 
 const loading = ref( false );
 
+/*
+ * Vista previa de la foto del usuario. Mismo patrón que el logo de empresa:
+ * marcador de posición embebido para no depender de un binario en `public/`.
+ */
+const FOTO_PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="90" height="90" viewBox="0 0 90 90">' +
+  '<rect width="90" height="90" rx="45" fill="#eceff1"/>' +
+  '<circle cx="45" cy="35" r="14" fill="#b0bec5"/>' +
+  '<path d="M18 82c0-15 12-25 27-25s27 10 27 25z" fill="#b0bec5"/>' +
+  '</svg>'
+);
+
+const previewFoto = ref(FOTO_PLACEHOLDER);
+
 const formUser = ref({
   usuario: '',
   email: '',
@@ -70,6 +84,7 @@ export const useUser = () => {
       formUser.value.receiveSupportEmail = false;
       formUser.value.foto = null
       formUser.value.foto_old = null
+      previewFoto.value = FOTO_PLACEHOLDER
     }
 
     const onRejected = () => {
@@ -210,5 +225,7 @@ export const useUser = () => {
       route,
       showPass: ref( true ),
       showConfirmPass: ref( true ),
+      previewFoto,
+      FOTO_PLACEHOLDER,
     }
 }

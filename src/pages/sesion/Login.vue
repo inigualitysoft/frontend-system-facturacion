@@ -40,7 +40,7 @@
         </div>
         <form @submit.prevent="onSubmit" class="element-form">
           <q-input label-color="blue-grey-10" color="primary" class="q-mb-lg custom-input"
-            bg-color="blue-2" filled label="Ingresa tu email" rounded outlined
+            bg-color="blue-2" outlined label="Ingresa tu email" rounded
             v-model.trim="form.email" required>
             <template v-slot:prepend>
               <q-icon name="person" color="blue-grey-10" />
@@ -48,7 +48,7 @@
           </q-input>
 
           <q-input :type="isPwd ? 'password' : 'text'" label-color="blue-grey-10" class="q-mb-lg custom-input"
-            bg-color="blue-2" filled text-color="#000000" label="Ingresa tu contraseña" rounded outlined
+            bg-color="blue-2" outlined text-color="#000000" label="Ingresa tu contraseña" rounded
             v-model.trim="form.password" required>
             <template v-slot:append>
               <q-icon :name="isPwd ? 'visibility_off' : 'visibility'" color="blue-grey-10"

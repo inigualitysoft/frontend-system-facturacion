@@ -126,11 +126,8 @@
 
                 <q-expansion-item v-if="validarPermisos('index.correo')"
                   hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/gmail.png" class="item-options"
-                  active-class="tab-active"
-                    :to="claim.roles[0] == 'SUPER-ADMINISTRADOR'
-                      ? { name: 'emails' }
-                      : { name: 'email.edit', params: { email_id: claim.company.id } }"
-                  dense-toggle label="Servidor de Correo" :header-inset-level="0">
+                  active-class="tab-active" :to="{ name: 'mensajeria' }"
+                  dense-toggle label="Mensajería" :header-inset-level="0">
                 </q-expansion-item>
 
                 <q-expansion-item hide-expand-icon icon="img:https://img.icons8.com/3d-fluency/94/documents.png" class="item-options"

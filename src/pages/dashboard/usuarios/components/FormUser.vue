@@ -8,6 +8,7 @@ const listCompanies = ref<{ label: string; value: string; ruc?: string, icon?: s
 const permisos      = ref<any>( listPermisos )
 const sucursales    = ref<{}[]>([]);
 const roles         = ref<{ label: string, value: string, permisos: string[] }[]>([]);
+const dias          = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 let cont = false;
 
   const {
@@ -21,8 +22,20 @@ let cont = false;
     onRejected,
     loading,
     onSubmit,
-    route
+    route,
+    previewFoto
   } = useUser();
+
+  /* Vista previa inmediata de la foto elegida, antes de guardarla. */
+  const previsualizarFoto = ( file: any ) => {
+    const lector = new FileReader();
+    lector.onload = ( e: any ) => { previewFoto.value = e.target.result }
+    lector.readAsDataURL( file );
+  }
+
+  watch(() => formUser.value.foto, ( foto: any ) => {
+    if ( foto ) previsualizarFoto( foto )
+  })
 
   onMounted( async () => {
     await Promise.all([await cargarCompanies(), await getRolesAndPermisos()]);
@@ -299,6 +312,12 @@ let cont = false;
                     :label="formUser.foto_old == null ?
                       'Cargar Imagen' : formUser.foto_old">
 
+                    <template v-slot:before>
+                      <img
+                        :src="previewFoto"
+                        style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;" />
+                    </template>
+
                     <template v-slot:error>
                       <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                         {{ validaciones.foto.message }}
@@ -325,45 +344,12 @@ let cont = false;
                 <label for="">Horario Acceso:</label>
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md q-my-sm flex">
-                <div style="display: flex;flex-direction: column;">
-                  <q-toggle class="q-ml-sm" size="lg" val="Lunes"
-                    v-model="formUser.horarios_dias"/>
-                  <label class="q-ml-md">
-                    Lunes
-                  </label>
-                </div>
-                <div style="display: flex;flex-direction: column;">
-                  <q-toggle class="q-ml-sm" size="lg" val="Martes"
-                    v-model="formUser.horarios_dias"/>
-                  <label class="q-ml-md">
-                    Martes
-                  </label>
-                </div>
-                <div style="display: flex;flex-direction: column;">
-                  <q-toggle class="q-ml-sm" size="lg" val="Miercoles"
-                    v-model="formUser.horarios_dias"/>
-                  <label class="q-ml-md">
-                    Miercoles
-                  </label>
-                </div>
-                <div style="display: flex;flex-direction: column;">
-                  <q-toggle class="q-ml-sm" size="lg" val="Jueves"
-                    v-model="formUser.horarios_dias"/>
-                  <label class="q-ml-md">Jueves</label>
-                </div>
-                <div style="display: flex;flex-direction: column;">
-                  <q-toggle class="q-ml-sm" size="lg" val="Viernes"
-                    v-model="formUser.horarios_dias"/>
-                  <label class="q-ml-md">
-                    Viernes
-                  </label>
-                </div>
-                <div style="display: flex;flex-direction: column;">
-                  <q-toggle class="q-ml-sm" size="lg" val="Sabado"
-                    v-model="formUser.horarios_dias"/>
-                  <label class="q-ml-md">
-                    Sabado
-                  </label>
+                <div v-for="dia in dias" :key="dia" class="col-auto">
+                  <div class="column items-start">
+                    <q-toggle size="lg" class="q-ml-sm"
+                      :val="dia" v-model="formUser.horarios_dias" />
+                    <div class="q-ml-md">{{ dia }}</div>
+                  </div>
                 </div>
               </div>
               <div class="col-4 flex justify-end items-center q-my-sm">
@@ -371,35 +357,51 @@ let cont = false;
               </div>
               <div class="col-xs-7 col-sm-6 q-ml-md q-my-sm">
 
-                <div class="row">
-                  <div class="col-xs-12 col-sm-5">
-                    <q-input outlined v-model="formUser.horarios_time[0]" mask="time" dense>
-                      <template v-slot:append>
-                        <q-icon name="access_time" class="cursor-pointer">
-                          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                            <q-time v-model="formUser.horarios_time[0]">
-                              <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Close" color="primary" flat />
-                              </div>
-                            </q-time>
-                          </q-popup-proxy>
-                        </q-icon>
+                <div class="row q-col-gutter-x-md">
+                  <div class="col-6">
+                    <q-input outlined dense v-model="formUser.horarios_time[0]" mask="time"
+                      input-class="resaltarTextoInput cursor-pointer" readonly>
+
+                      <template v-slot:prepend>
+                        <q-icon name="access_time" size="sm" class="cursor-pointer" />
                       </template>
+
+                      <template v-slot:append>
+                        <q-icon name="close" class="cursor-pointer"
+                          v-if="formUser.horarios_time[0]?.length > 0"
+                          @click.stop.prevent="formUser.horarios_time[0] = ''" />
+                      </template>
+
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-time v-model="formUser.horarios_time[0]">
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                          </div>
+                        </q-time>
+                      </q-popup-proxy>
                     </q-input>
                   </div>
-                  <div class="col-xs-12 col-sm-5 offset-sm-1">
-                    <q-input outlined v-model="formUser.horarios_time[1]" mask="time" dense>
-                      <template v-slot:append>
-                        <q-icon name="access_time" class="cursor-pointer">
-                          <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                            <q-time v-model="formUser.horarios_time[1]">
-                              <div class="row items-center justify-end">
-                                <q-btn v-close-popup label="Close" color="primary" flat />
-                              </div>
-                            </q-time>
-                          </q-popup-proxy>
-                        </q-icon>
+                  <div class="col-6">
+                    <q-input outlined dense v-model="formUser.horarios_time[1]" mask="time"
+                      input-class="resaltarTextoInput cursor-pointer" readonly>
+
+                      <template v-slot:prepend>
+                        <q-icon name="access_time" size="sm" class="cursor-pointer" />
                       </template>
+
+                      <template v-slot:append>
+                        <q-icon name="close" class="cursor-pointer"
+                          v-if="formUser.horarios_time[1]?.length > 0"
+                          @click.stop.prevent="formUser.horarios_time[1] = ''" />
+                      </template>
+
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-time v-model="formUser.horarios_time[1]">
+                          <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                          </div>
+                        </q-time>
+                      </q-popup-proxy>
                     </q-input>
                   </div>
                 </div>
@@ -507,3 +509,13 @@ let cont = false;
     </q-card>
   </q-form>
 </template>
+
+<style>
+  /* Hora centrada y legible, igual que en el resto de campos de tiempo. */
+  .resaltarTextoInput{
+    font-size: 14px;
+    text-align: center;
+    color: #313131;
+    font-weight: 500;
+  }
+</style>

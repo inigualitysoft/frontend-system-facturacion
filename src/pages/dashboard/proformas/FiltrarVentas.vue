@@ -3,7 +3,7 @@
       <label>Filtrar Por:</label>
   
       <q-input class="q-ml-md" style="width: 20%"
-        filled v-model="formFiltrarVentas.desde" dense
+        outlined v-model="formFiltrarVentas.desde" dense
         mask="date" clearable clear-icon="close">
             <template v-slot:append>
               <q-icon name="event" class="cursor-pointer">
@@ -20,7 +20,7 @@
   
       <label class="q-mx-md">HASTA:</label>
   
-      <q-input filled style="width: 20%"
+      <q-input outlined style="width: 20%"
         v-model="formFiltrarVentas.hasta" dense
         mask="date" clearable clear-icon="close">
             <template v-slot:append>
@@ -37,7 +37,7 @@
       </q-input>
   
       <!-- <q-select v-show="false" v-if="user.rol_name == 'ADMINISTRADOR' || user.rol_name == 'SUPER-ADMINISTRADOR'"
-        filled required dense emit-value map-options style="width: 29%;margin-left: 27px;"
+        outlined required dense emit-value map-options style="width: 29%;margin-left: 27px;"
           v-model="formFiltrarVentas.pv_id" :options="listPV">
           <template v-if="formFiltrarVentas.pv_id !== ''" v-slot:append>
             <q-icon name="cancel"

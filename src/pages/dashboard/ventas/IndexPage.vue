@@ -12,7 +12,7 @@
   /* --------------------- IMPLEMENTACION DE WEBSOCKET ---------------------- */
   let socket;
 
-  const { api, claim, route } = useHelpers();
+  const { api, claim, route, mostrarNotify } = useHelpers();
 
   const connectToServer = () => {
     const manager = new Manager(`${ import.meta.env.VITE_BASE_URL }/socket.io/socket.io.js`, {
@@ -31,14 +31,14 @@
   // ---------------------------------------------------------------------------
 
   const columns = [
-    { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'sucursal', label: 'Sucursal', align: 'center' },
     { name: 'num_comprobante', label: 'Num. Comprobante', field: 'numero_comprobante', align: 'center' },
     { name: 'usuario', label: 'Usuario', align: 'center' },
     { name: 'cliente', label: 'Cliente', align: 'center' },
     { name: 'f/h', label: 'Fecha/Hora', align: 'center', field: 'created_at' },
     { name: 'total', label: 'Total', name: 'total', align: 'center' },
-    { name: 'estado', label: 'Estado', field: 'estado', align: 'center' }
+    { name: 'estado', label: 'Estado', field: 'estado', align: 'center' },
+    { name: 'acciones', label: 'acciones', align: 'center', headerClasses: 'sticky-col-acciones', classes: 'sticky-col-acciones' }
   ]
 
   const tableRef = ref();
@@ -188,10 +188,18 @@
     }).onOk(async () => {
       try {
         venta.loading = true;
-        await api.post(`/CE/facturas/anularFactura`, { factura: { ...venta, entity: 'Ventas', tipo_comprobante: 'nota_credito' } });
-        venta.loading = false;
+        const { data } = await api.post(`/CE/facturas/anularFactura`, { factura: { ...venta, entity: 'Ventas', tipo_comprobante: 'nota_credito' } });
+
+        mostrarNotify('positive', `Nota de crédito ${ data?.numeroComprobante ?? '' } generada (${ data?.estado ?? 'enviada al SRI' })`);
+        await getVentas();
       }catch (error){
-        console.log(error);
+        // Antes solo se hacía console.log: la anulación fallaba y en pantalla no
+        // pasaba nada — ni mensaje ni fin del loading — así que parecía colgada.
+        const detalle = error?.response?.data?.message ?? error?.message ?? 'Error desconocido';
+        mostrarNotify('negative', Array.isArray( detalle ) ? detalle.join(' | ') : detalle );
+        console.error('Error al anular la factura:', error);
+      }finally{
+        venta.loading = false;
       }
     })
   }
@@ -281,8 +289,6 @@
   connectToServer();
 
   checkRoute();
-
-  const mode = ref("list");
 
   onMounted(async () => {
     if (claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR')
@@ -386,11 +392,9 @@
       <div class="col-12 q-pt-none">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6"
-            :hide-header="mode === 'grid'"
             :loading="loading"
             :columns="columns"
             row-key="name"
-            :grid="mode==='grid'"
             :rows="rows"
             :filter="filter"
             :pagination.sync="pagination"
@@ -467,20 +471,12 @@
 
               <q-btn flat round dense
                 :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                @click="props.toggleFullscreen" v-if="mode === 'list'" >
+                @click="props.toggleFullscreen" >
                 <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                 </q-tooltip>
               </q-btn>
 
-              <q-btn flat round dense
-                :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'" v-if="!props.inFullscreen"
-              >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
-                  {{ mode === 'grid' ? 'List' : 'Grid' }}
-                </q-tooltip>
-              </q-btn>
             </template>
 
             <template v-slot:body-cell-total="props">
@@ -524,9 +520,15 @@
 
                 <q-badge
                   v-else-if="props.row.estadoSRI == 'ANULADO'"
+                  outline
                   class="q-py-xs q-px-md"
-                  color="red-4"
-                  :label="props.row.estadoSRI" />
+                  color="red-5"
+                  :label="props.row.estadoSRI">
+                  <q-tooltip v-if="props.row.numero_comprobante_nota_credito"
+                    anchor="center left" self="center right" :offset="[10, 10]">
+                    Anulada con nota de crédito {{ props.row.numero_comprobante_nota_credito }}
+                  </q-tooltip>
+                </q-badge>
 
                 <q-badge
                   v-else
@@ -598,7 +600,7 @@
                   @click="showModalReenvioComprobantes = true, detalleFactura = props.row"
                   icon="forward_to_inbox" size="11px">
                   <q-tooltip anchor="top middle" self="bottom middle">
-                    Enviar comprobante por email
+                    Reenviar comprobante
                   </q-tooltip>
                 </q-btn>
               </q-td>

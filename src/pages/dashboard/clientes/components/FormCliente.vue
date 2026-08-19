@@ -12,8 +12,10 @@ const {
     onSubmit
   } = useCliente();
 
+// El celular es opcional: vue3-q-tel-input marca error cuando el campo está
+// vacío, y eso bloqueaba el guardado. Solo se valida el formato si hay número.
 const existError = (value: any) => {
-  validaciones.value.celular.isValid = !value
+  validaciones.value.celular.isValid = !formCliente.value.celular || !value
 }
 
 </script>
@@ -23,12 +25,12 @@ const existError = (value: any) => {
     <div class="row q-pt-lg q-gutter-lg justify-center">
 
       <div class="col-xs-12 col-sm-11" :class="[ !$q.screen.xs ? 'q-px-md' : '' ]">
-        <label>Razón Social:</label>
+        <label>Razón Social: <span class="obligatorio">*</span></label>
         <q-input
             v-model.trim="formCliente.nombres"
             @update:model-value="validaciones.nombres.isValid = true"
             :error="!validaciones.nombres.isValid"
-            dense filled>
+            dense outlined>
           <template v-slot:error>
             <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
               {{ validaciones.nombres.message }}
@@ -38,11 +40,11 @@ const existError = (value: any) => {
       </div>
 
       <div class="col-xs-12 col-sm-5">
-        <label>Tipo de Documento:</label>
+        <label>Tipo de Documento: <span class="obligatorio">*</span></label>
         <q-select
           @update:model-value="validaciones.tipo_documento.isValid = true"
           :error="!validaciones.tipo_documento.isValid"
-          dense v-model.trim="formCliente.tipo_documento" filled
+          dense v-model.trim="formCliente.tipo_documento" outlined
           emit-value map-options
           :options="[
             { label: 'RUC', value: '04' },
@@ -58,14 +60,14 @@ const existError = (value: any) => {
       </div>
 
       <div class="col-xs-12 col-sm-5">
-        <label>Numero de Documento:</label>
+        <label>Numero de Documento: <span class="obligatorio">*</span></label>
         <q-input v-model="formCliente.numero_documento"
           @update:model-value="validaciones.numero_documento.isValid = true"
           :error="!validaciones.numero_documento.isValid"
           :disable="formCliente.tipo_documento === '' "
           counter :maxlength="formCliente.tipo_documento === '04' ? 13 : 10"
           lazy-rules
-          dense filled @keyup="allowOnlyNumber">
+          dense outlined @keyup="allowOnlyNumber">
           <template v-slot:error>
             <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
               {{ validaciones.numero_documento.message }}
@@ -78,7 +80,7 @@ const existError = (value: any) => {
         <label>Email:</label>
         <q-input
           v-model.trim="formCliente.email"
-          dense filled
+          dense outlined
           @update:model-value="validaciones.email.isValid = true"
           :error="!validaciones.email.isValid">
           <template v-slot:error>
@@ -97,7 +99,7 @@ const existError = (value: any) => {
           @update:model-value="validaciones.celular.isValid = true"
           @error="existError"
           :error="!validaciones.celular.isValid"
-          filled dense v-model:tel="formCliente.celular">
+          outlined dense v-model:tel="formCliente.celular">
           <template v-slot:error>
             <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
               {{ validaciones.celular.message }}
@@ -111,7 +113,7 @@ const existError = (value: any) => {
         <q-input
           @update:model-value="validaciones.direccion.isValid = true"
           :error="!validaciones.direccion.isValid"
-          v-model="formCliente.direccion" dense filled
+          v-model="formCliente.direccion" dense outlined
           >
           <template v-slot:error>
             <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
@@ -119,6 +121,26 @@ const existError = (value: any) => {
             </label>
           </template>
         </q-input>
+      </div>
+
+      <div class="col-xs-12 col-sm-5">
+        <label>Tipo de Persona:</label>
+        <q-select
+          v-model="formCliente.tipo_persona"
+          dense outlined emit-value map-options
+          :options="[
+            { label: 'NATURAL', value: 'NATURAL' },
+            { label: 'JURIDICA', value: 'JURIDICA' }
+            ]" />
+      </div>
+
+      <div class="col-xs-12 col-sm-5">
+        <label>Observación:</label>
+        <q-input
+          v-model.trim="formCliente.observacion"
+          placeholder="Nota interna, no sale en el comprobante"
+          maxlength="300"
+          dense outlined />
       </div>
 
       <div class="col-xs-9 col-sm-12  flex justify-center">
@@ -132,4 +154,10 @@ const existError = (value: any) => {
 
 <style>
 @import 'vue3-q-tel-input/dist/vue3-q-tel-input.esm.css';
+
+/* Marca de campo obligatorio: el rojo se ve bien en claro y en oscuro. */
+.obligatorio {
+  color: #e53935;
+  font-weight: 600;
+}
 </style>

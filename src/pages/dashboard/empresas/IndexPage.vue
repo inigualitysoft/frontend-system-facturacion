@@ -4,14 +4,14 @@
   import useRolPermisos from "src/composables/useRolPermisos.js";
 
   const columns: any = [
-    { name: 'acciones', label: 'Acciones', align: 'center' },
     { label: "R.U.C", field: "ruc", align: "left", name: 'b' },
     { label: "Nombre Comercial", field: "nombre_comercial", align: "left", name: 'c' },
     { label: "Razón Social", field: "razon_social", align: "left", name: 'd' } ,
     { label: "Telefono", field: "telefono", align: "center", name: 'e' },
     { label: "Email", field: "email", name: "email", align: "center" },
     { label: "Obligado Contabilidad", name: "obligadoContabilidad", align: "center" },
-    { label: "Estado", name: "estado", align: "center" }
+    { label: "Estado", name: "estado", align: "center" },
+    { name: 'acciones', label: 'Acciones', align: 'center', headerClasses: 'sticky-col-acciones', classes: 'sticky-col-acciones' }
   ];
 
   const { validarPermisos } = useRolPermisos();
@@ -46,8 +46,6 @@
   }
 
   getCompanies();
-
-  const mode = ref("list");
   const pagination = ref({
     rowsPerPage: 10
   })
@@ -60,8 +58,8 @@
       <div class="col-12">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6" title="Listado de Empresas"
-            :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
-            :columns="columns" row-key="name" :grid="mode==='grid'"
+            :rows="rows" :loading="loading"
+            :columns="columns" row-key="name"
             :filter="filter" :pagination.sync="pagination">
 
             <template v-slot:loading>
@@ -93,22 +91,12 @@
 
               <q-btn flat round dense
                 :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                @click="props.toggleFullscreen"
-                v-if="mode === 'list'" >
+                @click="props.toggleFullscreen" >
                 <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                 </q-tooltip>
               </q-btn>
 
-              <q-btn flat round dense
-                :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
-                v-if="!props.inFullscreen"
-              >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
-                  {{ mode === 'grid' ? 'List' : 'Grid' }}
-                </q-tooltip>
-              </q-btn>
 
             </template>
 

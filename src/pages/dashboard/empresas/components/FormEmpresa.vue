@@ -1,11 +1,9 @@
 <script setup lang="ts">
   import { useEmpresa } from '../composables/useEmpresa.js';
-  import ModalWhatsapp from "../components/ModalWhatsapp.vue";
-  import { ref, watch } from 'vue';
+  import { watch } from 'vue';
   import Vue3QTelInput from 'vue3-q-tel-input'
 
   const props = defineProps<{ edit: boolean }>();
-  const modalAsociarWhatsApp = ref( false );
 
   const {
     formEmpresa,
@@ -31,13 +29,6 @@
   watch(() => formEmpresa.value.logo, ( foto: any ) => {
     if ( foto ) previsualizarImagen( foto )
   })
-
-  const updateMovil = ( movil: string ) => {
-    formEmpresa.value.telefono = movil.split(':')[0]
-    setTimeout(() => {
-      modalAsociarWhatsApp.value = false;
-    }, 1500)
-  }
 
   const existError = (value: any) => {
     validaciones.value.telefono.isValid = !value
@@ -67,7 +58,7 @@
               counter maxlength="13"
               @keyup="formEmpresa.ruc = formEmpresa.ruc.replace(/\D/g, '')" lazy-rules
               :error="!validaciones.ruc.isValid"
-              dense filled>
+              dense outlined>
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   {{ validaciones.ruc.message }}
@@ -92,7 +83,7 @@
               input-style="text-transform: uppercase;"
               @update:model-value="validaciones.nombre_comercial.isValid = true"
               :error="!validaciones.nombre_comercial.isValid"
-              dense filled>
+              dense outlined>
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   {{ validaciones.nombre_comercial.message }}
@@ -106,7 +97,7 @@
             <q-input v-model.trim="formEmpresa.direccion_matriz"
               @update:model-value="validaciones.direccion_matriz.isValid = true"
               :error="!validaciones.direccion_matriz.isValid"
-              dense filled>
+              dense outlined>
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   {{ validaciones.direccion_matriz.message }}
@@ -120,7 +111,7 @@
             <q-input v-model.trim="formEmpresa.email" type="text"
               @update:model-value="validaciones.email.isValid = true"
               :error="!validaciones.email.isValid"
-              dense filled>
+              dense outlined>
               <template v-slot:error>
                 <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   {{ validaciones.email.message }}
@@ -135,35 +126,26 @@
             <q-toggle color="green" size="lg" v-model="formEmpresa.obligado_contabilidad"/>
           </div>
 
-          <div class="col-xs-11 col-md-5 row items-center">
-            <div
-              style="width: 79%;">
-              <label>Celular:</label>
-              <vue3-q-tel-input
-                default-country="EC"
-                disable
-                search-text="Buscar pais..."
-                @update:model-value="validaciones.telefono.isValid = true"
-                @error="existError"
-                :error="!validaciones.telefono.isValid"
-                filled dense v-model:tel="formEmpresa.telefono">
-                <template v-slot:error>
-                  <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
-                    {{ validaciones.telefono.message }}
-                  </label>
-                </template>
-              </vue3-q-tel-input>
-            </div>
-            <q-btn
-              @click="modalAsociarWhatsApp = true"
-              style="width: 21%;height: 50%;"
-              icon="fa-brands fa-whatsapp"
-              color="secondary" />
+          <div class="col-xs-11 col-md-5">
+            <label>Celular:</label>
+            <vue3-q-tel-input
+              default-country="EC"
+              search-text="Buscar pais..."
+              @update:model-value="validaciones.telefono.isValid = true"
+              @error="existError"
+              :error="!validaciones.telefono.isValid"
+              outlined dense v-model:tel="formEmpresa.telefono">
+              <template v-slot:error>
+                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                  {{ validaciones.telefono.message }}
+                </label>
+              </template>
+            </vue3-q-tel-input>
           </div>
 
           <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
             <label>Logo de la empresa:</label>
-            <q-file dense filled bottom-slots
+            <q-file dense outlined bottom-slots
               accept=".jpg, image/*" @rejected="onRejected"
               @update:model-value="validaciones.logo.isValid = true"
               v-model="formEmpresa.logo"
@@ -204,7 +186,7 @@
 
           <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
             <label>Cargar Certificado:</label>
-            <q-file dense filled bottom-slots
+            <q-file dense outlined bottom-slots
               accept=".p12" @rejected="onRejected"
               v-model="formEmpresa.archivo_certificado"
               @update:model-value="validaciones.archivo_certificado.isValid = true"
@@ -233,7 +215,7 @@
 
           <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-xs']">
             <label>Clave Certificado:</label>
-            <q-input :type="isPwd ? 'password' : 'text'" filled
+            <q-input :type="isPwd ? 'password' : 'text'" outlined
               v-model.trim="formEmpresa.clave_certificado" dense
               @update:model-value="validaciones.clave_certificado.isValid = true"
               :error="!validaciones.clave_certificado.isValid">
@@ -258,7 +240,7 @@
               v-model.trim="formEmpresa.provincia"
               @update:model-value="loadCantones(), validaciones.provincia.isValid = true"
               :error="!validaciones.provincia.isValid"
-              filled
+              outlined
               dense
               :options="listProvincias">
               <template v-slot:error>
@@ -272,7 +254,7 @@
           <div class="col-xs-11 col-md-5" :class="[ $q.screen.width > 600 || 'q-mt-xs']">
             <label>Ciudad:</label>
             <q-select
-              filled
+              outlined
               v-model.trim="formEmpresa.ciudad"
               @update:model-value="loadCantones, validaciones.ciudad.isValid = true"
               :error="!validaciones.ciudad.isValid"
@@ -297,7 +279,7 @@
 
           <div class="col-xs-11 col-md-3" :class="[ $q.screen.width > 600 || 'q-mt-sm']">
             <label>Valor del IVA:</label>
-            <q-select filled dense v-model="formEmpresa.iva"
+            <q-select outlined dense v-model="formEmpresa.iva"
               @update:model-value="validaciones.iva.isValid = true"
               :error="!validaciones.iva.isValid"
               emit-value map-options
@@ -334,9 +316,6 @@
     </q-card>
   </q-form>
 
-  <q-dialog v-model="modalAsociarWhatsApp">
-    <ModalWhatsapp :movil="formEmpresa.telefono" @sendMovil="updateMovil" />
-  </q-dialog>
 </template>
 
 <style>

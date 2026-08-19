@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import useHelpers from "src/composables/useHelpers";
 
   const filesSelected     = ref( null );
@@ -31,17 +31,43 @@
     reader.readAsBinaryString(archivo);
   });
 
+  /**
+   * El selector solo tiene sentido cuando hay algo que elegir: con una sola
+   * sucursal activa ya viene resuelta y el campo estorba.
+   */
+  const debeElegirSucursal = computed(() =>
+    sucursales.value.length > 1 &&
+    ['SUPER-ADMINISTRADOR', 'ADMINISTRADOR'].includes( claim.roles[0] )
+  );
+
   const getSucursales = async() => {
     sucursales.value = [];
 
     const { data } = await api.get(`/sucursal/find/${ claim.company.id }/company`);
 
-    data.forEach(( x ) => {
-      sucursales.value.push({ label: x.nombre, value: x.id })
-    })
+    // El endpoint devuelve también las inactivas: no tiene sentido ofrecerlas
+    // como destino de una carga masiva.
+    data
+      .filter(( x ) => x.isActive !== false )
+      .forEach(( x ) => {
+        sucursales.value.push({ label: x.nombre, value: x.id })
+      })
 
-    if(claim.roles[0] !== 'SUPER-ADMINISTRADOR' || claim.roles[0] !== 'ADMINISTRADOR')
-      sucursal_selected.value = claim.sucursales[0]
+    // Con una sola sucursal activa no hay nada que preguntar.
+    //
+    // La condición anterior (`!== 'SUPER-ADMINISTRADOR' || !== 'ADMINISTRADOR'`)
+    // era siempre verdadera —un rol no puede ser distinto de ambos a la vez— y
+    // dejaba el campo en undefined cuando el usuario no tenía sucursales
+    // asignadas, rompiendo la validación al enviar.
+    if ( sucursales.value.length === 1 ) {
+      sucursal_selected.value = sucursales.value[0].value;
+      return;
+    }
+
+    const esAdmin = ['SUPER-ADMINISTRADOR', 'ADMINISTRADOR'].includes( claim.roles[0] );
+
+    if ( !esAdmin && claim.sucursales?.length === 1 )
+      sucursal_selected.value = claim.sucursales[0];
   }
 
   function procesarDatosExcel(data) {
@@ -58,6 +84,21 @@
       return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  /**
+   * El backend solo acepta NATURAL o JURIDICA. Se tolera lo que el operador
+   * escriba en la plantilla (minúsculas, acentos, espacios) y si no coincide
+   * se deja que el backend aplique su valor por defecto.
+   */
+  const normalizarTipoPersona = ( valor ) => {
+    const texto = String( valor ?? '' ).trim().toUpperCase();
+
+    // Se compara por prefijo para no depender de la tilde de "JURÍDICA".
+    if ( texto.startsWith('JUR') ) return 'JURIDICA';
+    if ( texto.startsWith('NAT') ) return 'NATURAL';
+
+    return undefined;
+  }
+
   const validarCampos = () => {
     let existError = false;
 
@@ -67,7 +108,7 @@
       existError = true;
     }
 
-    if ( sucursal_selected.value.length == 0 ) {
+    if ( !sucursal_selected.value ) {
       validaciones.value.sucursal.message = 'Debes completar este campo'
       validaciones.value.sucursal.isValid = false;
       existError = true;
@@ -82,14 +123,27 @@
     return existError;
   }
 
+  const CODIGOS_DOCUMENTO = { ruc: '04', cedula: '05', pasaporte: '06' };
+
   const uploadFile = async () => {
     if( validarCampos() ) return;
 
     loading.value = true;
-    for (let index = 1; index < rows.value.length; index++) {
 
-      if(rows.value[index].length > 0){
-        const element = rows.value[index];
+    // El loading se apagaba dentro del for, solo al llegar a la última fila. Si
+    // algo reventaba antes (o la última fila se saltaba) el modal se quedaba
+    // girando para siempre.
+    try {
+      // La plantilla tiene banda de título (fila 1) y cabeceras (fila 2): los
+      // datos empiezan en la 3, que es el índice 2.
+      for (let index = 2; index < rows.value.length; index++) {
+
+        const element = rows.value[index] ?? [];
+
+        // La plantilla guarda las listas de los desplegables en columnas
+        // auxiliares, así que llegan filas sin razón social ni tipo de
+        // documento. Esas no son clientes.
+        if ( !element[0] || !element[1] ) continue;
 
         clientes.value.unshift({
           nombre: element[0],
@@ -98,40 +152,49 @@
           index
         })
 
-        try {
+        const cliente = clientes.value.find( cliente => cliente.index == index );
 
+        const codigo = CODIGOS_DOCUMENTO[ String( element[1] ).trim().toLowerCase() ];
+
+        if ( !codigo ) {
+          cliente.estado  = 'error';
+          cliente.message = `Tipo de documento no válido: "${ element[1] }". Usa RUC, Cedula o Pasaporte.`;
+          continue;
+        }
+
+        try {
           await espera(50)
           let headers = { 'company-id': claim.company.id };
-
-          let codigo;
-          if ( element[1].toLowerCase() == 'ruc' ) codigo = '04'
-          if ( element[1].toLowerCase() == 'cedula' ) codigo = '05'
-          if ( element[1].toLowerCase() == 'pasaporte' ) codigo = '06'
 
           await api.post('/customers/create', {
             nombres:          element[0],
             tipo_documento:   codigo,
-            numero_documento: element[2].toString(),
-            email:            element[3],
-            celular:          element[4].toString(),
-            direccion:        element[5]
+            numero_documento: String( element[2] ?? '' ).trim(),
+            // Columnas opcionales: una celda vacía llega como undefined y el
+            // .toString() del celular reventaba la carga de esa fila.
+            email:            element[3] || undefined,
+            celular:          element[4] ? String( element[4] ) : undefined,
+            direccion:        element[5] || undefined,
+            tipo_persona:     normalizarTipoPersona( element[6] ),
+            observacion:      element[7] || undefined
           }, { headers })
 
-          let cliente = clientes.value.find( cliente => cliente.index == index)
           cliente.estado = 'success';
 
         } catch (error) {
-          let cliente = clientes.value.find( cliente => cliente.index == index)
           cliente.estado = 'error'
-          cliente.message = error.response.data.message
+          // No siempre es un error HTTP: si no lo era, este acceso reventaba
+          // dentro del catch y mataba el bucle completo.
+          cliente.message = error?.response?.data?.message
+            ?? error?.message
+            ?? 'No se pudo guardar el cliente';
         }
       }
 
-      if ( (index + 1) == rows.value.length ){
-        emit('actualizarDatos')
-        loading.value = false;
-      }
+      emit('actualizarDatos')
 
+    } finally {
+      loading.value = false;
     }
   }
 
@@ -169,7 +232,7 @@
             </template>
           </q-file>
         </div>
-        <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
+        <div v-if="debeElegirSucursal"
           class="col-xs-11 col-sm-9 text-center q-mt-md">
           <label>Elige una sucursal:</label>
           <q-select outlined dense v-model="sucursal_selected"

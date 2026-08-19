@@ -11,7 +11,12 @@ const sucursal_selected = ref('');
 const columns: any = ref([
   { name: 'acciones', label: 'Quitar', align: 'left'  },
   { label: 'Codigo Barra', align: 'left', field: 'codigoBarra', name: 'codigoBarra' },
-  { label: 'Producto', align: 'left', field: 'nombre', name: 'nombre' },
+  // Los nombres de servicio pueden ser larguísimos: sin techo de ancho la
+  // columna estira la tabla y obliga a hacer scroll horizontal para ver la
+  // cantidad y el total. Con el max-width el texto salta de línea.
+  { label: 'Producto', align: 'left', field: 'nombre', name: 'nombre',
+    style: 'max-width: 340px; white-space: normal; word-break: break-word;',
+    headerStyle: 'max-width: 340px' },
   { name: 'cantidad', label: 'Cantidad', align: 'center'},
   { name: 'iva', label: 'Aplica IVA', align: 'center' },
   { name: 'descuento', label: 'Descuento($)', align: 'center', field: 'descuento' },
@@ -42,7 +47,9 @@ export const useProduct = () => {
       data.cantidad  = cantidad;
       data.v_total   = modulo == 'proforma' ? parseFloat(data.v_total) : 0;
 
-      data.descuento = 0;
+      // Se respeta el descuento configurado en el producto; antes se pisaba
+      // con 0 y el operador tenía que volver a escribirlo en cada comprobante.
+      data.descuento = Number( data.descuento ) || 0;
 
       rows.value.unshift( data );
 
@@ -115,30 +122,65 @@ export const useProduct = () => {
     if ( empresa_iva == '2' ) iva_selected.value = 12
   }
 
+  /**
+   * ICE de una línea. Réplica exacta del cálculo del microservicio
+   * (utils/facturacion-utils.ts): con `tarifa` es un porcentaje sobre el
+   * subtotal de la línea, y con `valor` es un monto fijo por unidad.
+   *
+   * Tiene que coincidir al centavo: si acá se calculara distinto, el operador
+   * vería un total y el SRI recibiría otro.
+   */
+  const calcularIceLinea = ( row: any, subtotalLinea: number ) => {
+    const valorIce = Number( row.valor_ice ?? 0 );
+
+    if ( !row.ice || !row.tipo_ice || valorIce <= 0 ) return 0;
+
+    return row.ice === 'tarifa'
+      ? Math.round( subtotalLinea * valorIce ) / 100
+      : Math.round( valorIce * ( parseInt( row.cantidad ) || 0 ) * 100 ) / 100;
+  }
+
   const valorFactura = computed(() => {
-    let subtotal = 0, iva = 0, descuento = 0, total = 0;
+    let subtotal = 0, iva = 0, ice = 0, descuento = 0, total = 0;
 
     rows.value.forEach( (row: any) => {
 
+      const subtotalLinea = parseFloat(row.v_total) || 0;
+
       const descuentoLinea = Math.min(
         Math.max( parseFloat(row.descuento) || 0, 0 ),
-        parseFloat(row.v_total) || 0
+        subtotalLinea
       );
 
       descuento += descuentoLinea;
 
-      if ( row.aplicaIva )
-        iva += (((+row.v_total) - descuentoLinea) * iva_selected.value) / 100;
+      // Misma regla que usa el backend al emitir: manda la tarifa del producto
+      // y, si todavía no la tiene, el porcentaje global del comprobante. Así el
+      // total en pantalla coincide con el del comprobante.
+      const tasaIva = Number( row.impuesto ) > 0
+        ? Number( row.impuesto )
+        : ( row.aplicaIva ? iva_selected.value : 0 );
 
-      subtotal += +row.v_total
+      const iceLinea = calcularIceLinea( row, subtotalLinea );
+
+      // El ICE entra en la base del IVA: el SRI grava sobre (subtotal - desc + ICE).
+      const baseIva = ( subtotalLinea - descuentoLinea ) + iceLinea;
+
+      iva += ( baseIva * tasaIva ) / 100;
+      ice += iceLinea;
+
+      subtotal += subtotalLinea;
     })
 
     iva = Math.round(iva * 100) / 100;
+    ice = Math.round(ice * 100) / 100;
 
-    total = ( subtotal + iva ) - descuento;
+    total = ( subtotal - descuento ) + ice + iva;
+
     return {
       subtotal:   formatearNumero(subtotal),
       iva:        formatearNumero(iva),
+      ice:        formatearNumero(ice),
       descuento:  formatearNumero(descuento),
       total:      formatearNumero(total)
     }

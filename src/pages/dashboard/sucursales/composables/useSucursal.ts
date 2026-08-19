@@ -11,8 +11,6 @@ export interface Sucursal {
   secuencia_factura_pruebas?:         number;
   secuencia_nota_credito_produccion:  number;
   secuencia_nota_credito_pruebas?:    number;
-  secuencia_retencion_produccion:     number;
-  secuencia_retencion_pruebas?:       number;
   company_id:                         string;
   ambiente?:                          string;
   created_at?:                        string;
@@ -31,8 +29,6 @@ const formSucursal = ref<Sucursal>({
   secuencia_factura_pruebas: 0,
   secuencia_nota_credito_produccion: 0,
   secuencia_nota_credito_pruebas: 0,
-  secuencia_retencion_produccion: 0,
-  secuencia_retencion_pruebas: 0,
   ambiente: 'PRUEBA',
   company_id: ''
 })

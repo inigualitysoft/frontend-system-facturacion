@@ -1,7 +1,7 @@
 <template>
     <div class="col-md-10 col-xs-12 flex items-center" :class="$q.screen.xs ? 'justify-center' : ''">
   
-      <q-select filled required dense emit-value map-options
+      <q-select outlined required dense emit-value map-options
         style="width: 36%;margin-left: 27px;"
         :style="$q.screen.xs ? 'width: 52%; margin-right: 0px; margin-top:30px' : ''"
           v-model="formFiltrarArticulo.pv_id" :options="listPV" label="Filtar por punto de Venta">

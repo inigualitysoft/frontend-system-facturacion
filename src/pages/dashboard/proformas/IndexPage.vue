@@ -29,14 +29,14 @@
   }
 
   const columns = [
-    { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'sucursal', label: 'Sucursal', align: 'center' },
     { name: 'num_comprobante', label: 'Num. Comprobante', field: 'numero_comprobante', align: 'center' },
     { name: 'usuario', label: 'Usuario', align: 'center' },
     { name: 'cliente', label: 'Cliente', align: 'center' },
     { name: 'f/h', label: 'Fecha/Hora', align: 'center', field: 'created_at' },
     { name: 'total', label: 'Total', name: 'total', align: 'center' },
-    { name: 'estado', label: 'Estado', field: 'estado', align: 'center' }
+    { name: 'estado', label: 'Estado', field: 'estado', align: 'center' },
+    { name: 'acciones', label: 'acciones', align: 'center', headerClasses: 'sticky-col-acciones', classes: 'sticky-col-acciones' }
   ]
 
   const dateOne = ref('');
@@ -175,8 +175,6 @@
 
     tableRef.value.requestServerInteraction()
   })
-
-  const mode = ref("list");
   const pagination = ref({
     sortBy: 'desc',
     descending: false,
@@ -258,11 +256,9 @@
       <div class="col-12 q-pt-none">
         <q-card flat class="shadow_custom">
           <q-table
-            :hide-header="mode === 'grid'"
             :loading="loading"
             :columns="columns"
             row-key="name"
-            :grid="mode==='grid'"
             :rows="rows"
             :filter="filter"
             :pagination.sync="pagination"
@@ -325,20 +321,12 @@
 
               <q-btn flat round dense
                 :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                @click="props.toggleFullscreen" v-if="mode === 'list'" >
+                @click="props.toggleFullscreen" >
                 <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                 </q-tooltip>
               </q-btn>
 
-              <q-btn flat round dense
-                :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'" v-if="!props.inFullscreen"
-              >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
-                  {{ mode === 'grid' ? 'List' : 'Grid' }}
-                </q-tooltip>
-              </q-btn>
             </template>
 
             <template v-slot:body-cell-total="props">
@@ -393,7 +381,7 @@
                   @click="showModalReenvioComprobantes = true, detalleFactura = props.row"
                   icon="forward_to_inbox" size="11px">
                   <q-tooltip anchor="top middle" self="bottom middle">
-                    Enviar comprobante por email
+                    Reenviar comprobante
                   </q-tooltip>
                 </q-btn>
 

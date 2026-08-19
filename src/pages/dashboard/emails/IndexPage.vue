@@ -4,15 +4,15 @@ import useHelpers from "../../../composables/useHelpers";
 import useRolPermisos from "src/composables/useRolPermisos.js";
 
   const columns: any = [
-    { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'empresa_name', label: 'Empresa', align: 'center', field: 'empresa_name' },
     { name: 'host', label: 'Host', align: 'center', field: 'host' },
     { name: 'puerto', label: 'Puerto', align: 'center', field: 'puerto' },
     { name: 'usuario', label: 'Usuario', align: 'center', field: 'usuario' },
     { name: 'password', label: 'Contraseña', align: 'center', field: 'password' },
+    { name: 'acciones', label: 'acciones', align: 'center', headerClasses: 'sticky-col-acciones', classes: 'sticky-col-acciones' }
   ]
 
-  const { api } = useHelpers();
+  const { api, claim } = useHelpers();
   const { validarPermisos } = useRolPermisos();
 
   const rows = ref([]);
@@ -30,7 +30,11 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
   const getEmails = async (page: number = 1, rowsPerPage: number = 5, filtro = null) => {
     try {
-      const { data } = await api.get('/email');
+      // El backend filtra por empresa: antes devolvía las credenciales SMTP
+      // de todas.
+      const { data } = await api.get('/email', {
+        headers: { 'company-id': claim.company.id }
+      });
 
       data.forEach((email: any) => {
         email.empresa_name = email.company_id.nombre_comercial
@@ -64,8 +68,6 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
   onMounted(() => {
     tableRef.value.requestServerInteraction()
   })
-
-  const mode = ref("list");
 </script>
 
 <template>
@@ -74,8 +76,8 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
       <div class="col-12">
         <q-card flat class="shadow_custom">
             <q-table title-class="text-grey-7 text-h6" title="Emails Config"
-              :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
-              :columns="columns" row-key="name" :grid="mode==='grid'"
+              :rows="rows" :loading="loading"
+              :columns="columns" row-key="name"
               :filter="filter" v-model:pagination="pagination"
               :rows-per-page-options="[3, 7, 15, 0]" ref="tableRef"
               binary-state-sort @request="onRequest">
@@ -105,22 +107,12 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
                 <q-btn flat round dense
                   :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                  @click="props.toggleFullscreen"
-                  v-if="mode === 'list'" >
+                  @click="props.toggleFullscreen" >
                   <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                     {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                   </q-tooltip>
                 </q-btn>
 
-                <q-btn flat round dense
-                  :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                  @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
-                  v-if="!props.inFullscreen"
-                >
-                  <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
-                    {{ mode === 'grid' ? 'List' : 'Grid' }}
-                  </q-tooltip>
-                </q-btn>
 
               </template>
 

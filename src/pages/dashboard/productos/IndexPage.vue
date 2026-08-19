@@ -16,20 +16,43 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
     selectSucursal: selectSucursalForm
   } = useProduct();
 
+  /**
+   * Normaliza los campos nuevos antes de abrir el modal: los productos
+   * anteriores a las columnas de IVA/ICE los traen nulos, y `tipo_ice` llega
+   * como texto por ser una columna numeric.
+   */
+  const editarProducto = ( producto ) => {
+    formProduct.value = {
+      ...producto,
+      impuesto:  producto.impuesto ?? ( producto.aplicaIva ? 15 : 0 ),
+      ice:       producto.ice ?? null,
+      valor_ice: producto.valor_ice != null ? Number( producto.valor_ice ) : null,
+      tipo_ice:  Number( producto.tipo_ice ) > 0 ? Number( producto.tipo_ice ) : null
+    };
+
+    selectSucursalForm.value = producto.sucursal_id.id;
+    modalEditarProducto.value = true;
+  }
+
   const columns = [
-    { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'codigoBarra', label: 'Codigo de Barra', align: 'center', field: 'codigoBarra' },
-    { name: 'producto', label: 'Producto', align: 'center', field: 'nombre' },
+    // Los nombres de servicio pueden ser larguísimos: sin techo de ancho la
+    // columna estira la tabla y obliga a hacer scroll horizontal. Alineado a la
+    // izquierda porque el texto corrido de varias líneas se lee mejor así.
+    { name: 'producto', label: 'Producto', align: 'left', field: 'nombre',
+      style: 'max-width: 340px; white-space: normal; word-break: break-word;',
+      headerStyle: 'max-width: 340px' },
     { name: 'stock', label: 'Stock', align: 'center', field: 'stock' },
-    { name: 'descuento', label: 'Descuento', align: 'center', field: 'descuento' },
+    { name: 'descuento', label: 'Descuento($)', align: 'center', field: 'descuento' },
     { name: 'aplicaIva', label: 'Aplica Iva', align: 'center', field: 'aplicaIva' },
     { name: 'precio_compra', label: 'Precio Compra', align: 'center', field: 'precio_compra' },
     { name: 'pvp', label: 'PVP', align: 'center', field: 'pvp' },
-    { name: 'estado', label: 'Estado', align: 'center', field: 'isActive' }
+    { name: 'estado', label: 'Estado', align: 'center', field: 'isActive' },
+    { name: 'acciones', label: 'acciones', align: 'center', headerClasses: 'sticky-col-acciones', classes: 'sticky-col-acciones' }
   ]
 
   const showModalUploadFile = ref( false );
-  const { api, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
+  const { api, mostrarNotify, confirmDelete, isDeleted, formatearNumero } = useHelpers();
   const { validarPermisos } = useRolPermisos();
 
   const rows           = ref([]);
@@ -163,8 +186,6 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
   onMounted(() => {
     tableRef.value.requestServerInteraction()
   })
-
-  const mode = ref("list");
 </script>
 
 <template>
@@ -176,10 +197,8 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
               title-class="text-grey-7 text-h6"
               :rows="rows"
               :loading="loading"
-              :hide-header="mode === 'grid'"
               :columns="columns"
               row-key="name"
-              :grid="mode==='grid'"
               :filter="filter"
               v-model:pagination="pagination"
               :rows-per-page-options="[10, 15, 20, 0]"
@@ -262,22 +281,12 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
 
                 <q-btn flat round dense
                   :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                  @click="props.toggleFullscreen"
-                  v-if="mode === 'list'" >
+                  @click="props.toggleFullscreen" >
                   <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                     {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                   </q-tooltip>
                 </q-btn>
 
-                <q-btn flat round dense
-                  :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                  @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
-                  v-if="!props.inFullscreen"
-                >
-                  <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
-                    {{ mode === 'grid' ? 'List' : 'Grid' }}
-                  </q-tooltip>
-                </q-btn>
 
               </template>
 
@@ -287,7 +296,7 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
                 <template v-if="props.row.isActive">
                   <q-btn v-if="validarPermisos('editar.productos')"
                     round color="blue-grey"
-                    @click="formProduct = { ...props.row,  }, selectSucursalForm = props.row.sucursal_id.id, modalEditarProducto = true"
+                    @click="editarProducto( props.row )"
                     icon="edit" class="q-mr-sm" size="10px" />
                   <q-btn round color="blue-grey"
                     v-if="validarPermisos('inactivar.productos')"
@@ -316,10 +325,17 @@ import useRolPermisos from "src/composables/useRolPermisos.js";
               <q-td :props="props"> {{ props.row.nombre }} </q-td>
             </template>
             <template v-slot:body-cell-descuento="props">
-              <q-td :props="props"> {{ props.row.descuento }}% </q-td>
+              <!-- El descuento del producto es un monto, no un porcentaje. -->
+              <q-td :props="props"> {{ formatearNumero(props.row.descuento) }} </q-td>
             </template>
             <template v-slot:body-cell-aplicaIva="props">
-              <q-td :props="props"> {{ props.row.aplicaIva ? 'SI' : 'NO' }} </q-td>
+              <!-- Los productos ya migrados muestran su tarifa; los que aún no
+                   tienen `impuesto` siguen mostrando el sí/no. -->
+              <q-td :props="props">
+                {{ Number( props.row.impuesto ) > 0
+                    ? props.row.impuesto + '%'
+                    : ( props.row.aplicaIva ? 'SI' : 'NO' ) }}
+              </q-td>
             </template>
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">

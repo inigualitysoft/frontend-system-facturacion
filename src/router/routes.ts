@@ -138,6 +138,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true}
       },
       {
+        path: 'mensajeria',
+        name: 'mensajeria',
+        component: () => import('pages/dashboard/mensajeria/IndexPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'emails',
         name: 'emails',
         component: () => import('pages/dashboard/emails/IndexPage.vue'),
@@ -153,18 +159,6 @@ const routes: RouteRecordRaw[] = [
         path: 'proforma',
         name: 'Config Proforma',
         component: () => import('pages/dashboard/proforma/IndexPage.vue'),
-        meta: { requiresAuth: true}
-      },
-      {
-        path: 'retenciones',
-        name: 'index.retencion',
-        component: () => import('pages/dashboard/retenciones/IndexPage.vue'),
-        meta: { requiresAuth: true}
-      },
-      {
-        path: 'retencion/add',
-        name: 'add.retencion',
-        component: () => import('pages/dashboard/retenciones/AddRetencion.vue'),
         meta: { requiresAuth: true}
       },
     ]

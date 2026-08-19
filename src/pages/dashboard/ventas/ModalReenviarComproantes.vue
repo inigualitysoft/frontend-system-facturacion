@@ -96,7 +96,12 @@
       loading.value = false;
     } catch (error) {
       loading.value = false;
-      mostrarNotify('warning', error.response.data.message)
+
+      // Si el backend no responde (caído, sin red) no hay `response` y el propio
+      // catch reventaba: no salía ningún aviso y el modal se quedaba abierto.
+      mostrarNotify('warning',
+        error.response?.data?.message ?? error.message ?? 'No se pudieron enviar los comprobantes')
+
       emit('closeModal')
     }
   }
@@ -122,7 +127,7 @@
       <div class="row flex flex-center">
         <div class="col-xs-11 col-sm-9 text-center q-mt-md q-mb-lg">
           <label>Enviar por:</label>
-          <q-select filled dense v-model="formEnvio.tipo_envio"
+          <q-select outlined dense v-model="formEnvio.tipo_envio"
             :error="!validaciones.tipo_envio.isValid"
             emit-value map-options :options="[
                   { label: 'WhatsApp', value: 'whatsapp' },
@@ -153,7 +158,7 @@
             @update:model-value="validaciones.telefono.isValid = true"
             @error="showError"
             :error="!validaciones.telefono.isValid"
-            filled dense v-model:tel="formEnvio.telefono">
+            outlined dense v-model:tel="formEnvio.telefono">
             <template v-slot:error>
               <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                 {{ validaciones.telefono.message }}
@@ -169,7 +174,7 @@
             input-class="resaltarTextoInput"
             :error="!validaciones.email.isValid"
             @update:model-value="validaciones.email.isValid = true"
-            lazy-rules dense filled>
+            lazy-rules dense outlined>
             <template v-slot:error>
               <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                 {{ validaciones.email.message }}

@@ -14,3 +14,72 @@
   padding: 6px 10px !important;
   max-width: 320px !important;
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Opciones del buscador de productos / servicios
+ * ──────────────────────────────────────────────────────────────────────
+ * Se aplica con `popup-content-class="opciones-producto"` en el q-select.
+ *
+ * Los nombres de servicio pueden ser larguísimos y el menú crecía a lo
+ * ancho hasta desbordar la pantalla. Se le pone techo al ancho, se deja
+ * que el texto salte de línea y se separan los ítems para poder leer
+ * dónde termina uno y empieza el siguiente.
+ * ────────────────────────────────────────────────────────────────────── */
+.opciones-producto {
+  max-width: min(640px, 92vw);
+}
+
+.opciones-producto .q-item {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.body--dark .opciones-producto .q-item {
+  border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+.opciones-producto .q-item:last-child {
+  border-bottom: none;
+}
+
+.opciones-producto .q-item__label {
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
+}
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Columna "Acciones" fija a la derecha
+ * ──────────────────────────────────────────────────────────────────────
+ * Se aplica con headerClasses/classes en la definición de la columna. Va
+ * global y no por página porque las clases terminan en los th/td que
+ * renderiza QTable, donde un <style scoped> no llega.
+ *
+ * El fondo tiene que ser opaco: si no, las columnas que se deslizan por
+ * debajo se transparentan sobre la celda flotante.
+ * ────────────────────────────────────────────────────────────────────── */
+.sticky-col-acciones {
+  position: sticky !important;
+  right: 0;
+  z-index: 2;
+  box-shadow: -4px 0 6px -2px rgba(0, 0, 0, 0.08);
+}
+
+thead .sticky-col-acciones,
+tbody tr .sticky-col-acciones {
+  background-color: #ffffff;
+}
+
+.body--dark thead .sticky-col-acciones,
+.body--dark tbody tr .sticky-col-acciones {
+  background-color: #1d1d1d;
+}
+
+/* Las filas pares llevan un tinte gris: hay que repetirlo en la celda fija
+   para no romper el rayado. */
+tbody tr:nth-child(even) .sticky-col-acciones {
+  background-color: #fafafa;
+}
+
+.body--dark tbody tr:nth-child(even) .sticky-col-acciones {
+  background-color: #232323;
+}

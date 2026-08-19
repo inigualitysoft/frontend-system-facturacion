@@ -2,7 +2,7 @@
   import FormUser from "./components/FormUser.vue";
   import { useUser } from './composables/useUser.js';
 
-  const { api, formUser, limpiarFormulario, route } = useUser();
+  const { api, formUser, limpiarFormulario, route, previewFoto, FOTO_PLACEHOLDER } = useUser();
 
   const getUser = async () => {
     const { data } = await api.get('/auth/find/' + route.params.term);
@@ -15,6 +15,9 @@
       foto_old: ( foto == null ) ? null : foto,
     }
 
+    previewFoto.value = foto
+      ? `${ import.meta.env.VITE_BASE_URL }/images/${ foto }`
+      : FOTO_PLACEHOLDER;
   }
 
   limpiarFormulario();

@@ -8,7 +8,9 @@ const formCliente = ref({
   numero_documento: '',
   email: '',
   celular: '',
-  direccion: ''
+  direccion: '',
+  observacion: '',
+  tipo_persona: 'NATURAL'
 })
 
 const modalAgregarCliente = ref(false);
@@ -26,6 +28,8 @@ export const useCliente = () => {
       formCliente.value.email = ''
       formCliente.value.celular = ''
       formCliente.value.direccion = ''
+      formCliente.value.observacion = ''
+      formCliente.value.tipo_persona = 'NATURAL'
     }
 
     const validaciones = ref({
@@ -40,17 +44,22 @@ export const useCliente = () => {
     const validarCampos = () => {
       let existError = false;
       var validEmail =  /^\w+([.-_+]?\w+)*@\w+([.-]?\w+)*(\.\w{2,10})+$/;
-      const camposRequeridos = ['nombres', 'tipo_documento', 'numero_documento', 'email', 'celular', 'direccion'];
+
+      // Email, celular y dirección son opcionales: hay clientes de los que solo
+      // se tiene la identificación. Lo único que se sigue exigiendo es que, si
+      // el correo se llena, tenga formato válido.
+      const camposRequeridos = ['nombres', 'tipo_documento', 'numero_documento'];
 
       camposRequeridos.forEach( campo => {
-        if ( formCliente.value[campo].length == 0 ) {
+        if ( ( formCliente.value[campo] ?? '' ).length == 0 ) {
           validaciones.value[campo].message = 'Debes completar este campo'
           validaciones.value[campo].isValid = false;
           existError = true;
         }
       })
 
-      if( validaciones.value['email'].isValid && !validEmail.test(formCliente.value.email) ){
+      const email = formCliente.value.email ?? '';
+      if( email.length > 0 && !validEmail.test( email ) ){
         validaciones.value.email.message = 'Ingresa un email valido'
         validaciones.value.email.isValid = false
         existError = true;

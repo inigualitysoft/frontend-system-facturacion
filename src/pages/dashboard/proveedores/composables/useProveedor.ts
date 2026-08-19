@@ -1,4 +1,3 @@
-import provincias from "../../../../apis/provincias.json";
 import { ref, onMounted, watch } from "vue"
 import useHelpers from "../../../../composables/useHelpers";
 
@@ -9,9 +8,9 @@ export interface Proveedor {
   numero_documento: string;
   email:            string;
   celular:          string;
-  provincia:        string;
-  ciudad:           string;
   direccion:        string;
+  observacion:      string;
+  tipo_persona:     string;
   created_at?:      string;
   updated_at?:      string;
   isActive?:        boolean;
@@ -19,8 +18,6 @@ export interface Proveedor {
 
 const modalAgregarProveedor = ref(false);
 const modalEditarProveedor  = ref(false);
-const listProvincias        = ref<string[] | any>([]);
-const listCantones          = ref<string[] | any>([]);
 const loading               = ref( false );
 const actualizarLista       = ref( false );
 
@@ -30,9 +27,9 @@ const formProveedor = ref<Proveedor>({
   numero_documento: '',
   email: '',
   celular: '',
-  provincia: '',
-  ciudad: '',
-  direccion: ''
+  direccion: '',
+  observacion: '',
+  tipo_persona: 'NATURAL'
 })
 
 export const useProveedor = () => {
@@ -45,36 +42,21 @@ export const useProveedor = () => {
       formProveedor.value.numero_documento = ''
       formProveedor.value.email = ''
       formProveedor.value.celular = ''
-      formProveedor.value.provincia = ''
-      formProveedor.value.ciudad = ''
       formProveedor.value.direccion = ''
+      formProveedor.value.observacion = ''
+      formProveedor.value.tipo_persona = 'NATURAL'
     }
 
+    // El celular ya no pasa por aquí: lo maneja el selector de país, que guarda
+    // el número formateado ("+593 98 659 0824"); quitarle los símbolos lo rompía.
     const allowOnlyNumber = () => {
       formProveedor.value.numero_documento = formProveedor.value.numero_documento.replace(/\D/g, '');
-      formProveedor.value.celular          = formProveedor.value.celular.replace(/\D/g, '');
 		}
 
     onMounted(() => {
-      let list = Object.entries(provincias)
-      list.forEach( (data: any) => {
-          if ( data[1].provincia !== undefined )
-            listProvincias.value.push( data[1].provincia )
-      })
-
       watch(formProveedor.value, (currentValue, _) => {
 
         formProveedor.value.razon_social = currentValue.razon_social.toUpperCase();
-
-        if ( currentValue.provincia !== '' ) {
-          let list: any = Object.entries(provincias)
-          const provincia = list.find( (x: any) => x[1].provincia === currentValue.provincia );
-
-          listCantones.value = []
-
-          let objectListCantones: any = Object.entries( provincia[1].cantones )
-          objectListCantones.forEach( (y: any) => { listCantones.value.push( y[1].canton ) });
-        }
 
         if ( currentValue.tipo_documento !== '' ) {
           if (currentValue.tipo_documento !== 'RUC' && formProveedor.value.numero_documento.length > 10) {
@@ -92,17 +74,27 @@ export const useProveedor = () => {
         loading.value = true;
         let headers = { 'company-id': claim.company.id }
 
+        // El email tiene índice único: mandarlo en blanco haría chocar al segundo
+        // proveedor sin correo. Los opcionales vacíos se envían como undefined
+        // para que queden en NULL.
+        const payload = {
+          ...formProveedor.value,
+          email:     formProveedor.value.email     || undefined,
+          celular:   formProveedor.value.celular   || undefined,
+          direccion: formProveedor.value.direccion || undefined
+        }
+
         if ( !edit )
-          await api.post('/providers', formProveedor.value, { headers })
+          await api.post('/providers', payload, { headers })
         else
-          await api.patch('/providers/' + formProveedor.value.id, formProveedor.value, { headers })
+          await api.patch('/providers/' + formProveedor.value.id, payload, { headers })
 
         actualizarLista.value = true
         modalAgregarProveedor.value = false;
         modalEditarProveedor.value  = false;
         actualizarLista.value = true;
 
-        mostrarNotify( 'positive', 'Proveedor Agregado', 'top' )
+        mostrarNotify( 'positive', `Proveedor ${ edit ? 'editado' : 'agregado' } exitosamente`, 'top' )
         loading.value = false;
       } catch (error: any) {
         mostrarNotify( 'warning', error.response.data.message )
@@ -113,8 +105,6 @@ export const useProveedor = () => {
     return {
       actualizarLista,
       formProveedor,
-      listProvincias,
-      listCantones,
       loading,
       limpiarFormulario,
       allowOnlyNumber,
@@ -123,9 +113,6 @@ export const useProveedor = () => {
       validateNumDocument: [
         (val: any) => val.length >= ((formProveedor.value.tipo_documento === 'RUC') ? 13 : 10) ||
           `Debes completar ${ ((formProveedor.value.tipo_documento === 'RUC') ? 13 : 10) } digitos`,
-      ],
-      validateNumCelular: [
-        (val: any) => val.length >= 10 || 'Debes completar 10 digitos'
       ],
       onSubmit
     }

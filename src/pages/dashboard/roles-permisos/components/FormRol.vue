@@ -1,4 +1,5 @@
 <script setup>
+import { computed, watch } from 'vue';
 import listPermisos from "../listPermisos.json";
 import listPermisos2 from "../listPermisos2.json";
 import { useRol } from '../composables/useRol';
@@ -13,6 +14,24 @@ const {
   onSubmit
 } = useRol();
 
+/** Recorre el árbol y devuelve solo las hojas, que son los permisos reales. */
+const permisosDeHoja = ( nodos ) =>
+  nodos.flatMap( nodo => nodo.children ? permisosDeHoja( nodo.children ) : [ nodo.value ] );
+
+const TODOS_LOS_PERMISOS = [
+  ...permisosDeHoja( listPermisos ),
+  ...permisosDeHoja( listPermisos2 )
+];
+
+const esSuperAdmin = computed(() =>
+  props.edit && formRol.value.nombre === 'SUPER-ADMINISTRADOR'
+);
+
+// Se marcan todos sin mirar lo guardado: este rol manda sobre el sistema entero
+// y su lista tiene que incluir los permisos de los módulos que se agreguen.
+watch( esSuperAdmin, ( bloqueado ) => {
+  if ( bloqueado ) permisosSelected.value = [ ...TODOS_LOS_PERMISOS ];
+}, { immediate: true });
 </script>
 
 <template>
@@ -31,11 +50,23 @@ const {
     <div class="row q-pt-lg q-gutter-sm justify-center">
       <div class="col-12 text-center">
         <label class="text-subtitle1">
-          Selecciona algún permiso:
+          {{ esSuperAdmin ? 'Permisos del rol:' : 'Selecciona algún permiso:' }}
         </label>
       </div>
 
-      <div class="col-xs-12 col-md-6">
+      <div v-if="esSuperAdmin" class="col-12">
+        <q-banner dense class="rounded-borders text-body2"
+          :class="$q.dark.isActive ? 'bg-grey-9 text-grey-3' : 'bg-grey-2 text-grey-8'">
+          <template v-slot:avatar>
+            <q-icon name="lock" :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-6'" />
+          </template>
+          Este rol tiene todos los permisos y no se puede modificar. Los módulos
+          nuevos quedan habilitados automáticamente.
+        </q-banner>
+      </div>
+
+      <!-- El árbol se muestra igual, pero sin recibir clics cuando está bloqueado. -->
+      <div class="col-xs-12 col-md-6" :class="{ 'permisos-bloqueados': esSuperAdmin }">
         <q-tree class="col-11 col-sm-11 q-ml-md q-mt-sm"
           :default-expand-all="false"
           :nodes="listPermisos"
@@ -47,7 +78,7 @@ const {
           v-model:ticked="permisosSelected" />
       </div>
 
-      <div class="col-xs-12 col-md-5">
+      <div class="col-xs-12 col-md-5" :class="{ 'permisos-bloqueados': esSuperAdmin }">
         <q-tree class="col-11 col-sm-11 q-ml-md q-mt-sm"
           :default-expand-all="false"
           :nodes="listPermisos2"
@@ -59,7 +90,7 @@ const {
           v-model:ticked="permisosSelected" />
       </div>
 
-      <div class="col-xs-9 col-md-12 flex justify-center q-mt-none">
+      <div v-if="!esSuperAdmin" class="col-xs-9 col-md-12 flex justify-center q-mt-none">
         <q-btn
           :label=" !edit ? 'Guardar' : 'Editar'"
           :loading="loading"
@@ -73,3 +104,10 @@ const {
   </q-form>
 </template>
 
+<style scoped>
+/* Deja el árbol a la vista y marcado, pero sin poder destildar nada. */
+.permisos-bloqueados{
+  pointer-events: none;
+  opacity: .7;
+}
+</style>

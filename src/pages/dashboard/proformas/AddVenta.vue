@@ -1,6 +1,9 @@
 <script setup>
   import { ref, watch, onBeforeUnmount } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
+  import AddProduct from '../productos/AddProduct.vue'
+  import { useProduct as useFormProducto } from "../productos/composables/useProducts";
+  import { resaltarCoincidencia } from "src/utils/resaltar-busqueda";
   import { date, Dialog, Loading } from 'quasar'
   import SelectProduct from '../../../components/SelectProduct.vue'
   import { useProduct } from "../../../composables/useProduct";
@@ -107,7 +110,8 @@
 
     try {
       let headers = { 'company-id': claim.company.id };
-      const { data: clientes } = await api.get('/customers', { headers });
+      // Solo clientes activos: un cliente inactivo no debe poder facturarse.
+      const { data: clientes } = await api.get('/customers/true', { headers });
 
       listClientes.value = [];
 
@@ -266,7 +270,8 @@
 
     try {
       const { data } = await api.get('/products', {
-        params: { page: 1, limit: 100000, busqueda: '' },
+        // activos: un producto inactivo no debe poder agregarse al comprobante.
+        params: { page: 1, limit: 100000, busqueda: '', activos: true },
         headers: headers
       })
 
@@ -287,7 +292,12 @@
     }
   }
 
+  // Se guarda el término para poder resaltarlo en las opciones del combo.
+  const terminoArticulo = ref('');
+
   const filtarArticulo = (val= '', update) => {
+    terminoArticulo.value = val;
+
     if (val === '') {
       update(() => {
         listArticulos.value = listArticulosOptions.value
@@ -310,6 +320,33 @@
   }
 
   getClientes();
+
+
+  // Alta de producto/servicio desde el propio buscador, cuando no existe.
+  const {
+    modalAgregarProducto,
+    actualizarTabla: productoGuardado,
+    limpiarFormulario: limpiarFormProducto,
+    selectSucursal: sucursalFormProducto
+  } = useFormProducto();
+
+  const abrirFormProducto = () => {
+    limpiarFormProducto();
+
+    // Se crea en la sucursal del comprobante: creado en otra, no aparecería en
+    // el combo (el catálogo se carga filtrado por sucursal).
+    sucursalFormProducto.value = sucursal_selected.value;
+
+    modalAgregarProducto.value = true;
+  }
+
+  // Al guardarlo se recarga el catálogo para que aparezca en el combo.
+  watch( productoGuardado, ( guardado ) => {
+    if ( !guardado ) return;
+
+    getAllProducts();
+    productoGuardado.value = false;
+  })
 
 </script>
 
@@ -362,7 +399,7 @@
           <div class="col-xs-12 col-sm-12 col-md-6 q-mt-md q-pl-none">
             <label>Seleccionar Cliente:
             </label>
-            <q-select color="orange" filled v-model="formVenta.customer_id"
+            <q-select color="orange" outlined v-model="formVenta.customer_id"
               @update:model-value="validaciones.customer_id.isValid = true"
               :options="listClientes" emit-value map-options dense
               :error="!validaciones.customer_id.isValid"
@@ -401,7 +438,7 @@
             class="col-xs-12 col-md-5"
             :class="$q.screen.width <= 1023 ? 'q-pl-none q-mt-xs' : 'offset-1 q-mt-md'">
             <label>Seleccionar Sucursal:</label>
-            <q-select filled v-model="sucursal_selected"
+            <q-select outlined v-model="sucursal_selected"
               @update:model-value="validaciones.sucursal_id.isValid = true, rows = []"
               :error="!validaciones.sucursal_id.isValid"
               :options="sucursales" emit-value map-options dense>
@@ -428,15 +465,23 @@
           <div class="col-xs-12 col-md-6 q-pl-none">
             <label>Filtrar por codigo de barra o nombre del producto:</label>
             <q-select
-              filled v-model="filterByCodBarra" dense
+              outlined v-model="filterByCodBarra" dense
               :options="listArticulos"
               @update:model-value="agregarAndValidarStock( filterByCodBarra.detalles, 'proforma')"
-              @filter="filtarArticulo" use-input input-debounce="900">
+              @filter="filtarArticulo" use-input input-debounce="900"
+              popup-content-class="opciones-producto">
 
+              <!-- Sin resultados se ofrece crearlo ahí mismo: al guardarlo se
+                   recarga la lista y queda disponible para agregarlo. -->
               <template v-slot:no-option>
                 <q-item>
                   <q-item-section class="text-grey">
                     No hay resultados
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-btn dense outline no-caps color="primary" icon="add"
+                      label="Crear producto/servicio"
+                      @click.stop="abrirFormProducto" />
                   </q-item-section>
                 </q-item>
               </template>
@@ -451,7 +496,9 @@
                     ? $q.dark.isActive ? 'bg-indigo-4' : 'bg-indigo-1'
                     : ''">
                   <q-item-section>
-                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                    <q-item-label>
+                      <span v-html="resaltarCoincidencia(scope.opt.label, terminoArticulo)"></span>
+                    </q-item-label>
                   </q-item-section>
                 </q-item>
               </template>
@@ -461,7 +508,7 @@
           <div class="col-xs-12 col-sm-5"
             :class="$q.screen.width <= 1023 ? 'q-pl-none q-mb-sm q-mt-md' : 'offset-1'">
             <label>Forma de pago:</label>
-            <q-select dense v-model.trim="formVenta.forma_pago" filled
+            <q-select dense v-model.trim="formVenta.forma_pago" outlined
               emit-value map-options :error="!validaciones.forma_pago.isValid"
               @update:model-value="validaciones.forma_pago.isValid = true"
               :options="[
@@ -563,7 +610,7 @@
                   </label>
                 </div>
                 <div class="col-xs-12 col-sm-7 col-md-9">
-                  <q-input v-model="formVenta.descripcion" filled type="textarea" rows="4" />
+                  <q-input v-model="formVenta.descripcion" outlined type="textarea" rows="4" />
                 </div>
               </div>
               <div class="q-ml-sm q-mt-md">
@@ -600,6 +647,13 @@
                     ${{
                       formatearNumero(valorFactura.subtotal - valorFactura.descuento).toFixed(2)
                     }}
+                  </td>
+                </tr>
+                <!-- Solo aparece si algún ítem tiene ICE configurado. -->
+                <tr v-if="valorFactura.ice > 0" class="text-right">
+                  <td><b>ICE:</b></td>
+                  <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
+                    ${{ valorFactura.ice.toFixed(2) }}
                   </td>
                 </tr>
                 <tr class="text-right">
@@ -662,6 +716,10 @@
     </q-form>
 
   <!-- BUSCAR ALGUN PRODUCTO -->
+  <q-dialog v-model="modalAgregarProducto">
+    <AddProduct />
+  </q-dialog>
+
   <q-dialog v-model="modalSelectProducto">
     <SelectProduct :listProductos="listProductos" @agregarProduct="agregarProduct" />
   </q-dialog>

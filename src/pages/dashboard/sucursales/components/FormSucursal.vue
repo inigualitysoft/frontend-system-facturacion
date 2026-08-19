@@ -12,6 +12,21 @@
   } = useSucursal();
 
   cargarCompanies();
+
+  /**
+   * Deja solo dígitos en los campos de secuencial.
+   *
+   * Antes esto vivía inline en cada @keyup usando el operador `!` de TypeScript,
+   * que el compilador de templates de Vue no entiende: el SFC no parseaba
+   * ("Missing semicolon") y el formulario entero no se renderizaba, así que no
+   * había forma de configurar los secuenciales de nota de crédito.
+   */
+  const soloDigitos = ( campo: string ) => {
+    const valor = ( formSucursal.value as any )[ campo ];
+    const limpio = parseInt( String( valor ?? '' ).replace(/\D/g, ''), 10 );
+
+    ( formSucursal.value as any )[ campo ] = isNaN( limpio ) ? null : limpio;
+  }
 </script>
 
 <template>
@@ -30,7 +45,7 @@
           <div class="col-xs-12 col-md-7">
             <q-input v-model.trim="formSucursal.nombre"
               input-style="text-transform: uppercase;"
-              input-class="resaltarTextoInput" dense filled required />
+              input-class="resaltarTextoInput" dense outlined required />
           </div>
         </div>
       </div>
@@ -43,7 +58,7 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-input v-model.trim="formSucursal.direccion" input-class="resaltarTextoInput" dense filled required />
+            <q-input v-model.trim="formSucursal.direccion" input-class="resaltarTextoInput" dense outlined required />
           </div>
         </div>
       </div>
@@ -58,7 +73,7 @@
           <div class="col-xs-12 col-md-7">
             <q-input type="number"
               v-model="formSucursal.establecimiento" input-class="resaltarTextoInput"
-              :maxlength="3" dense filled required
+              :maxlength="3" dense outlined required
               @keyup="formSucursal.establecimiento = parseInt(formSucursal.establecimiento.toString().replace(/\D/g, ''));" />
           </div>
         </div>
@@ -74,7 +89,7 @@
           <div class="col-xs-12 col-md-7">
             <q-input type="number"
               v-model="formSucursal.punto_emision" input-class="resaltarTextoInput"
-              :maxlength="3" dense filled required
+              :maxlength="3" dense outlined required
               @keyup="formSucursal.punto_emision = parseInt(formSucursal.punto_emision.toString().replace(/\D/g, ''));" />
           </div>
         </div>
@@ -93,7 +108,7 @@
               input-class="resaltarTextoInput"
               :maxlength="9"
               @keyup="formSucursal.secuencia_factura_produccion = parseInt(formSucursal.secuencia_factura_produccion.toString().replace(/\D/g, ''));"
-              dense filled required />
+              dense outlined required />
           </div>
         </div>
       </div>
@@ -110,8 +125,8 @@
               v-model.trim="formSucursal.secuencia_factura_pruebas"
               input-class="resaltarTextoInput"
               :maxlength="9"
-              @keyup="formSucursal.secuencia_factura_pruebas! = parseInt(formSucursal.secuencia_factura_pruebas!.toString().replace(/\D/g, ''));"
-              dense filled required />
+              @keyup="soloDigitos('secuencia_factura_pruebas')"
+              dense outlined required />
           </div>
         </div>
       </div>
@@ -128,8 +143,8 @@
               v-model.trim="formSucursal.secuencia_nota_credito_produccion"
               input-class="resaltarTextoInput"
               :maxlength="9"
-              @keyup="formSucursal.secuencia_nota_credito_produccion! = parseInt(formSucursal.secuencia_nota_credito_produccion!.toString().replace(/\D/g, ''));"
-              dense filled required />
+              @keyup="soloDigitos('secuencia_nota_credito_produccion')"
+              dense outlined required />
           </div>
         </div>
       </div>
@@ -146,44 +161,8 @@
             input-class="resaltarTextoInput"
             v-model.trim="formSucursal.secuencia_nota_credito_pruebas"
             :maxlength="9"
-            @keyup="formSucursal.secuencia_nota_credito_pruebas! = parseInt(formSucursal.secuencia_nota_credito_pruebas!.toString().replace(/\D/g, ''));"
-            dense filled required />
-          </div>
-        </div>
-      </div>
-      <div class="col-xs-12 col-md-6">
-        <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end"
-            :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
-            <label :class="$q.screen.width < 1022 || 'q-pr-md'">
-              N° secuencial Retención:
-            </label>
-          </div>
-          <div class="col-xs-12 col-md-7">
-            <q-input type="number"
-              v-model.trim="formSucursal.secuencia_retencion_produccion"
-              input-class="resaltarTextoInput"
-              :maxlength="9"
-              @keyup="formSucursal.secuencia_retencion_produccion! = parseInt(formSucursal.secuencia_retencion_produccion!.toString().replace(/\D/g, ''));"
-              dense filled required />
-          </div>
-        </div>
-      </div>
-      <div class="col-xs-12 col-md-6">
-        <div class="row">
-          <div class="col-xs-12 col-md-5 flex items-center justify-end"
-            :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-sm q-pb-xs' : 'texto-rigth']">
-            <label :class="$q.screen.width < 1022 || 'q-pr-md'">
-              N° secuencial Retención: Pruebas:
-            </label>
-          </div>
-          <div class="col-xs-12 col-md-7">
-            <q-input type="number"
-            input-class="resaltarTextoInput"
-            v-model.trim="formSucursal.secuencia_retencion_pruebas"
-            :maxlength="9"
-            @keyup="formSucursal.secuencia_retencion_pruebas! = parseInt(formSucursal.secuencia_retencion_pruebas!.toString().replace(/\D/g, ''));"
-            dense filled required />
+            @keyup="soloDigitos('secuencia_nota_credito_pruebas')"
+            dense outlined required />
           </div>
         </div>
       </div>
@@ -196,7 +175,7 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-select dense v-model.trim="formSucursal.ambiente" filled
+            <q-select dense v-model.trim="formSucursal.ambiente" outlined
               :options="['PRODUCCION', 'PRUEBA']" />
           </div>
         </div>
@@ -210,7 +189,7 @@
             </label>
           </div>
           <div class="col-xs-12 col-md-7">
-            <q-select dense v-model.trim="formSucursal.company_id" filled
+            <q-select dense v-model.trim="formSucursal.company_id" outlined
             :options="listCompanies" emit-value map-options />
           </div>
         </div>

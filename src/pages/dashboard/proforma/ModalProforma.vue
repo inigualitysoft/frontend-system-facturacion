@@ -52,14 +52,14 @@ const onSubmit = async () => {
             <label class="text-center">Nombre:</label>
             <q-input v-model.trim="formProforma.nombre"
               @keyup="formProforma.nombre = capitalize( formProforma.nombre )"
-              dense filled required />
+              dense outlined required />
           </div>
 
           <div class="col-xs-12">
             <label class="text-center">Descripcion:</label>
             <q-input type="textarea" rows="3"
               @keyup="formProforma.descripcion = capitalize( formProforma.descripcion )"
-              v-model.trim="formProforma.descripcion" dense filled required />
+              v-model.trim="formProforma.descripcion" dense outlined required />
           </div>
 
           <div class="col-xs-9 col-sm-12 q-mt-lg q-mb-md flex justify-center">

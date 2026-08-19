@@ -7,21 +7,20 @@
   // import FiltrarCompras from './FiltrarCompras.vue'
 
   const columns: any = [
-    { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'sucursal', label: 'Sucursal', align: 'center', field: 'sucursal_name' },
     { name: 'num_comprobante', label: 'Num Comprobante', field: 'numero_comprobante', align: 'center' },
     { name: 'usuario', label: 'Usuario', align: 'center', field: 'user_name' },
     { name: 'proveedor', label: 'Proveedor', align: 'center', field: 'proveedor_name' },
     { name: 'fecha', label: 'Fecha Compra', align: 'center', field: 'fecha_compra' },
     { name: 'total', label: 'Total', field: 'total', align: 'center' },
-    { name: 'estado', label: 'Estado', field: 'estado', align: 'center' }
+    { name: 'estado', label: 'Estado', field: 'estado', align: 'center' },
+    { name: 'acciones', label: 'acciones', align: 'center', headerClasses: 'sticky-col-acciones', classes: 'sticky-col-acciones' }
   ]
 
   const rows = ref([]);
   const modalDetalle = ref(false);
   let detalleData = ref({});
   const dateOne = ref('');
-  const dateTwo = ref('');
   const tipo = ref('TODOS');
 
   const formFiltrarCompras = ref({ desde: '', hasta: '', pv_id: '' })
@@ -35,34 +34,48 @@
   const selectSucursal = ref('');
   const listSucursales = ref<{}[]>([]);
 
-  watch(tipo, (currentValue, _) => { getCompras(); });
+  // Se declara antes de getCompras: el método la usa como valor por defecto de
+  // sus parámetros y se llama al montar la página.
+  const pagination = ref({
+    page: 1,
+    rowsPerPage: 10,
+    rowsNumber: 0
+  })
+
+  // Cualquier cambio de filtro vuelve a la primera página: quedarse en la 5 con
+  // un resultado de 2 páginas deja la tabla vacía.
+  watch(tipo, () => { pagination.value.page = 1; getCompras(); });
 
   const checkRoute = () => {
     const { fecha } = route.params;
 
-    if (fecha != '') {
-      dateOne.value = fecha.split(' - ')[0].replace(/-/g, "/");
-      dateTwo.value = fecha.split(' - ')[1].replace(/-/g, "/");
-    }
+    // El parámetro llegaba como "desde - hasta"; ahora el filtro es de un día,
+    // así que se toma el primero.
+    if ( fecha ) dateOne.value = String( fecha ).split(' - ')[0].replace(/-/g, "/");
   }
 
-  const getCompras = async () => {
+  /**
+   * El listado pagina en el servidor: antes se traía todas las compras de la
+   * sucursal y la tabla paginaba en memoria.
+   */
+  const getCompras = async ( page = pagination.value.page, limit = pagination.value.rowsPerPage ) => {
     try {
       loading.value = true;
 
       if ( listSucursales.value.length == 0 ) await getSucursales();
 
-      let headers = { headers: {
-        'company-id': claim.company.id,
-        'sucursal-id': selectSucursal.value,
-        desde: dateOne.value,
-        hasta: dateTwo.value,
-        tipo: tipo.value
-      }};
+      const { data } = await api.get('/buys', {
+        params: { page, limit, busqueda: filter.value },
+        headers: {
+          'company-id': claim.company.id,
+          'sucursal-id': selectSucursal.value,
+          desde: dateOne.value,
+          hasta: '',
+          tipo: tipo.value
+        }
+      });
 
-      const { data } = await api.get('/buys', headers);
-
-      data.map( (compra: any) => {
+      data.items.map( (compra: any) => {
         compra.fecha_compra = date.formatDate(compra.created_at, 'DD/MM/YYYY');
         compra.sucursal_name = compra.sucursal_id.nombre;
         compra.proveedor_name = compra.proveedor_id.razon_social;
@@ -70,12 +83,22 @@
         compra.total = `${ compra.total }`;
       })
 
-      rows.value = data;
-      loading.value = false;
+      rows.value = data.items;
+
+      pagination.value.page        = data.meta.currentPage;
+      pagination.value.rowsPerPage = limit;
+      pagination.value.rowsNumber  = data.meta.totalItems;
+
     } catch (error) {
       console.log(error)
+    } finally {
       loading.value = false;
     }
+  }
+
+  const onRequest = ( props: any ) => {
+    const { page, rowsPerPage } = props.pagination;
+    getCompras( page, rowsPerPage );
   }
 
   const anularCompra = ( compra: any ) => {
@@ -137,87 +160,23 @@
   checkRoute();
   getCompras();
 
-  watch(filter, (newValue, oldValue) => {
+  watch(filter, () => {
+    pagination.value.page = 1;
     getCompras();
-  })
-
-  const mode = ref("list");
-  const pagination = ref({
-    rowsPerPage: 10
   })
 </script>
 <template>
   <div class="q-ma-lg q-pt-md">
     <div class="row q-col-gutter-lg">
 
-      <div class="q-mb-md q-mt-none"
-        style="display: flex;"
-        :class="[ $q.screen.xs ? 'q-mb-md q-pt-sm' : 'q-ml-lg q-pl-none' ]">
-        <div class="row"
-          :class="[ $q.screen.xs ? 'flex-center' : '' ]">
-          <div class="col-xs-12 col-sm-3">
-            <label class="q-mr-sm row q-pt-sm justify-center">
-              <span :class="[ $q.screen.xs ? 'text-weight-bold' : '' ]">
-                Filtrar por fecha:
-              </span>
-            </label>
-          </div>
-
-          <div class="col-xs-10 col-sm-4">
-            <q-input outlined dense v-model="dateOne" mask="date" >
-              <template v-slot:append>
-
-                <q-icon v-if="dateOne !== ''" name="close" @click="dateOne = '', getCompras()" class="cursor-pointer" />
-
-                <q-icon name="event" class="cursor-pointer">
-                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                    <q-date v-model="dateOne" @update:model-value="getCompras">
-                      <div class="row items-center justify-end">
-                        <q-btn v-close-popup label="Close" color="primary" flat />
-                      </div>
-                    </q-date>
-                  </q-popup-proxy>
-                </q-icon>
-              </template>
-            </q-input>
-          </div>
-
-          <div class="col-xs-12 col-sm-1 flex flex-center">
-            <label
-              class="q-mx-md"
-              :class="[ $q.screen.xs ? 'text-weight-medium' : '' ]">
-              Hasta
-            </label>
-          </div>
-
-          <div class="col-xs-10 col-sm-4">
-            <q-input outlined dense v-model="dateTwo" mask="date">
-              <template v-slot:append>
-
-                <q-icon v-if="dateTwo !== ''" name="close" @click="dateTwo = '', getCompras()" class="cursor-pointer" />
-
-                <q-icon name="event" class="cursor-pointer">
-                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                    <q-date v-model="dateTwo" @update:model-value="getCompras">
-                      <div class="row items-center justify-end">
-                        <q-btn @click="getCompras"
-                          v-close-popup label="Close" color="primary" flat />
-                      </div>
-                    </q-date>
-                  </q-popup-proxy>
-                </q-icon>
-              </template>
-            </q-input>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-12 q-pt-xs">
+      <div class="col-12 q-mt-sm">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6"
-            :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
-            :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination">
+            :rows="rows" :loading="loading"
+            :columns="columns" row-key="name"
+            v-model:pagination="pagination"
+            :rows-per-page-options="[10, 15, 20, 50]"
+            binary-state-sort @request="onRequest">
 
             <template v-slot:loading>
               <q-inner-loading showing color="primary" />
@@ -257,13 +216,37 @@
                 </q-select>
               </div>
 
+              <div style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
+                <label class="q-mx-sm row items-center">
+                  <span>Fecha: </span>
+                </label>
+                <q-input outlined dense v-model="dateOne" mask="date" readonly
+                  input-class="cursor-pointer" style="min-width: 150px">
+                  <template v-slot:append>
+                    <q-icon v-if="dateOne !== ''" name="close" class="cursor-pointer"
+                      @click.stop="dateOne = '', pagination.page = 1, getCompras()" />
+
+                    <q-icon name="event" class="cursor-pointer" />
+                  </template>
+
+                  <q-popup-proxy transition-show="scale" transition-hide="scale">
+                    <q-date v-model="dateOne"
+                      @update:model-value="pagination.page = 1, getCompras()">
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-input>
+              </div>
+
               <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
               style="display: flex" :class="[ $q.screen.xs ? 'q-mb-md' : '' ]">
                 <label class="q-mx-sm row items-center">
                   <span>Sucursal: </span>
                 </label>
                 <q-select outlined dense v-model="selectSucursal"
-                  @update:model-value="getCompras()"
+                  @update:model-value="pagination.page = 1, getCompras()"
                   emit-value map-options
                 :options="listSucursales">
                 </q-select>
@@ -284,20 +267,12 @@
 
               <q-btn flat round dense
                 :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                @click="props.toggleFullscreen" v-if="mode === 'list'" >
+                @click="props.toggleFullscreen" >
                 <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                 </q-tooltip>
               </q-btn>
 
-              <q-btn flat round dense
-                :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'" v-if="!props.inFullscreen"
-              >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
-                  {{ mode === 'grid' ? 'List' : 'Grid' }}
-                </q-tooltip>
-              </q-btn>
             </template>
 
             <template v-slot:body-cell-estado="props">

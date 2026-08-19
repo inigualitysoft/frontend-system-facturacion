@@ -92,7 +92,10 @@ module.exports = configure(function (/* ctx */) {
       config: { dark: true },
 
       // iconSet: 'material-icons', // Quasar icon set
-      // lang: 'en-US', // Quasar language pack
+
+      // Sin esto los componentes propios de Quasar quedan en inglés: los meses
+      // y días del q-date, el "Records per page" de las tablas, etc.
+      lang: 'es', // Quasar language pack
 
       // For special cases outside of where the auto-import strategy can have an impact
       // (like functional components as one of the examples),

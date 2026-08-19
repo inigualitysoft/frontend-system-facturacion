@@ -1,20 +1,27 @@
 <script setup>
-  import { ref, watch } from 'vue';
+  import { computed, ref, watch } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
   import AddCliente from './AddCliente.vue'
   import EditCliente from './EditCliente.vue'
   import { useCliente } from "./composables/useCliente";
   import ModalCargarExcel from "./components/ModalCargarExcel.vue";
   import useRolPermisos from "src/composables/useRolPermisos.js";
+  import { useColumnasStore } from "src/stores/tabla-columnas";
 
   const columns = [
-    { name: 'acciones', label: 'acciones', align: 'center' },
     { name: 'nombre', align: 'center', label: 'Cliente', field: 'nombres', sortable: true },
-    { name: 'tipo_documento', align: 'center', label: 'Tipo de Documento', field: 'tipo_documento' },
-    { name: 'numero_documento', align: 'center', label: 'Numero de Documento', field: 'numero_documento' },
+    { name: 'tipo_documento', align: 'center', label: 'Tipo Doc.', field: 'tipo_documento' },
+    { name: 'numero_documento', align: 'center', label: 'N° Doc.', field: 'numero_documento' },
     { name: 'email', label: 'Email', field: 'email', align: 'center'},
     { name: 'celular', label: 'Celular', field: 'celular',  align: 'center' },
+    { name: 'direccion', label: 'Dirección', field: 'direccion', align: 'center' },
+    { name: 'tipo_persona', label: 'Tipo de Persona', field: 'tipo_persona', align: 'center' },
+    { name: 'observacion', label: 'Observación', field: 'observacion', align: 'center',
+      // Sin min-width la tabla le da un ancho mínimo y cada palabra cae en su
+      // propia línea; el max-width del div solo limita, no reserva espacio.
+      style: 'min-width: 300px', headerStyle: 'min-width: 300px' },
     { name: 'estado', label: 'Estado', align: 'center', field: 'estado' },
+    { name: 'acciones', label: 'acciones', align: 'center', headerClasses: 'sticky-col-acciones', classes: 'sticky-col-acciones' }
   ]
   let {
     actualizarLista,
@@ -23,6 +30,20 @@
     formCliente
   } = useCliente();
   const { validarPermisos } = useRolPermisos();
+  const columnasStore = useColumnasStore();
+
+  // El store guarda las columnas ocultas; la tabla y el select trabajan con las
+  // visibles. Se traduce de un lado al otro aquí.
+  const columnasVisibles = computed({
+    get: () => columns
+      .filter( col => !columnasStore.hiddenColumnsCliente.includes( col.name ) )
+      .map( col => col.name ),
+    set: ( visibles ) => {
+      columnasStore.hiddenColumnsCliente = columns
+        .filter( col => !visibles.includes( col.name ) )
+        .map( col => col.name );
+    }
+  });
 
   const showModalUploadFile = ref( false );
   const filter              = ref('')
@@ -30,21 +51,52 @@
   const loading             = ref( false );
   const { api, claim, mostrarNotify, confirmDelete, isDeleted } = useHelpers();
 
+  const pagination = ref({
+    page: 1,
+    rowsPerPage: 10,
+    rowsNumber: 0
+  })
+
   watch(actualizarLista, (currentValue, _) => {
     if ( currentValue ) getClientes();
   });
-  const getClientes = async () => {
+
+  /**
+   * El listado pagina en el servidor: antes traía todos los clientes de la
+   * empresa y la tabla paginaba en memoria.
+   */
+  const getClientes = async ( page = pagination.value.page, limit = pagination.value.rowsPerPage ) => {
     loading.value = true;
     try {
-      let headers = { 'company-id': claim.company.id };
-      const { data } = await api.get('/customers', { headers });
-      rows.value = data;
+      const { data } = await api.get('/customers', {
+        params: { page, limit, busqueda: filter.value },
+        headers: { 'company-id': claim.company.id }
+      });
+
+      rows.value = data.items;
+
+      pagination.value.page        = data.meta.currentPage;
+      pagination.value.rowsPerPage = limit;
+      pagination.value.rowsNumber  = data.meta.totalItems;
+
       actualizarLista.value = false;
     } catch (error) {
-      mostrarNotify( 'warning', error.response.data.message )
+      mostrarNotify( 'warning', error.response?.data?.message ?? 'No se pudo cargar el listado' )
     }
     loading.value = false;
   }
+
+  const onRequest = ( props ) => {
+    const { page, rowsPerPage } = props.pagination;
+    getClientes( page, rowsPerPage );
+  }
+
+  // Cualquier búsqueda vuelve a la primera página: quedarse en la 5 con un
+  // resultado de 2 páginas deja la tabla vacía.
+  watch(filter, () => {
+    pagination.value.page = 1;
+    getClientes();
+  })
 
   const activarDesactivarCliente = async (cliente_id, estado) => {
     try {
@@ -69,7 +121,10 @@
 
   const exportarClientes = async () => {
     try {
+      // Sin el header company-id el backend no podía filtrar y devolvía los
+      // clientes de todas las empresas.
       const { data } = await api.post(`/customers/download-clients-excel`, { }, {
+        headers: { 'company-id': claim.company.id },
         responseType: 'arraybuffer'
       });
 
@@ -90,10 +145,6 @@
   }
 
   getClientes();
-  const mode = ref("list");
-  const pagination = ref({
-    rowsPerPage: 10
-  })
 
 </script>
 
@@ -103,9 +154,12 @@
       <div class="col-12">
         <q-card flat class="shadow_custom">
           <q-table title-class="text-grey-7 text-h6" title="Listado de Clientes"
-            :rows="rows" :loading="loading" :hide-header="mode === 'grid'"
-            :columns="columns" row-key="name" :grid="mode==='grid'"
-            :filter="filter" :pagination.sync="pagination" >
+            :rows="rows" :loading="loading"
+            :columns="columns" row-key="name"
+            :visible-columns="columnasVisibles"
+            v-model:pagination="pagination"
+            :rows-per-page-options="[10, 15, 20, 50]"
+            binary-state-sort @request="onRequest" >
 
             <template v-slot:loading>
               <q-inner-loading showing color="primary" />
@@ -154,6 +208,18 @@
                 </q-list>
               </q-btn-dropdown>
 
+              <q-select
+                v-model="columnasVisibles"
+                multiple outlined dense options-dense
+                display-value="OCULTAR COLUMNAS"
+                emit-value map-options
+                :options="columns"
+                option-value="name"
+                class="q-mr-xs"
+                style="min-width: 150px"
+                menu-anchor="bottom left"
+                menu-self="top left" />
+
               <q-input outlined dense debounce="300" v-model="filter" placeholder="Buscar...">
                 <template v-slot:append>
                   <q-icon name="search"/>
@@ -162,22 +228,12 @@
 
               <q-btn flat round dense
                 :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                @click="props.toggleFullscreen"
-                v-if="mode === 'list'" >
+                @click="props.toggleFullscreen" >
                 <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                   {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                 </q-tooltip>
               </q-btn>
 
-              <q-btn flat round dense
-                :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
-                v-if="!props.inFullscreen"
-              >
-                <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
-                  {{ mode === 'grid' ? 'List' : 'Grid' }}
-                </q-tooltip>
-              </q-btn>
 
             </template>
 
@@ -188,6 +244,15 @@
                   <label v-else-if="props.row.tipo_documento == 5">Cedula</label>
                   <label v-else>Pasaporte</label>
                 </div>
+              </q-td>
+            </template>
+
+            <template v-slot:body-cell-observacion="props">
+              <q-td :props="props">
+                <div v-if="props.row.observacion" class="observacion-celda">
+                  {{ props.row.observacion }}
+                </div>
+                <span v-else class="text-grey-6">-</span>
               </q-td>
             </template>
 
@@ -208,7 +273,7 @@
                 <template v-if="props.row.isActive">
                   <q-btn v-if="validarPermisos('editar.cliente')"
                     round color="blue-grey"
-                    @click="formCliente = { ...props.row }, modalEditarCliente = true"
+                    @click="formCliente = { ...props.row, observacion: props.row.observacion ?? '', tipo_persona: props.row.tipo_persona ?? 'NATURAL' }, modalEditarCliente = true"
                     icon="edit" class="q-mr-sm" size="10px" />
 
                   <q-btn round color="blue-grey"
@@ -266,3 +331,16 @@
   </q-dialog>
 
 </template>
+
+<style scoped>
+/* La observación puede tener hasta 300 caracteres: en vez de recortarla, se
+   limita el ancho y el texto sigue en la siguiente línea. La fila crece sola. */
+.observacion-celda {
+  max-width: 320px;
+  margin: 0 auto;
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.35;
+  text-align: left;
+}
+</style>

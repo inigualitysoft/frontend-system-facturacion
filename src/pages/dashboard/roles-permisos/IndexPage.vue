@@ -27,7 +27,6 @@
 
   const rows = ref([]);
   const filter = ref("");
-  const mode = ref("list");
   const pagination = ref({
     rowsPerPage: 10
   })
@@ -76,8 +75,8 @@
           <q-card flat class="shadow_custom">
             <q-table title-class="text-grey-7 text-h6"
               title="Listado de Roles" :loading="loading"
-              :rows="rows" :hide-header="mode === 'grid'"
-              :columns="columns" row-key="name" :grid="mode==='grid'"
+              :rows="rows"
+              :columns="columns" row-key="name"
               :filter="filter" :pagination.sync="pagination">
 
               <template v-slot:loading>
@@ -111,21 +110,12 @@
 
                 <q-btn flat round dense
                   :icon="props.inFullscreen ? 'fullscreen_exit' : 'fullscreen'"
-                  @click="props.toggleFullscreen"
-                  v-if="mode === 'list'" >
+                  @click="props.toggleFullscreen" >
                   <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
                     {{ props.inFullscreen ? 'Exit Fullscreen' : 'Toggle Fullscreen' }}
                   </q-tooltip>
                 </q-btn>
 
-                <q-btn flat round dense
-                  :icon="mode === 'grid' ? 'list' : 'grid_on'"
-                  @click="mode = mode === 'grid' ? 'list' : 'grid'; separator = mode === 'grid' ? 'none' : 'horizontal'"
-                  v-if="!props.inFullscreen">
-                  <q-tooltip :disable="$q.platform.is.mobile" v-close-popup anchor="top middle" self="bottom middle">
-                    {{ mode === 'grid' ? 'List' : 'Grid' }}
-                  </q-tooltip>
-                </q-btn>
 
               </template>
 

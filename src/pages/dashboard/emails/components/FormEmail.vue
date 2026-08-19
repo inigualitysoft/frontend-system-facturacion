@@ -1,9 +1,10 @@
 <script setup>
   import { useEmail } from "../composables/useEmail";
-  import { useSucursal } from "./../../sucursales/composables/useSucursal";
   import { useRoute } from "vue-router";
 
-  const props = defineProps(['edit']);
+  // `config` permite usar el form fuera de /email/edit/:email_id: Mensajería ya
+  // trae la configuración de la empresa y se la pasa hecha.
+  const props = defineProps(['edit', 'config']);
   const route = useRoute();
 
   const {
@@ -16,15 +17,22 @@
     prompt
   } = useEmail();
 
-  let { cargarCompanies, listCompanies } = useSucursal();
-  cargarCompanies();
-
-  const getConfigEmail = async () => {
-    const { data } = await api.get(`/email/${ route.params.email_id }`);
+  const cargarEnFormulario = ( data ) => {
     formEmail.value = {
       ...data,
       empresa: data.company_id.id
     }
+  }
+
+  const getConfigEmail = async () => {
+    if ( props.config ) return cargarEnFormulario( props.config );
+
+    // Ojo: el :id de este endpoint es el de la EMPRESA, no el del registro de
+    // correo (findOne busca por company_id). La ruta vieja pasa justamente eso.
+    if ( !route.params.email_id ) return;
+
+    const { data } = await api.get(`/email/${ route.params.email_id }`);
+    cargarEnFormulario( data );
   }
 
   const testingEmail = async () => {
@@ -66,46 +74,36 @@
 
 <template>
     <q-form @submit="onSubmit()">
-      <div class="row">
+      <!--
+        Antes cada campo era `col-md-2` de etiqueta + `col-md-3` de input: dentro
+        del card de Mensajería el input quedaba en un cuarto del ancho. Ahora la
+        etiqueta ocupa lo justo y el input se lleva todo el espacio restante.
+      -->
+      <div class="row q-col-gutter-md q-px-md q-pt-lg">
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
-          :class="[ $q.screen.width < 1022 ? 'justify-center q-mt-lg' : 'justify-end']">
-          <label for="">Host/servidor:</label>
-        </div>
-        <div class="col-xs-11 col-md-3 q-ml-md"
-          :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
-          <q-input v-model.trim="formEmail.host" input-class="resaltarTextoInput" dense outlined required />
+        <div class="col-12 col-md-6 fila-campo-email">
+          <label class="etiqueta-email">Host/servidor:</label>
+          <q-input class="col" v-model.trim="formEmail.host"
+            input-class="resaltarTextoInput" dense outlined required />
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
-          :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
-          <label for="">Puerto:</label>
-        </div>
-        <div class="col-xs-11 col-md-3 q-ml-md"
-          :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
-          <q-input :type="$q.platform.is.mobile ? 'number' : 'text'"
+        <div class="col-12 col-md-6 fila-campo-email">
+          <label class="etiqueta-email">Puerto:</label>
+          <q-input class="col" :type="$q.platform.is.mobile ? 'number' : 'text'"
             v-model.trim="formEmail.puerto"
             input-class="resaltarTextoInput" @keyup="allowOnlyNumber"
             dense outlined required />
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
-          :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
-          <label for="">Usuario/Correo:</label>
-        </div>
-        <div class="col-xs-11 col-md-3 q-ml-md"
-          :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
-          <q-input v-model.trim="formEmail.usuario" input-class="resaltarTextoInput" dense outlined required />
+        <div class="col-12 col-md-6 fila-campo-email">
+          <label class="etiqueta-email">Usuario/Correo:</label>
+          <q-input class="col" v-model.trim="formEmail.usuario"
+            input-class="resaltarTextoInput" dense outlined required />
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
-          :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
-          <label for="">Contraseña:</label>
-        </div>
-        <div class="col-xs-11 col-md-3 q-ml-md"
-          :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
-
-          <q-input input-class="resaltarTextoInput"
+        <div class="col-12 col-md-6 fila-campo-email">
+          <label class="etiqueta-email">Contraseña:</label>
+          <q-input class="col" input-class="resaltarTextoInput"
             :type="isPwd ? 'password' : 'text'" label-color="blue-grey-3"
             outlined dense v-model.trim="formEmail.password" required>
             <template v-slot:append>
@@ -118,13 +116,9 @@
           </q-input>
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
-          :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
-          <label for="">Seguridad:</label>
-        </div>
-        <div class="col-xs-11 col-md-3 q-ml-md"
-          :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
-          <q-select
+        <div class="col-12 col-md-6 fila-campo-email">
+          <label class="etiqueta-email">Seguridad:</label>
+          <q-select class="col"
             v-model="formEmail.seguridad"
             :options="['SSL', 'TLS', 'NONE']"
             outlined dense emit-value map-options required
@@ -132,30 +126,15 @@
           />
         </div>
 
-        <div class="col-xs-11 col-md-2 flex items-center q-mt-lg"
-          :class="[ $q.screen.width < 1022 ? 'justify-center' : 'justify-end']">
-          <label for="">Empresa:</label>
-        </div>
-        <div class="col-xs-11 col-md-3 q-ml-md"
-          :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
-
-          <q-select outlined dense v-model="formEmail.empresa" readonly
-              emit-value map-options :options="listCompanies">
-          </q-select>
-        </div>
-
-        <div class="col-xs-11 col-md-11 q-ml-md text-center q-pb-xl q-pt-lg"
-          :class="[ $q.screen.width < 1022 ? 'q-mt-sm' : 'q-mt-lg']">
-
+        <div class="col-12 text-center q-mt-md q-pb-lg">
           <q-btn @click="prompt = !prompt" label="Probar Configuración"
-          :class="[ $q.screen.width > 600 || 'q-mb-md']"
-          icon-right="send" outline rounded class="q-mr-lg"
+            :class="[ $q.screen.width > 600 || 'q-mb-md']"
+            icon-right="send" outline rounded class="q-mr-lg"
             style="color: #696cff;"
             :style="!$q.platform.is.mobile || 'font-size: 12px'" />
 
           <q-btn type="submit" label="Guardar"
-          icon-right="save" outline rounded class="q-mr-lg" style="color: #696cff" />
-
+            icon-right="save" outline rounded style="color: #696cff" />
         </div>
 
       </div>
@@ -183,6 +162,33 @@
 
 
 <style>
+.fila-campo-email{
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+.etiqueta-email{
+  min-width: 108px;
+  text-align: right;
+  padding-right: 12px;
+  white-space: nowrap;
+}
+/* En pantallas chicas la etiqueta pasa arriba: si no, deja al input sin ancho. */
+@media (max-width: 599px){
+  .fila-campo-email{
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .etiqueta-email{
+    min-width: 0;
+    text-align: left;
+    padding: 0 0 4px 0;
+  }
+  /* En columna el `col` crecería a lo alto y aplastaría el input. */
+  .fila-campo-email > .col{
+    flex: 1 1 auto;
+  }
+}
 .resaltarTextoInput{
   font-size: 18px;
   text-align: center;

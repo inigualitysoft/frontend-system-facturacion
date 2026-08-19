@@ -2,6 +2,9 @@
   import { ref, watch, onBeforeUnmount } from 'vue';
   import { useRouter } from "vue-router";
   import useHelpers from "../../../composables/useHelpers";
+  import AddProduct from '../productos/AddProduct.vue'
+  import { useProduct as useFormProducto } from "../productos/composables/useProducts";
+  import { resaltarCoincidencia } from "src/utils/resaltar-busqueda";
   import { date, Dialog, Loading } from 'quasar'
   import AddProveedor from '../proveedores/AddProveedor.vue'
   import SelectProduct from '../../../components/SelectProduct.vue'
@@ -20,6 +23,8 @@
     listProductos,
     quitarArticulo,
     sucursal_selected,
+    iva_selected,
+    formatearNumero,
     valorFactura
   } = useProduct();
   let { actualizarLista } = useProveedor();
@@ -66,7 +71,11 @@
   const getProveedores = async () => {
     modalAgregarProveedor.value = false;
     try {
-      const { data: proveedores } = await api.get('/providers/true');
+      // Sin el header company-id el backend no podía filtrar y llegaban los
+      // proveedores de todas las empresas.
+      const { data: proveedores } = await api.get('/providers/true', {
+        headers: { 'company-id': claim.company.id }
+      });
       listProveedores.value = [];
 
       proveedores.forEach(proveedor => {
@@ -156,7 +165,12 @@
     })
   }
 
+  // Se guarda el término para poder resaltarlo en las opciones del combo.
+  const terminoArticulo = ref('');
+
   const filtarArticulo = (val= '', update) => {
+    terminoArticulo.value = val;
+
     if (val === '') {
       update(() => {
         listArticulos.value = listArticulosOptions.value
@@ -176,7 +190,8 @@
 
     try {
       const { data } = await api.get('/products', {
-        params: { page: 1, limit: 100000, busqueda: '' },
+        // activos: un producto inactivo no debe poder agregarse al comprobante.
+        params: { page: 1, limit: 100000, busqueda: '', activos: true },
         headers: headers
       })
 
@@ -206,6 +221,33 @@
     rows.value = [];
   })
 
+
+  // Alta de producto/servicio desde el propio buscador, cuando no existe.
+  const {
+    modalAgregarProducto,
+    actualizarTabla: productoGuardado,
+    limpiarFormulario: limpiarFormProducto,
+    selectSucursal: sucursalFormProducto
+  } = useFormProducto();
+
+  const abrirFormProducto = () => {
+    limpiarFormProducto();
+
+    // Se crea en la sucursal del comprobante: creado en otra, no aparecería en
+    // el combo (el catálogo se carga filtrado por sucursal).
+    sucursalFormProducto.value = sucursal_selected.value;
+
+    modalAgregarProducto.value = true;
+  }
+
+  // Al guardarlo se recarga el catálogo para que aparezca en el combo.
+  watch( productoGuardado, ( guardado ) => {
+    if ( !guardado ) return;
+
+    getAllProducts();
+    productoGuardado.value = false;
+  })
+
 </script>
 
 <template>
@@ -233,7 +275,7 @@
       <div class="row q-pt-none q-mx-lg q-col-gutter-md">
         <div class="col-xs-12 col-md-5 q-mt-lg q-pl-none">
           <label>Seleccionar Proveedor: </label>
-          <q-select color="orange" filled v-model="formCompras.proveedor_id" dense
+          <q-select color="orange" outlined v-model="formCompras.proveedor_id" dense
             :options="listProveedores" emit-value map-options
             @filter="filtrarProveedores" use-input input-debounce="0">
 
@@ -254,28 +296,35 @@
         <div class="col-xs-12 col-md-3"
           :class="$q.screen.width <= 1023 ? 'q-pl-none' : 'q-mt-lg'">
           <label>Numero de Comprobante: </label>
-          <q-input v-model="formCompras.numero_comprobante"
+          <!-- Sin máscara: la compra es un comprobante de un tercero y no
+               siempre respeta el formato 000-000-000000000. -->
+          <q-input v-model.trim="formCompras.numero_comprobante"
             :input-style="{textAlign: 'center', fontSize: '16px'}"
-            filled mask="###-###-#########" fill-mask dense required />
+            placeholder="001-001-000000001"
+            outlined dense required />
         </div>
 
         <div class="col-xs-12 col-md-4"
           :class="$q.screen.width <= 1023 ? 'q-pl-none' : 'q-mt-lg'">
           <label>Fecha de compra: </label>
-          <q-input filled dense v-model="formCompras.inputDate"
-          :input-style="{textAlign: 'center'}"
+          <!-- El popup cuelga del q-input, no del ícono: así se abre tocando
+               cualquier parte del campo. Va readonly porque la fecha se elige
+               en el calendario. -->
+          <q-input outlined dense v-model="formCompras.inputDate"
+            :input-style="{textAlign: 'center'}"
+            input-class="cursor-pointer" readonly
             mask="date" :rules="['date']">
             <template v-slot:append>
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                  <q-date v-model="formCompras.inputDate">
-                    <div class="row items-center justify-end">
-                      <q-btn v-close-popup label="Close" color="primary" flat />
-                    </div>
-                  </q-date>
-                </q-popup-proxy>
-              </q-icon>
+              <q-icon name="event" class="cursor-pointer" />
             </template>
+
+            <q-popup-proxy transition-show="scale" transition-hide="scale">
+              <q-date v-model="formCompras.inputDate">
+                <div class="row items-center justify-end">
+                  <q-btn v-close-popup label="Cerrar" color="primary" flat />
+                </div>
+              </q-date>
+            </q-popup-proxy>
           </q-input>
         </div>
 
@@ -284,7 +333,7 @@
           :class="$q.screen.width >= 1023 || 'q-pt-none'">
           <label>Seleccionar Sucursal:
           </label>
-          <q-select filled v-model="sucursal_selected"
+          <q-select outlined v-model="sucursal_selected"
             @update:model-value="rows = []"
             :options="sucursales" emit-value map-options dense>
             <template v-slot:no-option>
@@ -301,15 +350,23 @@
           class="col-xs-12 col-md-5 q-pl-none">
           <label>Filtrar por codigo de barra o nombre del producto:</label>
           <q-select
-            filled v-model="filterByCodBarra" dense
+            outlined v-model="filterByCodBarra" dense
             :options="listArticulos"
             @update:model-value="agregarAndValidarStock( filterByCodBarra.detalles, 'compras')"
-            @filter="filtarArticulo" use-input input-debounce="900">
+            @filter="filtarArticulo" use-input input-debounce="900"
+            popup-content-class="opciones-producto">
 
+            <!-- Sin resultados se ofrece crearlo ahí mismo: al guardarlo se
+                 recarga la lista y queda disponible para agregarlo. -->
             <template v-slot:no-option>
               <q-item>
                 <q-item-section class="text-grey">
                   No hay resultados
+                </q-item-section>
+                <q-item-section side>
+                  <q-btn dense outline no-caps color="primary" icon="add"
+                    label="Crear producto/servicio"
+                    @click.stop="abrirFormProducto" />
                 </q-item-section>
               </q-item>
             </template>
@@ -324,7 +381,9 @@
                   ? $q.dark.isActive ? 'bg-indigo-4' : 'bg-indigo-1'
                   : ''">
                 <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                  <q-item-label>
+                    <span v-html="resaltarCoincidencia(scope.opt.label, terminoArticulo)"></span>
+                  </q-item-label>
                 </q-item-section>
               </q-item>
             </template>
@@ -334,22 +393,30 @@
         <div class="col-xs-12 col-sm-12 col-md-7"
           :class="$q.screen.width <= 1023 ? 'q-pl-none q-pt-sm' : 'q-pt-md'">
           <label>Descripción: </label>
-          <q-input v-model.trim="formCompras.descripcion" dense filled required />
+          <q-input v-model.trim="formCompras.descripcion" dense outlined required />
         </div>
 
         <div v-if="claim.roles[0] == 'SUPER-ADMINISTRADOR' || claim.roles[0] == 'ADMINISTRADOR'"
           class="col-xs-12 col-md-5 q-pl-none">
           <label>Filtrar por codigo de barra o nombre del producto:</label>
           <q-select
-            filled v-model="filterByCodBarra" dense
+            outlined v-model="filterByCodBarra" dense
             :options="listArticulos"
             @update:model-value="agregarAndValidarStock( filterByCodBarra.detalles, 'compras')"
-            @filter="filtarArticulo" use-input input-debounce="900">
+            @filter="filtarArticulo" use-input input-debounce="900"
+            popup-content-class="opciones-producto">
 
+            <!-- Sin resultados se ofrece crearlo ahí mismo: al guardarlo se
+                 recarga la lista y queda disponible para agregarlo. -->
             <template v-slot:no-option>
               <q-item>
                 <q-item-section class="text-grey">
                   No hay resultados
+                </q-item-section>
+                <q-item-section side>
+                  <q-btn dense outline no-caps color="primary" icon="add"
+                    label="Crear producto/servicio"
+                    @click.stop="abrirFormProducto" />
                 </q-item-section>
               </q-item>
             </template>
@@ -364,7 +431,9 @@
                   ? $q.dark.isActive ? 'bg-indigo-4' : 'bg-indigo-1'
                   : ''">
                 <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                  <q-item-label>
+                    <span v-html="resaltarCoincidencia(scope.opt.label, terminoArticulo)"></span>
+                  </q-item-label>
                 </q-item-section>
               </q-item>
             </template>
@@ -378,15 +447,23 @@
         <div class="col-xs-12 col-md-5">
           <label>Filtrar por codigo de barra o nombre del producto:</label>
           <q-select
-            filled v-model="filterByCodBarra" dense
+            outlined v-model="filterByCodBarra" dense
             :options="listArticulos"
             @update:model-value="agregarAndValidarStock( filterByCodBarra.detalles, 'compras')"
-            @filter="filtarArticulo" use-input input-debounce="900">
+            @filter="filtarArticulo" use-input input-debounce="900"
+            popup-content-class="opciones-producto">
 
+            <!-- Sin resultados se ofrece crearlo ahí mismo: al guardarlo se
+                 recarga la lista y queda disponible para agregarlo. -->
             <template v-slot:no-option>
               <q-item>
                 <q-item-section class="text-grey">
                   No hay resultados
+                </q-item-section>
+                <q-item-section side>
+                  <q-btn dense outline no-caps color="primary" icon="add"
+                    label="Crear producto/servicio"
+                    @click.stop="abrirFormProducto" />
                 </q-item-section>
               </q-item>
             </template>
@@ -401,7 +478,9 @@
                   ? $q.dark.isActive ? 'bg-indigo-4' : 'bg-indigo-1'
                   : ''">
                 <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                  <q-item-label>
+                    <span v-html="resaltarCoincidencia(scope.opt.label, terminoArticulo)"></span>
+                  </q-item-label>
                 </q-item-section>
               </q-item>
             </template>
@@ -484,28 +563,41 @@
             style="display: flex;justify-content: end;">
             <table :class="[!$q.screen.xs ? 'linearTablaDetalle' : 'q-pt-sm']">
               <tr class="text-right">
+                <td><b>TOTAL BRUTO:</b></td>
+                <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
+                  {{ valorFactura.subtotal }}
+                </td>
+              </tr>
+              <tr class="text-right">
+                <td><b>DESCUENTOS:</b></td>
+                <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
+                  {{ valorFactura.descuento }}
+                </td>
+              </tr>
+              <tr class="text-right">
                 <td><b>SUBTOTAL:</b></td>
                 <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
-                  ${{ valorFactura.subtotal }}
+                  {{ formatearNumero(valorFactura.subtotal - valorFactura.descuento) }}
+                </td>
+              </tr>
+              <!-- Solo aparece si algún ítem tiene ICE configurado. -->
+              <tr v-if="valorFactura.ice > 0" class="text-right">
+                <td><b>ICE:</b></td>
+                <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
+                  {{ valorFactura.ice }}
                 </td>
               </tr>
               <tr class="text-right">
-                <td><b>IVA(12%):</b></td>
+                <td><b>IVA({{ iva_selected }}%):</b></td>
                 <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
-                  ${{ valorFactura.iva }}
-                </td>
-              </tr>
-              <tr class="text-right">
-                <td><b>TOTAL DESCUENTO:</b></td>
-                <td style="width: 50px;" class="text-subtitle1 text-weight-regular">
-                  ${{ valorFactura.descuento }}
+                  {{ valorFactura.iva }}
                 </td>
               </tr>
               <tr class="text-right">
                 <td><b>TOTAL DE COMPRA:</b></td>
                 <td style="width: 50px;">
                   <q-badge outline class="text-subtitle1 text-weight-bold"
-                      color="secondary" :label="`$${ valorFactura.total }`" />
+                      color="secondary" :label="`${ valorFactura.total }`" />
                 </td>
               </tr>
             </table>
@@ -540,6 +632,10 @@
   </q-dialog>
 
   <!-- BUSCAR ALGUN PRODUCTO -->
+  <q-dialog v-model="modalAgregarProducto">
+    <AddProduct />
+  </q-dialog>
+
   <q-dialog v-model="modalSelectProducto">
     <SelectProduct :listProductos="listProductos" @agregarProduct="agregarProduct" />
   </q-dialog>
