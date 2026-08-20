@@ -138,6 +138,12 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true}
       },
       {
+        path: 'ingresos-egresos',
+        name: 'ingresos-egresos',
+        component: () => import('pages/dashboard/ingresos-egresos/IndexPage.vue'),
+        meta: { requiresAuth: true }
+      },
+      {
         path: 'mensajeria',
         name: 'mensajeria',
         component: () => import('pages/dashboard/mensajeria/IndexPage.vue'),

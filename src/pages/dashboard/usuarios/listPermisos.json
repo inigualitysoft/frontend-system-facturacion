@@ -254,6 +254,28 @@
             "value": "eliminar.sucursal"
           }
         ]
+      },
+      {
+        "label": "Ingresos Y Egresos",
+        "value": "Ingresos Y Egresos",
+        "children": [
+          {
+            "label": "Ver Ingresos y Egresos",
+            "value": "index.ingresos.egresos"
+          },
+          {
+            "label": "Crear Movimiento",
+            "value": "crear.ingreso.egreso"
+          },
+          {
+            "label": "Editar Movimiento",
+            "value": "editar.ingreso.egreso"
+          },
+          {
+            "label": "Eliminar Movimiento",
+            "value": "eliminar.ingreso.egreso"
+          }
+        ]
       }
     ]
   }

@@ -209,6 +209,12 @@
       icon: 'img:https://img.icons8.com/3d-fluency/94/package.png',
       link: '/productos',
       permisoRequerido: 'index.productos'
+    },
+    {
+      title: 'Ingresos / Egresos',
+      icon: 'img:https://img.icons8.com/3d-fluency/94/money-bag.png',
+      link: '/ingresos-egresos',
+      permisoRequerido: 'index.ingresos.egresos'
     }
   ]
 
