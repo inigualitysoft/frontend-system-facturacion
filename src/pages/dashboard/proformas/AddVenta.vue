@@ -1,5 +1,5 @@
 <script setup>
-  import { ref, watch, onBeforeUnmount } from 'vue';
+  import { ref, computed, watch, onBeforeUnmount } from 'vue';
   import useHelpers from "../../../composables/useHelpers";
   import AddProduct from '../productos/AddProduct.vue'
   import { useProduct as useFormProducto } from "../productos/composables/useProducts";
@@ -38,7 +38,21 @@
   const listArticulosOptions = ref([]);
   const timeStamp = Date.now()
   let fechaActual = date.formatDate(timeStamp, 'DD/MM/YYYY');
-  const cosumidor_final_id = import.meta.env.VITE_CONSUMIDOR_FINAL_ID
+  // El id del CONSUMIDOR FINAL de la empresa lo resuelve el backend. Antes
+  // salia de una variable de entorno: un unico UUID fijo para todas las
+  // empresas, que en esta base no existia y hacia fallar el comprobante con un
+  // error de llave foranea.
+  const consumidorFinalId = ref('');
+
+  // Ficha tecnica del SRI, 9.10: sobre 50 USD hay que identificar al adquirente.
+  const MONTO_MAXIMO_CONSUMIDOR_FINAL = 50;
+
+  // Bancarizacion: sobre 500 USD el pago debe ir por el sistema financiero.
+  const MONTO_MAXIMO_SIN_SISTEMA_FINANCIERO = 500;
+
+  const esConsumidorFinal = computed(() =>
+    !!consumidorFinalId.value && formVenta.value.customer_id === consumidorFinalId.value
+  );
 
   if ( claim.roles[0] !== 'SUPER-ADMINISTRADOR' || claim.roles[0] !== 'ADMINISTRADOR' )
     sucursal_selected.value = claim.sucursales[0]
@@ -46,7 +60,7 @@
   columns.value[7] = { name: 'pvp', label: 'Precio de Venta', align: 'center' }
 
   const formVenta = ref({
-    customer_id: import.meta.env.VITE_CONSUMIDOR_FINAL_ID,
+    customer_id: '',
     numero_comprobante: '--- --- ---------',
     products: [],
     user_id: '',
@@ -111,7 +125,12 @@
     try {
       let headers = { 'company-id': claim.company.id };
       // Solo clientes activos: un cliente inactivo no debe poder facturarse.
-      const { data: clientes } = await api.get('/customers/true', { headers });
+      const [ { data: clientes }, { data: consumidorFinal } ] = await Promise.all([
+        api.get('/customers/true', { headers }),
+        api.get('/customers/consumidor-final', { headers })
+      ]);
+
+      consumidorFinalId.value = consumidorFinal.id;
 
       listClientes.value = [];
 
@@ -124,12 +143,15 @@
       });
 
       listClientes.value.unshift({
-        label: 'CONSUMIDOR FINAL',
-        value: import.meta.env.VITE_CONSUMIDOR_FINAL_ID,
-        num_doc: '9999999999999'
+        label: consumidorFinal.nombres,
+        value: consumidorFinal.id,
+        num_doc: consumidorFinal.numero_documento
       });
       optionsClients = listClientes.value;
-      formVenta.value.customer_id = customer_id;
+
+      // Al entrar todavia no hay cliente elegido y el comprobante arranca en
+      // consumidor final; si ya habia uno seleccionado se respeta.
+      formVenta.value.customer_id = customer_id || consumidorFinal.id;
 
       getProforma();
     } catch (error) {
@@ -159,16 +181,19 @@
         existError = true;
       }
 
-      if ( valorFactura.value.total > 50 &&
-          formVenta.value.customer_id == import.meta.env.VITE_CONSUMIDOR_FINAL_ID &&
+      if ( valorFactura.value.total > MONTO_MAXIMO_CONSUMIDOR_FINAL &&
+          formVenta.value.customer_id == consumidorFinalId.value &&
           tipo_documento != 'PROFORMA') {
-        validaciones.value.customer_id.message = 'La factura supera los $50.00, no puede ser emitida a CONSUMIDOR FINAL'
+        validaciones.value.customer_id.message = `La factura supera los $${ MONTO_MAXIMO_CONSUMIDOR_FINAL.toFixed(2) }, no puede ser emitida a CONSUMIDOR FINAL`
         validaciones.value.customer_id.isValid = false;
         existError = true;
       }
 
-      if ( valorFactura.value.total > 50 && formVenta.value.forma_pago == '01' ) {
-        validaciones.value.forma_pago.message = 'La factura supera los $500.00, debes elegir otra forma de pago'
+      // El tope de esta regla es 500, no 50: la condicion decia 50 y el mensaje
+      // 500, asi que obligaba a cambiar la forma de pago desde $50.01.
+      if ( valorFactura.value.total > MONTO_MAXIMO_SIN_SISTEMA_FINANCIERO
+          && formVenta.value.forma_pago == '01' ) {
+        validaciones.value.forma_pago.message = `La factura supera los $${ MONTO_MAXIMO_SIN_SISTEMA_FINANCIERO.toFixed(2) }, debes elegir otra forma de pago`
         validaciones.value.forma_pago.isValid = false;
         existError = true;
       }
@@ -212,7 +237,9 @@
       products: rows.value,
       user_id: claim.id,
       tipo,
-      send_messages,
+      // Al consumidor final no se le envia nada: no hay correo ni celular
+      // reales a donde mandar el comprobante.
+      send_messages: esConsumidorFinal.value ? false : send_messages.value,
       porcentaje_iva: iva_selected.value,
       name_proforma: nombre_proforma.value
     }
@@ -406,14 +433,17 @@
               @filter="filtrarCliente" use-input input-debounce="0">
 
               <template v-slot:error>
-                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                <label class="mensaje-error"
+                  :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   {{ validaciones.customer_id.message }}
                 </label>
               </template>
 
-              <template v-if="formVenta.customer_id && formVenta.customer_id !== 'CONSUMIDOR FINAL'" v-slot:append>
+              <!-- Limpiar = volver a consumidor final. La condicion comparaba el
+                   id contra el texto 'CONSUMIDOR FINAL', asi que nunca se ocultaba. -->
+              <template v-if="formVenta.customer_id && formVenta.customer_id !== consumidorFinalId" v-slot:append>
                 <q-icon name="cancel"
-                  @click.stop.prevent="formVenta.customer_id = cosumidor_final_id" class="cursor-pointer" />
+                  @click.stop.prevent="formVenta.customer_id = consumidorFinalId" class="cursor-pointer" />
               </template>
 
               <template v-slot:no-option>
@@ -444,7 +474,8 @@
               :options="sucursales" emit-value map-options dense>
 
               <template v-slot:error>
-                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                <label class="mensaje-error"
+                  :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   {{ validaciones.sucursal_id.message }}
                 </label>
               </template>
@@ -522,7 +553,8 @@
                 { label: 'ENDOSO DE TÍTULOS', value: '21' },
                 ]">
               <template v-slot:error>
-                <label :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
+                <label class="mensaje-error"
+                  :class="$q.dark.isActive ? 'text-red-4' : 'text-negative'">
                   {{ validaciones.forma_pago.message }}
                 </label>
               </template>
@@ -613,7 +645,7 @@
                   <q-input v-model="formVenta.descripcion" outlined type="textarea" rows="4" />
                 </div>
               </div>
-              <div class="q-ml-sm q-mt-md">
+              <div v-if="!esConsumidorFinal" class="q-ml-sm q-mt-md">
                 <q-checkbox
                   left-label
                   size="xl"
@@ -754,5 +786,12 @@
   }
   .my-sticky-header-table3 tbody tr:nth-child(even) {
       background-color: rgb(243, 235, 245);
+  }
+
+  /* Los mensajes de validacion salian en 11px (el tamano que Quasar usa en los
+     campos dense) y costaba leerlos. */
+  .mensaje-error{
+    font-size: 14px;
+    line-height: 1.2;
   }
 </style>
