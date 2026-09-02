@@ -34,7 +34,7 @@
     { name: 'sucursal', label: 'Sucursal', align: 'center' },
     { name: 'num_comprobante', label: 'Num. Comprobante', field: 'numero_comprobante', align: 'center' },
     { name: 'usuario', label: 'Usuario', align: 'center' },
-    { name: 'cliente', label: 'Cliente', align: 'center' },
+    { name: 'cliente', label: 'Cliente', align: 'left' },
     { name: 'f/h', label: 'Fecha/Hora', align: 'center', field: 'created_at' },
     { name: 'total', label: 'Total', name: 'total', align: 'center' },
     { name: 'estado', label: 'Estado', field: 'estado', align: 'center' },
@@ -256,7 +256,7 @@
 
         mostrarNotify(
           resultado.estado === 'AUTORIZADO' ? 'positive' : 'warning',
-          `La factura ${ resultado.numero_comprobante } quedo en estado: ${ resultado.estado }`
+          `La factura ${ resultado.numero_comprobante } quedó en estado: ${ resultado.estado }`
         );
 
         tableRef.value.requestServerInteraction();
