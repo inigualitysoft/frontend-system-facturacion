@@ -225,9 +225,49 @@
       sucursal_selected.value = sucursales.value[0].value;
   }
 
+  /**
+   * Estados en los que la factura ya salio hacia el SRI y solo falta saber en
+   * que quedo. PENDIENTE entra aca: significa que la emision arranco pero nunca
+   * se guardo la respuesta, asi que puede estar autorizada en el SRI.
+   */
+  const estadosPorVerificar = [
+    'PENDIENTE',
+    'RECIBIDA',
+    'ERROR ENVIO AUTORIZACION',
+    'ERROR ENVIO AUTORIZACION - ANULACION'
+  ];
+
   const reEmitirFactura = async ( data ) => {
 
     data.loading = true;
+
+    // Estos no se reenvian: se le vuelve a preguntar al servicio de facturacion
+    // por el comprobante y se sincroniza clave de acceso y estado. Puede no
+    // haber clave todavia, por eso tambien viaja el numero de comprobante.
+    if ( estadosPorVerificar.includes( data.estadoSRI.trim() ) ) {
+      try {
+        const { data: resultado } = await api.post('/CE/facturas/verificarEstado', {
+          id: data.id,
+          clave_acceso: data.clave_acceso,
+          numero_comprobante: data.numero_comprobante,
+          sucursal_id: data.sucursal_id?.id,
+          user_id: data.user_id?.id
+        });
+
+        mostrarNotify(
+          resultado.estado === 'AUTORIZADO' ? 'positive' : 'warning',
+          `La factura ${ resultado.numero_comprobante } quedo en estado: ${ resultado.estado }`
+        );
+
+        tableRef.value.requestServerInteraction();
+      } catch (error) {
+        mostrarNotify('warning', error.response?.data?.message ?? 'No se pudo verificar la factura');
+      } finally {
+        data.loading = false;
+      }
+
+      return;
+    }
 
     let tipo_comprobante = '';
     let clave_acceso = '';
@@ -548,15 +588,15 @@
 
                 <q-btn v-if="props.row.estadoSRI.trim() === 'ERROR ENVIO RECEPCION'
                     || props.row.estadoSRI.trim() === 'ERROR ENVIO RECEPCION - ANULACION'
-                    || props.row.estadoSRI.trim() === 'ERROR ENVIO AUTORIZACION'
-                    || props.row.estadoSRI.trim() === 'RECIBIDA'
-                    || props.row.estadoSRI.trim() === 'ERROR ENVIO AUTORIZACION - ANULACION'"
+                    || estadosPorVerificar.includes( props.row.estadoSRI.trim() )"
                     round color="deep-orange-8" icon="fa-solid fa-retweet"
                     :loading="props.row.loading"
                     @click="reEmitirFactura( props.row )"
                     size="10px" class="q-mr-sm">
                   <q-tooltip anchor="top middle" self="bottom middle">
-                    Reenviar Factura Electrónica
+                    {{ estadosPorVerificar.includes( props.row.estadoSRI.trim() )
+                       ? 'Verificar estado en el SRI'
+                       : 'Reenviar Factura Electrónica' }}
                   </q-tooltip>
                 </q-btn>
 

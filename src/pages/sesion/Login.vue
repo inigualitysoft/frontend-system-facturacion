@@ -17,10 +17,16 @@
       authUserStore.setPermisos( permisos );
       location.href ='/'
     } catch ( error: any ) {
-      if(error.response.data.message == 'Credentials not valid(password)')
-        mostrarNotify('warning', 'La contraseña esta incorrecta');
-      if(error.response.data.message == 'Credentials not valid(email)')
-        mostrarNotify('warning', 'El email esta incorrecto');
+      // Un mensaje unico para credenciales: decir si fallo el correo o la
+      // contrasena le confirma a cualquiera que ese correo existe en el sistema.
+      // Los demas fallos si se distinguen, porque no son culpa de quien entra.
+      if ( !error.response )
+        mostrarNotify('warning', 'No se pudo conectar con el servidor');
+      else if ( error.response.status === 401 )
+        mostrarNotify('warning', 'Correo o contraseña incorrectos');
+      else
+        mostrarNotify('warning', error.response.data?.message ?? 'No se pudo iniciar sesión, intenta de nuevo');
+
       loading.value = false;
     }
   }
