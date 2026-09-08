@@ -234,8 +234,11 @@
     'PENDIENTE',
     'RECIBIDA',
     'ERROR ENVIO AUTORIZACION',
-    'ERROR ENVIO AUTORIZACION - ANULACION'
+    'ERROR ENVIO AUTORIZACION - ANULACION',
+    ''
   ];
+
+  const porVerificar = ( estado ) => estadosPorVerificar.includes( ( estado ?? '' ).trim() );
 
   const reEmitirFactura = async ( data ) => {
 
@@ -244,7 +247,7 @@
     // Estos no se reenvian: se le vuelve a preguntar al servicio de facturacion
     // por el comprobante y se sincroniza clave de acceso y estado. Puede no
     // haber clave todavia, por eso tambien viaja el numero de comprobante.
-    if ( estadosPorVerificar.includes( data.estadoSRI.trim() ) ) {
+    if ( porVerificar( data.estadoSRI ) ) {
       try {
         const { data: resultado } = await api.post('/CE/facturas/verificarEstado', {
           id: data.id,
@@ -588,13 +591,13 @@
 
                 <q-btn v-if="props.row.estadoSRI.trim() === 'ERROR ENVIO RECEPCION'
                     || props.row.estadoSRI.trim() === 'ERROR ENVIO RECEPCION - ANULACION'
-                    || estadosPorVerificar.includes( props.row.estadoSRI.trim() )"
+                    || porVerificar( props.row.estadoSRI )"
                     round color="deep-orange-8" icon="fa-solid fa-retweet"
                     :loading="props.row.loading"
                     @click="reEmitirFactura( props.row )"
                     size="10px" class="q-mr-sm">
                   <q-tooltip anchor="top middle" self="bottom middle">
-                    {{ estadosPorVerificar.includes( props.row.estadoSRI.trim() )
+                    {{ porVerificar( props.row.estadoSRI )
                        ? 'Verificar estado en el SRI'
                        : 'Reenviar Factura Electrónica' }}
                   </q-tooltip>
