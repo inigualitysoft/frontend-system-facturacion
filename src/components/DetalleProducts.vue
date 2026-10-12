@@ -34,6 +34,21 @@ if (props.detalleData.buyToProduct) {
  */
 const descargando = ref(false);
 
+/**
+ * Última respuesta de error del SRI. Solo se muestra mientras la factura no haya
+ * quedado bien: una AUTORIZADA o ANULADA ya salió, aunque la columna conserve el
+ * texto de un intento anterior.
+ */
+const errorSRI = computed(() => {
+  if ( props.detalleData.buyToProduct ) return '';
+
+  const estadoActual = String( props.detalleData.estadoSRI ?? '' ).trim();
+
+  if ( [ 'AUTORIZADO', 'ANULADO', 'PROFORMA' ].includes( estadoActual ) ) return '';
+
+  return String( props.detalleData.respuestaSRI ?? '' ).trim();
+});
+
 /** La factura anulada conserva su propia clave y suma la de la nota de crédito. */
 const tieneNotaCredito = computed(() => Boolean( props.detalleData.clave_acceso_nota_credito ));
 
@@ -234,6 +249,20 @@ const pagination = ref({
           <q-badge  outline class="q-py-xs q-px-md"
             :color="$q.dark.isActive ? 'blue-grey-3' : 'blue-grey-7'"
             :label="estado" />
+        </div>
+
+        <div v-if="errorSRI"
+          class="col-xs-12 col-sm-5 q-mt-none"
+          :class="[$q.screen.xs ? 'text-center' : 'text-right']">
+          <label class="text-subtitle1 text-weight-medium">Respuesta del SRI:</label>
+        </div>
+        <div v-if="errorSRI"
+          class="col-xs-12 col-sm-6 q-mt-none flex items-center"
+          :class="[$q.screen.xs ? 'justify-left' : 'q-ml-lg text-left']">
+          <label :class="$q.dark.isActive ? 'text-warning' : 'text-orange-10'"
+            style="width: 100%; word-wrap: break-word;">
+            {{ errorSRI }}
+          </label>
         </div>
 
         <div class="col-xs-12 col-sm-12 q-my-sm">

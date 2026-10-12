@@ -240,6 +240,19 @@
 
   const porVerificar = ( estado ) => estadosPorVerificar.includes( ( estado ?? '' ).trim() );
 
+  /**
+   * Última respuesta de error del SRI, solo mientras la factura no haya quedado
+   * bien. Una AUTORIZADA o ANULADA ya salió, aunque la columna conserve el texto
+   * de un intento anterior.
+   */
+  const ESTADOS_SIN_ERROR = [ 'AUTORIZADO', 'ANULADO', 'PROFORMA' ];
+
+  const errorSRI = ( venta ) => {
+    const respuesta = ( venta.respuestaSRI ?? '' ).trim();
+
+    return ESTADOS_SIN_ERROR.includes( ( venta.estadoSRI ?? '' ).trim() ) ? '' : respuesta;
+  };
+
   const reEmitirFactura = async ( data ) => {
 
     data.loading = true;
@@ -541,7 +554,7 @@
             <template v-slot:body-cell-estado="props">
               <q-td :props="props">
                 <q-badge
-                  v-if="props.row.estadoSRI == 'NO AUTORIZADO' || props.row.estadoSRI.trim() == 'DEVUELTA'"
+                  v-if="props.row.estadoSRI == 'NO AUTORIZADO' || props.row.estadoSRI.trim() == 'DEVUELTA' || errorSRI( props.row )"
                   outline
                   class="q-py-xs q-px-md"
                   :color="$q.dark.isActive ? 'warning' : 'orange-10'"
@@ -550,7 +563,7 @@
                     anchor="center left"
                     self="center right"
                     :offset="[10, 10]">
-                    {{ props.row.respuestaSRI }}
+                    {{ errorSRI( props.row ) || props.row.estadoSRI }}
                   </q-tooltip>
                 </q-badge>
 

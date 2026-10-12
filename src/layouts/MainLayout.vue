@@ -33,10 +33,6 @@
             <q-menu>
               <q-list style="min-width: 200px">
                 <q-item clickable v-close-popup>
-                  <q-item-section>John Doe</q-item-section>
-                </q-item>
-                <q-separator />
-                <q-item clickable v-close-popup>
                   <q-item-section>Mi Perfil</q-item-section>
                 </q-item>
                 <q-separator />
